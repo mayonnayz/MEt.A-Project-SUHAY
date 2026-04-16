@@ -12,7 +12,7 @@ class SupabaseService
     public function __construct()
     {
         $this->url = rtrim(env('SUPABASE_URL'), '/');
-        $this->key = env('SUPABASE_SERVICE_KEY');
+        $this->key = env('SUPABASE_KEY');
     }
 
     // GET all rows
