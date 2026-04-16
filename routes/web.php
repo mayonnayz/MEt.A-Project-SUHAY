@@ -1,16 +1,53 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\DbConnController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\ServiceManagementController;
 
-Route::get('/', [DbConnController::class, 'index'])->name('home');
+// Landing Page
+Route::get('/', function () {
+    return view('landing');
+});
 
-// Route::get('/add-proponent', [DbConnController::class, 'addProponent']);
-// Route::get('/edit-proponent/{id}', [DbConnController::class, 'editProponent']);
-// Route::get('/delete-proponent/{id}', [DbConnController::class, 'deleteProponent']);
+// Get Involved Page
+Route::get('/volunteer-page', [CategoryController::class, 'volunteerPage']);
 
+// Login Page
+Route::get('/login-page', function () {
+    return view('login');
+});
 
-require __DIR__.'/settings.php';
-require __DIR__.'/auth.php';
+// LOGIN (Supabase)
+Route::post('/login', [AuthController::class, 'login']);
 
+// Service Management
 
+Route::get('/service-management', [ServiceManagementController::class, 'volunteers']);
+Route::get('/applications', [ServiceManagementController::class, 'applications']);
+
+// Assignments
+Route::get('/assignments', function () {
+    return view('assignments');
+});
+
+Route::get('/volunteer-application-form', function () {
+    return view('volunteer-application-form');
+});
+
+// Service Categories
+Route::get('/categories', [CategoryController::class, 'index']);
+Route::post('/categories', [CategoryController::class, 'store']);
+Route::put('/categories/{id}', [CategoryController::class, 'update']);
+Route::put('/categories/{id}/archive', [CategoryController::class, 'archive']);
+
+// Track Activity
+Route::get('/track-activity', function () {
+    return view('track_activity');
+});
+
+Route::get('/volunteer-manager/dashboard', function () {
+    return view('VolunteerManager.dashboard');
+});
+
+Route::get('/sm-logout', [AuthController::class, 'logout']);
