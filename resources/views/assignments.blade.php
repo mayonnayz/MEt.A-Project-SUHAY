@@ -17,60 +17,12 @@
 </head>
 
 <body class="bg-gray-200">
-
 <div class="flex">
-    <div class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden">
-        <a href="/sm-dashboard"
-           class="flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMDash.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Dashboard</span>
-        </a>
-
-        <a href="/sm-ngos"
-           class="flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMNGOs.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">NGOs</span>
-        </a>
-
-        <a href="/sm-donations"
-           class="flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMDonations.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Donations</span>
-        </a>
-
-        <a href="/sm-inventory"
-           class="flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMInventory.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Inventory</span>
-        </a>
-
-        <a href="/service-management"
-           class="flex items-center gap-4 px-4 py-4 bg-[#1a3554] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMVolunteers.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Volunteers</span>
-        </a>
-
-        <a href="/sm-reports"
-           class="flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMReports.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Reports</span>
-        </a>
-
-        <a href="#" onclick="openLogoutModal()" class="mt-auto flex items-center gap-4 px-4 py-4 hover:bg-[#f2c94c] hover:text-[#0e243a] rounded-xl mx-2">
-            <img src="{{ asset('images/ServiceManagement/SMLogout.png') }}" class="w-16 h-16 object-contain">
-            <span class="opacity-0 group-hover:opacity-100">Logout</span>
-        </a>
-    </div>
+    @include('components.nav')
 
     <div class="flex-1 p-8">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-[#0e243a]">Volunteer Management</h1>
+       @include('components.header', ['title' => 'Volunteer Management'])
 
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 bg-gray-300 rounded-full"></div>
-                <p class="text-[#0e243a]">Consuelo Mercado</p>
-            </div>
-        </div>
 
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
             <a href="/service-management"
@@ -84,13 +36,13 @@
             </a>
 
             <a href="/assignments"
-            class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+            class="bg-gray-200 px-6 py-2 rounded-full font-semibold">
                 Assignments
             </a>
 
-            <a href="/categories"
+            <a href="/events"
                class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Service Categories
+                Events
             </a>
 
             <a href="/track-activity"
@@ -162,23 +114,7 @@
         </div>
     </div>
 </div>
-
-<div id="logoutModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-2xl p-8 w-[350px] text-center shadow-lg">
-        <h2 class="text-xl font-bold mb-4">Are you sure you want to logout?</h2>
-        <div class="flex justify-center gap-4 mt-6">
-            <button onclick="closeLogoutModal()" 
-                class="px-6 py-2 bg-gray-300 rounded-full font-semibold hover:bg-gray-400">
-                No
-            </button>
-
-            <a href="/sm-logout" 
-            class="px-6 py-2 bg-[#0e243a] text-yellow-400 rounded-full font-semibold hover:opacity-90">
-                Yes
-            </a>
-        </div>
-    </div>
-</div>
+@include('components.logout-modal')
 
 <script>
     function openLogoutModal() {
