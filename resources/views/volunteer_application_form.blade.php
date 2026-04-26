@@ -7,7 +7,7 @@
 
 <body>
     <div class="back-container">
-        <a href="/volunteer-page" class="back-btn-fixed" id="backBtn">Back</a>
+        <a href="/volunteer/events" class="back-btn-fixed" id="backBtn">Back</a>
     </div>
     
     <!-- LOGO -->
@@ -18,90 +18,75 @@
     <h2>Volunteer Application Form</h2>
 
 
-<form id="volunteerForm" method="POST" action="#">
+<form id="volunteerForm" method="POST" action="/submit-application">
     @csrf
+    <input type="hidden" name="event_id" value="{{ $eventId }}">
 
     <h3>Personal Information</h3>
 
     <label>Full Name:</label><br>
-    <input type="text" name="full_name" required><br><br>
+    <input type="text" value="{{ $user['first_name'] }} {{ $user['last_name'] }}" readonly class="bg-gray-100"><br><br>
 
     <label>Email Address:</label><br>
-    <input type="email" name="email" required><br><br>
+    <input type="email" value="{{ $user['email'] }}" readonly><br><br>
 
     <label>Contact Number:</label><br>
-    <input type="text" name="contact" required><br><br>
-
-   <h3>Address Information</h3>
-
-        <label>Province:</label><br>
-        <input type="text" name="province" required><br><br>
-
-        <label>City / Municipality:</label><br>
-        <input type="text" name="city" required><br><br>
-
-        <label>Barangay:</label><br>
-        <input type="text" name="barangay" required><br><br>
-
-        <label>House Number / Street:</label><br>
-        <input type="text" name="house_number" required><br><br>
-
-        <label>Additional Address Details (optional):</label><br>
-        <textarea name="address_notes" placeholder="Apartment, landmark, etc."></textarea><br><br>
+    <input type="text" value="{{ $user['contact_number'] }}" readonly><br><br>
 
     <label>Date of Birth:</label><br>
-    <input type="date" name="dob" max="{{ date('Y-m-d') }}"><br><br>
+    <input type="text" value="{{ $user['birth_date'] }}" readonly><br><br>
+
+    <label>Full Address:</label><br>
+    <textarea readonly>{{ $user['address'] }}</textarea><br><br>
 
     
-<h3>Availability</h3>
+    <h3>Availability</h3>
 
-<label>Select your available schedule (drag to select):</label>
+    <label>Select your available schedule (drag to select):</label>
 
-<input type="hidden" name="availability" id="availability">
+    <input type="hidden" name="availability" id="availability">
 
-<table class="schedule-table" id="schedule">
-    <thead>
-        <tr>
-            <th>Day</th>
-            <th>Morning</th>
-            <th>Afternoon</th>
-            <th>Evening</th>
-        </tr>
-    </thead>
-    <tbody>
-        @php
-            $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-            $times = ['Morning','Afternoon','Evening'];
-        @endphp
+    <table class="schedule-table" id="schedule">
+        <thead>
+            <tr>
+                <th>Day</th>
+                <th>Morning</th>
+                <th>Afternoon</th>
+                <th>Evening</th>
+            </tr>
+        </thead>
+        <tbody>
+            @php
+                $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+                $times = ['Morning','Afternoon','Evening'];
+            @endphp
 
-        @foreach($days as $day)
-        <tr>
-            <td>{{ $day }}</td>
-            @foreach($times as $time)
-                <td class="slot" data-value="{{ $day }}-{{ $time }}"></td>
+            @foreach($days as $day)
+            <tr>
+                <td>{{ $day }}</td>
+                @foreach($times as $time)
+                    <td class="slot" data-value="{{ $day }}-{{ $time }}"></td>
+                @endforeach
+            </tr>
             @endforeach
-        </tr>
-        @endforeach
-    </tbody>
-</table>
+        </tbody>
+    </table>
 
 
     <h3>About You</h3>
 
     <label>Why do you want to volunteer?</label><br>
-    <textarea name="reason" required></textarea><br><br>
+    <textarea name="remarks"></textarea><br><br>
 
     <label>Do you have previous volunteer experience?</label><br>
-    <select name="experience">
-        <option value="">Select</option>
-        <option>Yes</option>
-        <option>No</option>
+    <select name="has_experience">
+        <option value="No">No</option>    
+        <option value="Yes">Yes</option>
     </select><br><br>
 
     <label>If yes, please describe:</label><br>
     <textarea name="experience_details"></textarea><br><br>
 
-    <!-- 🔹 SKILLS & INTERESTS -->
     <h3>Skills & Interests</h3>
 
     <label>Select your skills:</label><br>
@@ -112,6 +97,7 @@
     <input type="checkbox" name="skills[]" value="Technical/IT"> Technical / IT<br>
     <input type="checkbox" name="skills[]" value="Healthcare"> Healthcare<br>
     <input type="checkbox" name="skills[]" value="Other"> Other<br><br>
+    
 
     <label>Areas of Interest:</label><br>
     <input type="checkbox" name="interests[]" value="Environment"> Environment<br>
@@ -119,16 +105,69 @@
     <input type="checkbox" name="interests[]" value="Community Service"> Community Service<br>
     <input type="checkbox" name="interests[]" value="Health"> Health<br>
     <input type="checkbox" name="interests[]" value="Disaster Response"> Disaster Response<br><br>
-
-    <!-- 🔹 SUBMIT -->
+    
+    
      <center>
         <button type="submit" class="submit-btn">
             Submit Application
         </button>
     </center>
+    <div id="skillsError" style="color:red; display:none;">
+        Please select at least one skill.
+    </div>
+    <div id="interestsError" style="color:red; display:none;">
+        Please select at least one area of interest.
+    </div>
+    <div id="submitError" style="color:red; display:none;">
+        Please complete all required fields before submitting.
+    </div>
 </form>
 
+<div id="confirmModal" style="display:none; position:fixed; top:0; left:0; 
+width:100%; height:100%; background:rgba(0,0,0,0.5); 
+justify-content:center; align-items:center;">
 
+    <div style="background:white; padding:20px; border-radius:10px; text-align:center; width:300px;">
+        <p>Are you sure all details are correct?</p>
+
+        <button id="confirmYes" style="background:green; color:white; padding:8px 12px; margin:5px;">
+            Yes
+        </button>
+
+        <button id="confirmNo" style="background:red; color:white; padding:8px 12px; margin:5px;">
+            No
+        </button>
+    </div>
+
+</div>
+
+<script>
+document.getElementById('volunteerForm').addEventListener('submit', function () {
+
+    let selected = [...document.querySelectorAll('.slot.selected')]
+        .map(el => el.dataset.value);
+
+    let days = selected.map(s => s.split('-')[0]);
+    let times = selected.map(s => s.split('-')[1]);
+
+    let uniqueDays = [...new Set(days)];
+    let uniqueTimes = [...new Set(times)];
+
+    let availability = "Flexible";
+
+    if (uniqueTimes.length === 1) {
+        availability = uniqueTimes[0] + "s";
+    } 
+    else if (uniqueDays.every(d => ['Saturday','Sunday'].includes(d))) {
+        availability = "Weekends";
+    } 
+    else if (uniqueDays.every(d => ['Monday','Tuesday','Wednesday','Thursday','Friday'].includes(d))) {
+        availability = "Weekdays";
+    }
+
+    document.getElementById('availability').value = availability;
+});
+</script>
 <script>
     const slots = document.querySelectorAll('.slot');
     const hiddenInput = document.getElementById('availability');
@@ -140,13 +179,11 @@
         slot.addEventListener('mousedown', () => {
             isDragging = true;
             slot.classList.toggle('selected');
-            updateAvailability();
         });
 
         slot.addEventListener('mouseover', () => {
             if (isDragging) {
                 slot.classList.add('selected');
-                updateAvailability();
             }
         });
 
@@ -160,27 +197,14 @@
         isDragging = false;
     });
 
-    function updateAvailability() {
-        const selected = document.querySelectorAll('.slot.selected');
-        let values = [];
-
-        selected.forEach(s => {
-            values.push(s.dataset.value);
-        });
-
-        hiddenInput.value = JSON.stringify(values);
-    }
-
-
-    
 </script>
 <script>
-    const form = document.getElementById('volunteerForm');
+    const appform = document.getElementById('volunteerForm');
     const backBtn = document.getElementById('backBtn');
 
     // Function to check if form has data
     function isFormDirty() {
-        const inputs = form.querySelectorAll('input, textarea, select');
+        const inputs = appform.querySelectorAll('input, textarea, select');
 
         for (let input of inputs) {
             if (
@@ -199,10 +223,91 @@
             const confirmLeave = confirm("Are you sure you want to go back? All entered data will be lost.");
 
             if (!confirmLeave) {
-                e.preventDefault(); // stop navigation
+                e.preventDefault(); 
             }
         }
     });
+
+    const experienceSelect = document.querySelector('select[name="has_experience"]');
+    const experienceDetails = document.querySelector('textarea[name="experience_details"]');
+
+    function toggleExperienceField() {
+        if (experienceSelect.value === "No") {
+            experienceDetails.disabled = true;
+            experienceDetails.value = ""; // clear value
+            experienceDetails.style.opacity = 0.5;
+        } else {
+            experienceDetails.disabled = false;
+            experienceDetails.style.opacity = 1;
+        }
+    }
+
+    // run on change
+    experienceSelect.addEventListener('change', toggleExperienceField);
+
+    // run on page load (important for default value)
+    toggleExperienceField();
 </script>
+<script>
+const form = document.getElementById('volunteerForm');
+const modal = document.getElementById('confirmModal');
+
+const skillsError = document.getElementById('skillsError');
+const interestsError = document.getElementById('interestsError');
+const submitError = document.getElementById('submitError');
+
+form.addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // reset errors
+    skillsError.style.display = "none";
+    interestsError.style.display = "none";
+    submitError.style.display = "none";
+
+    let skillsChecked = document.querySelectorAll('input[name="skills[]"]:checked');
+    let interestsChecked = document.querySelectorAll('input[name="interests[]"]:checked');
+
+    let valid = true;
+
+    // validate skills
+    if (skillsChecked.length === 0) {
+        skillsError.style.display = "block";
+        valid = false;
+    }
+
+    // validate interests
+    if (interestsChecked.length === 0) {
+        interestsError.style.display = "block";
+        valid = false;
+    }
+
+    let availabilitySelected = document.querySelectorAll('.slot.selected');
+    if (availabilitySelected.length === 0) {
+        submitError.innerText = "Please select availability.";
+        submitError.style.display = "block";
+        valid = false;
+    }
+
+    if (!valid) return;
+
+    modal.style.display = "flex";
+});
+</script>
+<script>
+document.getElementById('confirmYes').addEventListener('click', function () {
+    document.getElementById('confirmModal').style.display = "none";
+
+    const selected = [...document.querySelectorAll('.slot.selected')]
+        .map(el => el.dataset.value);
+
+    document.getElementById('volunteerForm').submit();
+});
+
+document.getElementById('confirmNo').addEventListener('click', function () {
+    document.getElementById('confirmModal').style.display = "none";
+});
+</script>
+
+
 </body>
 </html>

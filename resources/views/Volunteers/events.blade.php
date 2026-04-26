@@ -51,7 +51,8 @@
 
             <!-- Event Cards Container -->
             <div class="space-y-5">
-                @foreach($events as $event)
+             
+            @foreach($events as $event)
                     <div class="rounded-2xl border-2 border-[#0e243a] bg-white p-5">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
@@ -99,10 +100,21 @@
                                     View Activities
                                 </button>
 
-                                <a href="/volunteer-application-form?event_id={{ $event['id'] }}"
-                                    class="px-6 py-2 rounded-full bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition">
-                                    Volunteer Now
-                                </a> 
+                                @php
+                                    $alreadyApplied = in_array((string)$event['id'], $applications ?? []);
+                                @endphp
+                                
+                                @if($alreadyApplied)
+                                    <button disabled
+                                        class="px-6 py-2 rounded-full bg-gray-400 text-white font-bold text-sm cursor-not-allowed">
+                                        Already Applied
+                                    </button>
+                                @else
+                                    <a href="/volunteer-application-form?event_id={{ $event['id'] }}"
+                                        class="px-6 py-2 rounded-full bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition">
+                                        Volunteer Now
+                                    </a>
+                                @endif
                             </div>
 
                         </div>
