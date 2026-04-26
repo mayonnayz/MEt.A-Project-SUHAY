@@ -18,10 +18,10 @@
 <body class="bg-gray-200">
 <div class="flex">
 
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
-       @include('components.header', ['title' => 'Events'])
+       <?php echo $__env->make('components.header', ['title' => 'Events'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
         <!-- Outer Panel -->
@@ -33,7 +33,7 @@
                     <input
                         type="text"
                         name="search"
-                        value="{{ request('search') }}"
+                        value="<?php echo e(request('search')); ?>"
                         placeholder="Search Events...."
                         class="w-full outline-none text-[15px] font-medium placeholder:text-gray-500"
                     />
@@ -52,30 +52,32 @@
             <!-- Event Cards Container -->
             <div class="space-y-5">
              
-            @foreach($events as $event)
+            <?php $__currentLoopData = $events; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                     <div class="rounded-2xl border-2 border-[#0e243a] bg-white p-5">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                             <!-- LEFT SIDE -->
                             <div class="min-w-0">
                                 <div class="text-lg font-bold text-[#0e243a] mb-2">
-                                    {{ $event['name'] }}
+                                    <?php echo e($event['name']); ?>
+
                                 </div>
 
                                 <div class="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-5 text-sm text-gray-700">
 
                                     <div class="flex items-center gap-2">
-                                        <img src="{{ asset('images/VolunteerIcons/VDate.png') }}"
+                                        <img src="<?php echo e(asset('images/VolunteerIcons/VDate.png')); ?>"
                                             class="h-5 w-5 object-contain">
                                         <span>
-                                            {{ \Carbon\Carbon::parse($event['date'])->format('F d, Y') }}
+                                            <?php echo e(\Carbon\Carbon::parse($event['date'])->format('F d, Y')); ?>
+
                                         </span>
                                     </div>
 
                                     <div class="flex items-center gap-2">
-                                        <img src="{{ asset('images/VolunteerIcons/VNGO.png') }}"
+                                        <img src="<?php echo e(asset('images/VolunteerIcons/VNGO.png')); ?>"
                                             class="h-5 w-5 object-contain">
-                                        <span>NGO: {{ $event['ngo_name'] ?? 'Unknown NGO' }}</span>
+                                        <span>NGO: <?php echo e($event['ngo_name'] ?? 'Unknown NGO'); ?></span>
                                     </div>
 
                                 </div>
@@ -87,46 +89,45 @@
                                     type="button"
                                     class="view-activities-btn px-6 py-2 rounded-full bg-[#d39a11] text-white font-bold text-sm hover:bg-[#c2870d] transition"
 
-                                    data-title="{{ $event['name'] }}"
-                                    data-date="{{ \Carbon\Carbon::parse($event['date'])->format('F d, Y') }}"
-                                    data-org="{{ $event['ngo_name'] ?? 'Unknown NGO' }}"
-                                    data-activities='@json(collect($event["activities"] ?? [])->map(function ($a) {
+                                    data-title="<?php echo e($event['name']); ?>"
+                                    data-date="<?php echo e(\Carbon\Carbon::parse($event['date'])->format('F d, Y')); ?>"
+                                    data-org="<?php echo e($event['ngo_name'] ?? 'Unknown NGO'); ?>"
+                                    data-activities='<?php echo json_encode(collect($event["activities"] ?? [])->map(function ($a) {
                                     return [
-                                            "name" => $a["name"] ?? "",
-                                            "remarks" => $a["remarks"] ?? ""
+                                            "name" => $a["name"] ?? "", "remarks" => $a["remarks"] ?? ""
                                         ];
-                                    })->values())'
+                                    })->values(), 512) ?>'
                                 >
                                     View Activities
                                 </button>
 
-                                @php
+                                <?php
                                     $alreadyApplied = in_array((string)$event['id'], $applications ?? []);
-                                @endphp
+                                ?>
                                 
-                                @if($alreadyApplied)
+                                <?php if($alreadyApplied): ?>
                                     <button disabled
                                         class="px-6 py-2 rounded-full bg-gray-400 text-white font-bold text-sm cursor-not-allowed">
                                         Already Applied
                                     </button>
-                                @else
-                                    <a href="/volunteer-application-form?event_id={{ $event['id'] }}"
+                                <?php else: ?>
+                                    <a href="/volunteer-application-form?event_id=<?php echo e($event['id']); ?>"
                                         class="px-6 py-2 rounded-full bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition">
                                         Volunteer Now
                                     </a>
-                                @endif
+                                <?php endif; ?>
                             </div>
 
                         </div>
                     </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             </div>
         </div>
     </div>
 </div>
 
-    @include('components.logout-modal')
+    <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <script>
 
@@ -223,7 +224,7 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
       <!-- Logo / Title block -->
       <div class="flex justify-center">
         <img
-          src="{{ asset('images/suhayLogo.png') }}" 
+          src="<?php echo e(asset('images/suhayLogo.png')); ?>" 
           alt="SUHAY"
           class="h-28 w-28 object-contain"
         />
@@ -236,7 +237,7 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
       <div class="mt-4">
         <div class="text-sm text-gray-600 mb-2 flex items-center gap-2 justify-start">
           <img
-            src="{{ asset('images/VolunteerIcons/VDate.png') }}"
+            src="<?php echo e(asset('images/VolunteerIcons/VDate.png')); ?>"
             alt="Date"
             class="h-4 w-4 object-contain"
           />
@@ -245,7 +246,7 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
 
         <div class="text-sm text-gray-700 flex items-center gap-2 justify-start mb-4">
           <img
-            src="{{ asset('images/VolunteerIcons/VNGO.png') }}"
+            src="<?php echo e(asset('images/VolunteerIcons/VNGO.png')); ?>"
             alt="Organization"
             class="h-4 w-4 object-contain"
           />
@@ -274,4 +275,4 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
 </div>
 
 </body>
-</html>
+</html><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/Volunteers/events.blade.php ENDPATH**/ ?>

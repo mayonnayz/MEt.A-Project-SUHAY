@@ -38,7 +38,7 @@
 <nav class="bg-white shadow-md">
     <div class="w-full px-8 py-6 flex justify-between items-center">
         <div class="flex items-center gap-0 ml-2">
-            <img src="{{ asset('images/suhayLogo.png') }}" class="h-16 w-auto">
+            <img src="<?php echo e(asset('images/suhayLogo.png')); ?>" class="h-16 w-auto">
         </div>
 
         <div class="hidden md:flex items-center gap-10 font-bold text-xl mr-2">
@@ -55,7 +55,7 @@
 
 <!-- HEADER USING HERO IMAGE -->
 <section class="relative h-[250px] flex items-center">
-    <img src="{{ asset('images/hero.jpg') }}" class="absolute inset-0 w-full h-full object-cover">
+    <img src="<?php echo e(asset('images/hero.jpg')); ?>" class="absolute inset-0 w-full h-full object-cover">
 
     <div class="absolute inset-0 bg-gradient-to-r from-[#0e243a]/95 to-transparent"></div>
 
@@ -73,15 +73,17 @@
 <section class="py-14 px-12">
     <div class="grid grid-cols-3 gap-8">
 
-            @foreach ($events as $event)
+            <?php $__currentLoopData = $events; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $event): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="bg-white rounded-3xl shadow-md p-8 text-center fade-up">
 
                     <h2 class="text-2xl font-bold text-[#0e243a] mb-4">
-                        {{ $event['name'] }}
+                        <?php echo e($event['name']); ?>
+
                     </h2>
 
                     <p class="text-gray-600 mb-6">
-                        {{ $event['description'] }}
+                        <?php echo e($event['description']); ?>
+
                     </p>
 
                     <a href="/login-page"
@@ -90,9 +92,9 @@
                     </a>
 
                 </div>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
     </div>
 </section>
 
 </body>
-</html>
+</html><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/volunteer_page.blade.php ENDPATH**/ ?>

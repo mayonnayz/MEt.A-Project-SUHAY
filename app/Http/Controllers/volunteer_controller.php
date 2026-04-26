@@ -88,77 +88,77 @@ class volunteer_controller extends Controller
     }
 
     public function activeEvents(Request $request)
-    {
-        $search = $request->search;
+{
+    $search = $request->search;
+    $accountId = session('user_id');
+    $applications = [];
 
-        $response = Http::withHeaders([
+    if ($accountId) {
+        $appResponse = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ])->get(env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1&order=date.desc");
+        ])->get(env('SUPABASE_URL') . '/rest/v1/volunteer_applications?select=volunteer_event_id&account_id=eq.' . $accountId);
 
-        $events = collect($response->json());
-
-        if ($events->isEmpty()) {
-            return view('Volunteers.events', ['events' => collect()]);
+        if ($appResponse->successful()) {
+            $applications = collect($appResponse->json())
+                ->pluck('volunteer_event_id')
+                ->map(fn($id) => (string) $id)
+                ->toArray();
         }
-
-        // NGO FETCH 
-        $ngoIds = $events->pluck('ngo_id')->filter()->unique()->implode(',');
-
-        $ngoResponse = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ])->get(env('SUPABASE_URL') . "/rest/v1/ngo_profile?id=in.($ngoIds)&select=id,name");
-
-        $ngos = collect($ngoResponse->json());
-
-        // attach NGO name safely
-        $events = $events->map(function ($event) use ($ngos) {
-
-            $ngo = $ngos->firstWhere('id', $event['ngo_id'] ?? null);
-
-            $event['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
-
-            return $event;
-        });
-
-        // SEARCH
-        if (!empty($search)) {
-            $search = strtolower($search);
-
-            $events = $events->filter(function ($event) use ($search) {
-                return str_contains(strtolower($event['name'] ?? ''), $search)
-                    || str_contains(strtolower($event['ngo_name'] ?? ''), $search);
-            })->values();
-        }
-
-        $eventIds = $events->pluck('id')->implode(',');
-
-        // fetch all activities for all events
-        $activitiesResponse = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ])->get(env('SUPABASE_URL') . "/rest/v1/volunteer_activities?select=*");
-
-        $activities = collect($activitiesResponse->json());
-
-        // attach NGO + activities
-        $events = $events->map(function ($event) use ($ngos, $activities) {
-
-            // NGO
-            $ngo = $ngos->firstWhere('id', $event['ngo_id'] ?? null);
-            $event['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
-
-            // ACTIVITIES (THIS IS THE IMPORTANT PART)
-            $event['activities'] = $activities
-                ->where('volunteer_event_id', $event['id'])
-                ->values();
-
-            return $event;
-        });
-
-        return view('Volunteers.events', compact('events'));
     }
+
+    $response = Http::withHeaders([
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+    ])->get(env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1&order=date.desc");
+
+    $events = collect($response->json());
+
+    if ($events->isEmpty()) {
+        return view('Volunteers.events', ['events' => collect(), 'applications' => $applications]);
+    }
+
+    // NGO FETCH
+    $ngoIds = $events->pluck('ngo_id')->filter()->unique()->implode(',');
+
+    $ngoResponse = Http::withHeaders([
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+    ])->get(env('SUPABASE_URL') . "/rest/v1/ngo_profile?id=in.($ngoIds)&select=id,name");
+
+    $ngos = collect($ngoResponse->json());
+
+    $activitiesResponse = Http::withHeaders([
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+    ])->get(env('SUPABASE_URL') . "/rest/v1/volunteer_activities?select=*");
+
+    $activities = collect($activitiesResponse->json());
+
+    if (!empty($search)) {
+        $search = strtolower($search);
+        $events = $events->filter(function ($event) use ($search, $ngos) {
+            $ngo = $ngos->firstWhere('id', $event['ngo_id'] ?? null);
+            $ngoName = strtolower($ngo['name'] ?? '');
+            return str_contains(strtolower($event['name'] ?? ''), $search)
+                || str_contains($ngoName, $search);
+        })->values();
+    }
+
+    $events = $events->map(function ($event) use ($ngos, $activities) {
+        $ngo = $ngos->firstWhere('id', $event['ngo_id'] ?? null);
+        $event['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
+
+        $eventId = (string) $event['id'];
+        $event['activities'] = $activities
+            ->filter(fn($a) => (string)($a['volunteer_event_id'] ?? '') === $eventId)
+            ->values();
+
+        return $event;
+    });
+
+    return view('Volunteers.events', compact('events', 'applications'));
+}
 
     public function applications(Request $request)
 {

@@ -8,7 +8,9 @@ use App\Http\Controllers\service_management_controller;
 use App\Http\Controllers\program_controller;
 use App\Http\Controllers\track_activity_controller;
 use App\Http\Controllers\ngo_controller;
-use App\Http\Controllers\volunteer_controller;// ======================
+use App\Http\Controllers\volunteer_controller;
+use App\Http\Controllers\volunteer_application_controller
+// ======================
 // LANDING & AUTH
 // ======================
 Route::get('/', function () {
@@ -44,6 +46,7 @@ Route::prefix('volunteer')->group(function () {
     Route::get('/events', [volunteer_controller::class, 'activeEvents']);
 
 });
+
 // ======================
 // VOLUNTEER / EVENTS PAGE
 // ======================
@@ -76,8 +79,21 @@ Route::put('/events/{id}/archive', [event_controller::class, 'archive']);
 Route::put('/events/{id}/reactivate', [event_controller::class, 'reactivate']);
 Route::delete('/activities/{id}', [event_controller::class, 'deleteActivity']);
 
+// ======================
+// VOLUNTEER APPLICATION
+// ======================
 
-// 🔥 THIS IS WHAT YOUR MODAL USES
+Route::get('/volunteer-application-form', function () {
+    return view('volunteer_application_form');
+});
+
+// show form
+Route::get('/volunteer-application-form', [volunteer_application_controller::class, 'showForm']);
+
+// submit
+Route::post('/submit-application', [volunteer_application_controller::class, 'submit_application']);
+
+
 Route::get('/events/{id}/activities', [event_controller::class, 'getActivities']);
 
 

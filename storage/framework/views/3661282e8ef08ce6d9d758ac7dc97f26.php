@@ -15,16 +15,16 @@
 <body class="bg-gray-200">
 <div class="flex">
 
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
-        @include('components.header', ['title' => 'Applications'])
+        <?php echo $__env->make('components.header', ['title' => 'Applications'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="bg-white rounded-[22px] border-[10px] border-[#0e243a] p-6 sm:p-8">
 
             <form method="GET" action="/volunteer/applications" class="mb-6 flex flex-col sm:flex-row gap-3">
                 <div class="flex items-center bg-white border-2 border-[#0e243a] rounded-2xl px-4 py-3 flex-1">
-                    <input type="text" name="search" value="{{ request('search') }}" placeholder="Search Applications..." class="w-full outline-none text-[15px] font-medium placeholder:text-gray-500"/>
+                    <input type="text" name="search" value="<?php echo e(request('search')); ?>" placeholder="Search Applications..." class="w-full outline-none text-[15px] font-medium placeholder:text-gray-500"/>
                     <div class="ml-3 w-10 h-10 rounded-xl bg-[#0e243a] flex items-center justify-center pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="7"></circle>
@@ -35,55 +35,55 @@
                 <div class="bg-white border-2 border-[#0e243a] rounded-2xl px-6 py-3 flex items-center">
                     <select name="filter" onchange="this.form.submit()" class="outline-none text-sm font-medium bg-transparent cursor-pointer w-full sm:w-40">
                         <option value="">All</option>
-                        <option value="current" {{ request('filter')=='current' ? 'selected' : '' }}>Current</option>
-                        <option value="past" {{ request('filter')=='past' ? 'selected' : '' }}>Past</option>
+                        <option value="current" <?php echo e(request('filter')=='current' ? 'selected' : ''); ?>>Current</option>
+                        <option value="past" <?php echo e(request('filter')=='past' ? 'selected' : ''); ?>>Past</option>
                     </select>
                 </div>
             </form>
 
             <div class="space-y-5">
-                @foreach($applications as $app)
+                <?php $__currentLoopData = $applications; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $app): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
                 <div class="rounded-2xl border-2 border-[#0e243a] bg-white p-5">
                     <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
                         <div>
-                            <div class="text-lg font-bold text-[#0e243a] mb-2">{{ $app['event_name'] ?? 'Unknown Event' }}</div>
+                            <div class="text-lg font-bold text-[#0e243a] mb-2"><?php echo e($app['event_name'] ?? 'Unknown Event'); ?></div>
                             <div class="text-sm text-gray-700 space-y-1">
                                 <div class="flex items-center gap-2">
-                                    <img src="{{ asset('images/VolunteerIcons/VDate.png') }}" class="h-5 w-5">
-                                    <span>{{ isset($app['date']) ? \Carbon\Carbon::parse($app['date'])->format('F d, Y') : 'No date' }}</span>
+                                    <img src="<?php echo e(asset('images/VolunteerIcons/VDate.png')); ?>" class="h-5 w-5">
+                                    <span><?php echo e(isset($app['date']) ? \Carbon\Carbon::parse($app['date'])->format('F d, Y') : 'No date'); ?></span>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <img src="{{ asset('images/VolunteerIcons/VNGO.png') }}" class="h-5 w-5">
-                                    <span>{{ $app['ngo_name'] ?? 'Unknown NGO' }}</span>
+                                    <img src="<?php echo e(asset('images/VolunteerIcons/VNGO.png')); ?>" class="h-5 w-5">
+                                    <span><?php echo e($app['ngo_name'] ?? 'Unknown NGO'); ?></span>
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex flex-col items-end gap-2">
-                            @if($app['status'] == 1)
+                            <?php if($app['status'] == 1): ?>
                                 <span class="px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold">APPROVED</span>
-                            @elseif($app['status'] == 0)
+                            <?php elseif($app['status'] == 0): ?>
                                 <span class="px-3 py-1 rounded-full bg-red-100 text-red-700 text-xs font-bold">REJECTED</span>
-                            @else
+                            <?php else: ?>
                                 <span class="px-3 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-bold">PENDING</span>
-                            @endif
+                            <?php endif; ?>
 
                             <button
                                 class="viewBtn px-6 py-2 rounded-full bg-[#d39a11] text-white font-bold text-sm hover:bg-[#c2870d] transition"
-                                data-first_name="{{ $app['first_name'] ?? '' }}"
-                                data-last_name="{{ $app['last_name'] ?? '' }}"
-                                data-address="{{ $app['address'] ?? '' }}"
-                                data-contact="{{ $app['contact'] ?? '' }}"
-                                data-email="{{ $app['email'] ?? '' }}"
-                                data-dob="{{ $app['dob'] ?? '' }}"
-                                data-date="{{ $app['date'] ?? '' }}"
-                                data-availability="{{ $app['availability'] ?? '' }}"
-                                data-skills="{{ $app['skills'] ?? '' }}"
-                                data-interests="{{ $app['interests'] ?? '' }}"
-                                data-experience_details="{{ $app['experience_details'] ?? '' }}"
-                                data-has_experience="{{ $app['has_experience'] ?? 0 }}"
-                                data-remarks="{{ $app['remarks'] ?? '' }}"
+                                data-first_name="<?php echo e($app['first_name'] ?? ''); ?>"
+                                data-last_name="<?php echo e($app['last_name'] ?? ''); ?>"
+                                data-address="<?php echo e($app['address'] ?? ''); ?>"
+                                data-contact="<?php echo e($app['contact'] ?? ''); ?>"
+                                data-email="<?php echo e($app['email'] ?? ''); ?>"
+                                data-dob="<?php echo e($app['dob'] ?? ''); ?>"
+                                data-date="<?php echo e($app['date'] ?? ''); ?>"
+                                data-availability="<?php echo e($app['availability'] ?? ''); ?>"
+                                data-skills="<?php echo e($app['skills'] ?? ''); ?>"
+                                data-interests="<?php echo e($app['interests'] ?? ''); ?>"
+                                data-experience_details="<?php echo e($app['experience_details'] ?? ''); ?>"
+                                data-has_experience="<?php echo e($app['has_experience'] ?? 0); ?>"
+                                data-remarks="<?php echo e($app['remarks'] ?? ''); ?>"
                             >
                                 View Application
                             </button>
@@ -91,13 +91,13 @@
 
                     </div>
                 </div>
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </div>
         </div>
     </div>
 </div>
 
-@include('components.logout-modal')
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <!-- VIEW APPLICATION MODAL -->
 <div id="viewModal" style="display:none;" class="fixed inset-0 bg-black/40 items-center justify-center z-50">
@@ -105,7 +105,7 @@
 
         <div class="text-center mb-3">
             <div class="flex justify-center">
-                <img src="{{ asset('images/suhayLogo.png') }}" alt="SUHAY" class="h-28 w-28 object-contain"/>
+                <img src="<?php echo e(asset('images/suhayLogo.png')); ?>" alt="SUHAY" class="h-28 w-28 object-contain"/>
             </div>
             <div class="text-sm font-semibold">Volunteer Application Form</div>
         </div>
@@ -186,4 +186,4 @@
 </script>
 
 </body>
-</html>
+</html><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/Volunteers/applications.blade.php ENDPATH**/ ?>

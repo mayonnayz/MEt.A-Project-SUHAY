@@ -2,7 +2,7 @@
 <html>
     <head>
     <title>Volunteer Application Form</title>
-    <link rel="stylesheet" href="{{ asset('style.css') }}">
+    <link rel="stylesheet" href="<?php echo e(asset('style.css')); ?>">
 </head>
 
 <body>
@@ -12,32 +12,32 @@
     
     <!-- LOGO -->
     <div class="logo-container">
-        <img src="{{ asset('images/suhayLogo.png') }}" alt="logo">
+        <img src="<?php echo e(asset('images/suhayLogo.png')); ?>" alt="logo">
     </div>
 
     <h2>Volunteer Application Form</h2>
 
 
 <form id="volunteerForm" method="POST" action="/submit-application">
-    @csrf
-    <input type="hidden" name="event_id" value="{{ $eventId }}">
+    <?php echo csrf_field(); ?>
+    <input type="hidden" name="event_id" value="<?php echo e($eventId); ?>">
 
     <h3>Personal Information</h3>
 
     <label>Full Name:</label><br>
-    <input type="text" value="{{ $user['first_name'] }} {{ $user['last_name'] }}" readonly class="bg-gray-100"><br><br>
+    <input type="text" value="<?php echo e($user['first_name']); ?> <?php echo e($user['last_name']); ?>" readonly class="bg-gray-100"><br><br>
 
     <label>Email Address:</label><br>
-    <input type="email" value="{{ $user['email'] }}" readonly><br><br>
+    <input type="email" value="<?php echo e($user['email']); ?>" readonly><br><br>
 
     <label>Contact Number:</label><br>
-    <input type="text" value="{{ $user['contact_number'] }}" readonly><br><br>
+    <input type="text" value="<?php echo e($user['contact_number']); ?>" readonly><br><br>
 
     <label>Date of Birth:</label><br>
-    <input type="text" value="{{ $user['birth_date'] }}" readonly><br><br>
+    <input type="text" value="<?php echo e($user['birth_date']); ?>" readonly><br><br>
 
     <label>Full Address:</label><br>
-    <textarea readonly>{{ $user['address'] }}</textarea><br><br>
+    <textarea readonly><?php echo e($user['address']); ?></textarea><br><br>
 
     
     <h3>Availability</h3>
@@ -56,19 +56,19 @@
             </tr>
         </thead>
         <tbody>
-            @php
+            <?php
                 $days = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
                 $times = ['Morning','Afternoon','Evening'];
-            @endphp
+            ?>
 
-            @foreach($days as $day)
+            <?php $__currentLoopData = $days; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $day): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
             <tr>
-                <td>{{ $day }}</td>
-                @foreach($times as $time)
-                    <td class="slot" data-value="{{ $day }}-{{ $time }}"></td>
-                @endforeach
+                <td><?php echo e($day); ?></td>
+                <?php $__currentLoopData = $times; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $time): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                    <td class="slot" data-value="<?php echo e($day); ?>-<?php echo e($time); ?>"></td>
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
             </tr>
-            @endforeach
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
         </tbody>
     </table>
 
@@ -310,4 +310,4 @@ document.getElementById('confirmNo').addEventListener('click', function () {
 
 
 </body>
-</html>
+</html><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/volunteer_application_form.blade.php ENDPATH**/ ?>

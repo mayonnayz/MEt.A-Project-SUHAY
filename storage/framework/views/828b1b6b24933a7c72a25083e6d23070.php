@@ -18,67 +18,72 @@
 <body class="bg-gray-200">
 <div class="flex">
 
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
-       @include('components.header', ['title' => 'Events'])
+       <?php echo $__env->make('components.header', ['title' => 'Events'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
         <div class="bg-white rounded-3xl border-[10px] border-[#0e243a] p-8">
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            {{-- TOTAL --}}
+            
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Total<br>Applications
                 </p>
                 <h2 class="text-3xl font-bold text-[#0e243a]">
-                    {{ $totalApplications }}
+                    <?php echo e($totalApplications); ?>
+
                 </h2>
             </div>
 
-            {{-- APPROVED --}}
+            
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Approved<br>Applications
                 </p>
                 <h2 class="text-3xl font-bold text-green-500">
-                    {{ $approved }}
+                    <?php echo e($approved); ?>
+
                 </h2>
             </div>
 
-            {{-- PENDING --}}
+            
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Pending<br>Applications
                 </p>
                 <h2 class="text-3xl font-bold text-yellow-500">
-                    {{ $pending }}
+                    <?php echo e($pending); ?>
+
                 </h2>
             </div>
 
         </div>
 
-            {{-- DIVIDER --}}
+            
             <div class="border-t border-gray-400 w-2/3 mx-auto mb-6"></div>
 
-            {{-- ACCOUNT DETAILS CARD --}}
+            
             <div class="bg-white border border-gray-300 rounded-2xl p-8 max-w-2xl mx-auto">
 
-                @if(session('error'))
+                <?php if(session('error')): ?>
                     <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-600 text-sm">
-                        {{ session('error') }}
-                    </div>
-                @endif
+                        <?php echo e(session('error')); ?>
 
-                @if(session('success'))
+                    </div>
+                <?php endif; ?>
+
+                <?php if(session('success')): ?>
                     <div class="mb-4 px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm">
-                        {{ session('success') }}
-                    </div>
-                @endif
+                        <?php echo e(session('success')); ?>
 
-                {{-- ICON + TITLE --}}
+                    </div>
+                <?php endif; ?>
+
+                
                 <div class="flex flex-col items-center mb-6">
                     <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] flex items-center justify-center mb-2">
                         <span class="text-xl">👤</span>
@@ -86,40 +91,42 @@
                     <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
                 </div>
 
-                {{-- TABLE --}}
+                
                 <form method="POST" action="/volunteer/update-account">
-                    @csrf
+                    <?php echo csrf_field(); ?>
 
                     <div class="grid grid-cols-2 text-sm">
 
-                        {{-- First Name --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             First Name
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
-                            {{ data_get($user, 'first_name') }}
+                            <?php echo e(data_get($user, 'first_name')); ?>
+
                         </div>
 
-                        {{-- Last Name --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Last Name
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
-                            {{ data_get($user, 'last_name') }}
+                            <?php echo e(data_get($user, 'last_name')); ?>
+
                         </div>
 
-                        {{-- Email --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Email
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
                             <input type="email"
                                 name="email"
-                                value="{{ data_get($user, 'email') }}"
+                                value="<?php echo e(data_get($user, 'email')); ?>"
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Password --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Password
                         </div>
@@ -130,41 +137,42 @@
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Contact --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Contact Number
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
                             <input type="text"
                                 name="contact_number"
-                                value="{{ data_get($user, 'contact_number') }}"
+                                value="<?php echo e(data_get($user, 'contact_number')); ?>"
                                 maxlength="11"
                                 pattern="[0-9]{11}"
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Address --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Address
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
                             <input type="text"
                                 name="address"
-                                value="{{ data_get($user, 'address') }}"
+                                value="<?php echo e(data_get($user, 'address')); ?>"
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Birth Date --}}
+                        
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Birth Date
                         </div>
                         <div class="px-3 py-2 border bg-gray-50">
-                            {{ data_get($user, 'birth_date') }}
+                            <?php echo e(data_get($user, 'birth_date')); ?>
+
                         </div>
 
                     </div>
 
-                            {{-- BUTTONS --}}
+                            
                         <div class="flex justify-center gap-4 mt-6">
 
                             <button type="submit"
@@ -176,7 +184,7 @@
             </div>
         </div>
     </div>
-    @include('components.logout-modal')
+    <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 </div>
 
 
@@ -192,4 +200,4 @@
 </script>
 
 </body>
-</html>
+</html><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/Volunteers/dashboard.blade.php ENDPATH**/ ?>
