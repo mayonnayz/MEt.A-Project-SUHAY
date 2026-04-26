@@ -38,7 +38,7 @@ class login_controller extends Controller
                 return back()->with('error', 'Your account is inactive. Please contact admin.');
             }
 
-            // ✅ FIX: STORE NGO ID HERE
+            
             session([
                 'user_id' => $user['id'],
                 'user_name' => $user['first_name'] . ' ' . $user['last_name'],
