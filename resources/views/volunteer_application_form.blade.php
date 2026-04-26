@@ -86,7 +86,6 @@
 </table>
 
 
-    <!-- 🔹 VOLUNTEERING QUESTIONS -->
     <h3>About You</h3>
 
     <label>Why do you want to volunteer?</label><br>

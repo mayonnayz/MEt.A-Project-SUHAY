@@ -166,9 +166,6 @@
 
                             {{-- BUTTONS --}}
                         <div class="flex justify-center gap-4 mt-6">
-                            <button class="bg-yellow-500 text-white px-4 py-2 rounded-full hover:bg-yellow-600">
-                                Switch Account
-                            </button>
 
                             <button type="submit"
                                 class="bg-green-400 text-white px-4 py-2 rounded-full hover:bg-green-500">

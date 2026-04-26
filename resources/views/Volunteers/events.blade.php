@@ -99,10 +99,10 @@
                                     View Activities
                                 </button>
 
-                                <a href="/volunteer-application-form"
-                                class="px-6 py-2 rounded-full bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition">
+                                <a href="/volunteer-application-form?event_id={{ $event['id'] }}"
+                                    class="px-6 py-2 rounded-full bg-green-500 text-white font-bold text-sm hover:bg-green-600 transition">
                                     Volunteer Now
-                                </a>    
+                                </a> 
                             </div>
 
                         </div>

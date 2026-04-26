@@ -8,6 +8,8 @@ use App\Http\Controllers\service_management_controller;
 use App\Http\Controllers\program_controller;
 use App\Http\Controllers\ngo_controller;
 use App\Http\Controllers\volunteer_controller;
+use App\Http\Controllers\volunteer_application_controller;
+
 
 // Landing Page
 Route::get('/', function () {
@@ -57,9 +59,21 @@ Route::get('/assignments', function () {
     return view('assignments');
 });
 
+
+// ======================
+// VOLUNTEER APPLICATION
+// ======================
+
 Route::get('/volunteer-application-form', function () {
     return view('volunteer_application_form');
 });
+
+// show form
+Route::get('/volunteer-application-form', [volunteer_application_controller::class, 'showForm']);
+
+// submit
+Route::post('/submit-application', [volunteer_application_controller::class, 'submit_application']);
+
 
 // ======================
 // EVENTS (UPDATED SECTION)
