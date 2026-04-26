@@ -9,7 +9,7 @@ use App\Http\Controllers\program_controller;
 use App\Http\Controllers\track_activity_controller;
 use App\Http\Controllers\ngo_controller;
 use App\Http\Controllers\volunteer_controller;
-use App\Http\Controllers\volunteer_application_controller
+use App\Http\Controllers\volunteer_application_controller;
 // ======================
 // LANDING & AUTH
 // ======================
