@@ -10,7 +10,7 @@ class DbConnController extends Controller
 
     public function __construct(SupabaseService $supabase)
     {
-        $this->supabase = $supabase;
+        $this->supabase = $supabase; 
     }
 
     public function index()
