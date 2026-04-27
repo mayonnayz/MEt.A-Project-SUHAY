@@ -111,10 +111,6 @@ Route::post('/assign-volunteer', [service_management_controller::class, 'store']
 // ======================
 // OTHER PAGES
 // ======================
-Route::get('/volunteer-application-form', function () {
-    return view('volunteer-application-form');
-});
-
 
 Route::get('/volunteer-manager/dashboard', function () {
     return view('VolunteerManager.dashboard');

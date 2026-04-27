@@ -103,12 +103,35 @@ public function volunteers(Request $request)
 public function applications()
 {
     $data = $this->supabaseRequest('volunteer_applications', [
-        'select' => 'id,status,availability,skills,interests,has_experience,experience_details,accounts(first_name,last_name,email,roles,address,contact_number,birth_date)'
+        // use !inner so accounts is ALWAYS a single object
+        'select' => 'id,status,availability,skills,interests,has_experience,experience_details,accounts!inner(first_name,last_name,email,address,contact_number,birth_date)'
     ]);
 
-    $applications = collect($data);
+    $applications = collect($data)->map(function ($item) {
 
-    // ✅ extract skills
+        $account = is_array($item['accounts']) && isset($item['accounts'][0])
+            ? $item['accounts'][0]
+            : ($item['accounts'] ?? []);
+
+        return [
+            'id' => $item['id'],
+            'status' => $item['status'],
+
+            'first_name' => $account['first_name'] ?? '',
+            'last_name' => $account['last_name'] ?? '',
+            'email' => $account['email'] ?? '',
+            'address' => $account['address'] ?? '',
+            'contact_number' => $account['contact_number'] ?? '',
+            'birth_date' => $account['birth_date'] ?? '',
+
+            'availability' => $item['availability'] ?? '',
+            'skills' => $item['skills'] ?? '',
+            'interests' => $item['interests'] ?? '',
+            'has_experience' => $item['has_experience'] ?? 0,
+            'experience_details' => $item['experience_details'] ?? '',
+        ];
+    });
+
     $skills = $applications
         ->pluck('skills')
         ->filter()
@@ -118,7 +141,6 @@ public function applications()
         ->unique()
         ->values();
 
-    // ✅ extract availability
     $availability = $applications
         ->pluck('availability')
         ->filter()
@@ -126,29 +148,9 @@ public function applications()
         ->unique()
         ->values();
 
-    // map
-    $applications = $applications->map(function ($item) {
-        return (object) [
-            'id' => $item['id'],
-            'status' => $item['status'],
-            'first_name' => $item['accounts']['first_name'] ?? '',
-            'last_name' => $item['accounts']['last_name'] ?? '',
-            'email' => $item['accounts']['email'] ?? '',
-            'roles' => $item['accounts']['roles'] ?? '',
-            'address' => $item['accounts']['address'] ?? '',
-            'contact_number' => $item['accounts']['contact_number'] ?? '',
-            'birth_date' => $item['accounts']['birth_date'] ?? '',
-            'availability' => $item['availability'] ?? '',
-            'has_experience' => $item['has_experience'] ?? 0,
-            'experience_details' => $item['experience_details'] ?? '',
-            'skills' => $item['skills'] ?? '',
-            'interests' => $item['interests'] ?? '',
-        ];
-    });
-
     $applications = $applications->sortBy(function ($item) {
-        return strtolower($item->first_name . ' ' . $item->last_name);
-    });
+        return strtolower(($item['first_name'] ?? '') . ' ' . ($item['last_name'] ?? ''));
+    })->values();
 
     return view('applications', compact('applications', 'skills', 'availability'));
 }
@@ -181,12 +183,12 @@ public function applications()
 
     public function rejectApplication($id)
     {
-        return $this->updateStatus($id, 2);
+        return $this->updateStatus($id, 0);
     }
 
     public function restoreApplication($id)
     {
-        return $this->updateStatus($id, 0);
+        return $this->updateStatus($id, 2);
     }
     public function archiveApplication($id)
     {

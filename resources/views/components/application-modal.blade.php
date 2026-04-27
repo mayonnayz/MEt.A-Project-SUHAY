@@ -42,16 +42,9 @@
             </table>
 
             <p class="mb-2">Availability</p>
-            <table class="w-full border text-sm mb-4">
-                <tr>
-                    <td class="bg-[#0e243a] text-white p-2">DAY</td>
-                    <td class="bg-[#0e243a] text-white p-2">TIME</td>
-                </tr>
-                <tr>
-                    <td class="border p-2" id="day">---</td>
-                    <td class="border p-2" id="time">---</td>
-                </tr>
-            </table>
+            <div class="border p-3 text-sm mb-4 bg-white rounded-md">
+                <span id="availability_text">---</span>
+            </div>
 
             <p class="mb-2">General Information</p>
             <table class="w-full border text-sm mb-4">

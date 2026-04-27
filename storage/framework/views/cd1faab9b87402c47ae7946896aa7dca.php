@@ -6,6 +6,9 @@
             ? 'bg-[#f2c94c] text-[#0e243a]' 
             : 'hover:bg-[#f2c94c] hover:text-[#0e243a]';
     }
+
+    $active = 'bg-[#1a3554]';
+    $inactive = 'hover:bg-[#f2c94c] hover:text-[#0e243a]';
 ?>
 
 <div class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden">
