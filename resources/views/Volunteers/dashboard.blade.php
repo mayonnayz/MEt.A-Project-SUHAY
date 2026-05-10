@@ -78,17 +78,35 @@
                     </div>
                 @endif
 
-                {{-- ICON + TITLE --}}
-                <div class="flex flex-col items-center mb-6">
-                    <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] flex items-center justify-center mb-2">
-                        <span class="text-xl">👤</span>
-                    </div>
-                    <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
-                </div>
+                <form method="POST"
+                    action="/volunteer/update-account"
+                    enctype="multipart/form-data">
 
-                {{-- TABLE --}}
-                <form method="POST" action="/volunteer/update-account">
                     @csrf
+
+                    {{-- ICON + TITLE --}}
+                    <div class="flex flex-col items-center mb-6">
+
+                        <img id="profilePreview"
+                            src="{{ data_get($user, 'profile_picture') ?: 'https://placehold.co/150x150?text=Profile' }}"
+                            class="w-20 h-20 rounded-full border-4 border-[#0e243a] object-cover mb-3">
+
+                        <input type="file"
+                            name="profile_picture"
+                            id="profile_picture"
+                            accept="image/*"
+                            class="hidden">
+
+                        <button type="button"
+                            onclick="document.getElementById('profile_picture').click()"
+                            class="bg-[#0e243a] text-white px-4 py-2 rounded-full text-sm hover:bg-[#163754]">
+                            Add Image
+                        </button>
+
+                        <h2 class="font-bold text-[#0e243a] mt-4">
+                            ACCOUNT DETAILS
+                        </h2>
+                    </div>
 
                     <div class="grid grid-cols-2 text-sm">
 
@@ -189,6 +207,16 @@
     function closeLogoutModal() {
         document.getElementById('logoutModal').classList.add('hidden');
     }
+
+    document.getElementById('profile_picture').addEventListener('change', function(e) {
+
+        const file = e.target.files[0];
+
+        if (file) {
+            document.getElementById('profilePreview').src =
+                URL.createObjectURL(file);
+        }
+    });
 </script>
 
 </body>

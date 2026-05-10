@@ -47,10 +47,12 @@ class volunteer_controller extends Controller
         $userId = session('user_id');
 
         $validator = Validator::make($request->all(), [
-        'email' => 'required|email',
-        'contact_number' => ['required','regex:/^[0-9]{11}$/'],
-        'address' => 'required',
-    ]);
+            'email' => 'required|email',
+            'contact_number' => ['required','regex:/^[0-9]{11}$/'],
+            'address' => 'required',
+
+            'profile_picture' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+        ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
@@ -76,6 +78,55 @@ class volunteer_controller extends Controller
     if (!empty($request->password)) {
         $data['password'] = $request->password;
     }
+
+    if ($request->hasFile('profile_picture')) {
+
+        $file = $request->file('profile_picture');
+
+        $fileName =
+            time() . '_' .
+            preg_replace('/[^A-Za-z0-9\.\-_]/', '_', $file->getClientOriginalName());
+
+        $storagePath = 'profiles/' . $fileName;
+
+        $supabaseUrl = env('SUPABASE_URL');
+        $supabaseKey = env('SUPABASE_SERVICE_KEY');
+
+        $bucket = 'profile-pictures';
+
+        $uploadUrl =
+            $supabaseUrl .
+            '/storage/v1/object/' .
+            $bucket .
+            '/' .
+            $storagePath;
+
+        $uploadResponse = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $supabaseKey,
+            'apikey' => $supabaseKey,
+            'Content-Type' => $file->getMimeType(),
+            'x-upsert' => 'true'
+        ])->withBody(
+            file_get_contents($file->getRealPath()),
+            $file->getMimeType()
+        )->post($uploadUrl);
+
+        if ($uploadResponse->successful()) {
+
+            $publicUrl =
+                $supabaseUrl .
+                '/storage/v1/object/public/' .
+                $bucket .
+                '/' .
+                $storagePath;
+
+            $data['profile_picture'] = $publicUrl;
+        }
+        else {
+            return back()->with('error', 'Failed to upload profile picture.');
+        }
+    }
+
 
     Http::withHeaders([
         'apikey' => env('SUPABASE_SERVICE_KEY'),
