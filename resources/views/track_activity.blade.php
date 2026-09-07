@@ -9,136 +9,177 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
+        body { font-family: 'Poppins', sans-serif; }
     </style>
 </head>
 
 <body class="bg-gray-200">
 <div class="flex">
+
     @include('components.nav')
 
     <div class="flex-1 p-8">
-       @include('components.header', ['title' => 'Volunteer Management'])
 
+        @include('components.header', ['title' => 'Volunteer Management'])
 
+        <!-- Tabs -->
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
-            <a href="/service-management"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Volunteer Lists
-            </a>
-
-            <a href="/applications"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Applications
-            </a>
-
-            <a href="/assignments"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Assignments
-            </a>
-
-            <a href="/events"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Events
-            </a>
-
-            <a href="/track-activity"
-               class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
-                Track Activity
-            </a>
+            <a href="/service-management" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Volunteer Lists</a>
+            <a href="/applications" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Applications</a>
+            <a href="/assignments" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Assignments</a>
+            <a href="/events" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Events</a>
+            <a href="/track-activity" class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">Track Activity</a>
         </div>
 
-        <div class="bg-white rounded-2xl p-8 shadow-lg">
+        <!-- Filters -->
+        <div class="bg-gray-200 p-4 rounded-2xl flex items-center justify-between mb-6">
+            <div class="flex gap-4 w-full">
 
-            <h2 class="text-2xl font-bold text-[#0e243a] mb-6">
-                Track Volunteer Activity
-            </h2>
+                <select id="activityFilter" class="px-4 py-2 rounded-xl border w-64">
+                    <option value="">All Events</option>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Recent Activities</h3>
+                    @foreach ($events as $event)
+                        <option value="{{ strtolower($event['name']) }}">
+                            {{ $event['name'] }}
+                        </option>
+                    @endforeach
+                </select>
 
-                    <div class="space-y-4">
-
-                        <div class="flex items-center p-4 bg-gray-50 rounded-xl">
-                            <div class="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center mr-4">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                </svg>
-                            </div>
-
-                            <div>
-                                <p class="font-semibold text-gray-900">Community Cleanup</p>
-                                <p class="text-sm text-gray-600">Gabriel Tagaytay - 4 hours</p>
-                                <p class="text-xs text-green-600">Completed - Jan 27, 2024</p>
-                            </div>
-                        </div>
-
-                        <div class="flex items-center p-4 bg-gray-50 rounded-xl">
-                            <div class="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center mr-4">
-                                <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                            </div>
-
-                            <div>
-                                <p class="font-semibold text-gray-900">Food Distribution</p>
-                                <p class="text-sm text-gray-600">Zyann Lynn Mayo - 3.5 hours</p>
-                                <p class="text-xs text-yellow-600">Ongoing - Jan 28, 2024</p>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div>
-                    <h3 class="text-xl font-semibold text-gray-800 mb-4">Activity Summary</h3>
-
-                    <div class="grid grid-cols-2 gap-4">
-
-                        <div class="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-6 rounded-xl text-center">
-                            <p class="text-2xl font-bold">156</p>
-                            <p class="text-sm opacity-90">Total Hours</p>
-                        </div>
-
-                        <div class="bg-gradient-to-r from-green-500 to-green-600 text-white p-6 rounded-xl text-center">
-                            <p class="text-2xl font-bold">12</p>
-                            <p class="text-sm opacity-90">Activities</p>
-                        </div>
-
-                        <div class="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-6 rounded-xl text-center">
-                            <p class="text-2xl font-bold">28</p>
-                            <p class="text-sm opacity-90">Volunteers Active</p>
-                        </div>
-
-                        <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6 rounded-xl text-center">
-                            <p class="text-2xl font-bold">95%</p>
-                            <p class="text-sm opacity-90">Completion Rate</p>
-                        </div>
-
-                    </div>
-                </div>
+                <input id="searchInput" type="text" placeholder="Search Volunteer"
+                    class="px-4 py-2 rounded-xl border flex-1">
 
             </div>
 
+            <button onclick="openLogActivityModal()"
+                class="ml-4 bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+                + Log Activity
+            </button>
+        </div>
+
+        <!-- Table -->
+        <div class="bg-[#0e243a] p-4 rounded-2xl">
+            <div class="bg-gray-200 rounded-2xl overflow-hidden">
+
+                <table class="w-full">
+
+                    <thead class="bg-gray-300 text-left">
+                        <tr>
+                            <th class="p-4">#</th>
+                            <th class="p-4">Volunteer</th>
+                            <th class="p-4">Activity</th>
+                            <th class="p-4">Event</th>
+                            <th class="p-4">Time In</th>
+                            <th class="p-4">Time Out</th>
+                            <th class="p-4">Hours</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Actions</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        @forelse ($assignments as $item)
+                        <tr class="border-t"
+    data-event="{{ strtolower($item['event']['name'] ?? '') }}"
+    data-name="{{ strtolower(($item['accounts']['first_name'] ?? '') . ' ' . ($item['accounts']['last_name'] ?? '')) }}">
+
+    <td class="p-4">{{ $loop->iteration }}</td>
+
+    <td class="p-4">
+        {{ $item['accounts']['first_name'] ?? '' }}
+        {{ $item['accounts']['last_name'] ?? '' }}
+    </td>
+
+    <!-- Activity -->
+    <td class="p-4">
+        {{ $item['activity']['name'] ?? 'N/A' }}
+    </td>
+
+    <!-- Event -->
+    <td class="p-4">
+        {{ $item['event']['name'] ?? 'N/A' }}
+    </td>
+
+    <td class="p-4">{{ $item['time_in'] ?? '-' }}</td>
+    <td class="p-4">{{ $item['time_out'] ?? '-' }}</td>
+    <td class="p-4">{{ $item['total_hours'] ?? '-' }}</td>
+
+    <td class="p-4 font-semibold
+        {{ ($item['status'] ?? 0) == 1 ? 'text-green-600' : 'text-yellow-500' }}">
+        {{ ($item['status'] ?? 0) == 1 ? 'Completed' : 'On Going' }}
+    </td>
+
+    <td class="p-4">
+        <button class="bg-blue-700 text-white px-5 py-2 rounded-full">
+            View
+        </button>
+    </td>
+</tr>
+                        @empty
+                        <tr>
+                            <td colspan="9" class="p-4 text-center text-gray-500">
+                                No activity records found
+                            </td>
+                        </tr>
+                        @endforelse
+                    </tbody>
+
+                </table>
+
+            </div>
         </div>
 
     </div>
 </div>
+
+@include('components.log-activity-modal')
 @include('components.logout-modal')
 
+<script>
+function openLogActivityModal() {
+    const modal = document.getElementById('logActivityModal');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+}
+
+function closeLogActivityModal() {
+    const modal = document.getElementById('logActivityModal');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+</script>
 
 <script>
-    function openLogoutModal() {
-        document.getElementById('logoutModal').classList.remove('hidden');
-        document.getElementById('logoutModal').classList.add('flex');
-    }
+function openLogoutModal() {
+    document.getElementById('logoutModal').classList.remove('hidden');
+    document.getElementById('logoutModal').classList.add('flex');
+}
 
-    function closeLogoutModal() {
-        document.getElementById('logoutModal').classList.add('hidden');
-    }
+function closeLogoutModal() {
+    document.getElementById('logoutModal').classList.add('hidden');
+}
+</script>
+<script>
+const eventFilter = document.getElementById('activityFilter');
+const searchInput = document.getElementById('searchInput');
+
+function filterTable() {
+    const event = eventFilter.value.toLowerCase();
+    const search = searchInput.value.toLowerCase();
+
+    document.querySelectorAll('tbody tr').forEach(row => {
+
+        const rowEvent = (row.dataset.event || '').toLowerCase();
+        const rowName = (row.dataset.name || '').toLowerCase();
+
+        const matchEvent = event === '' || rowEvent === event;
+        const matchSearch = search === '' || rowName.includes(search);
+
+        row.style.display = (matchEvent && matchSearch) ? '' : 'none';
+    });
+}
+
+eventFilter.addEventListener('change', filterTable);
+searchInput.addEventListener('input', filterTable);
 </script>
 
 </body>

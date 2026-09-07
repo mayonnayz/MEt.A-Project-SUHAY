@@ -1,169 +1,1226 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applications</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
+
+<title>Applications</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap"
+      rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+</style>
+
+
 </head>
 
 <body class="bg-gray-200">
+
 <div class="flex">
-    @include('components.nav')
 
-    <div class="flex-1 p-8">
-       @include('components.header', ['title' => 'Volunteer Management'])
+@include('components.nav')
 
 
-        <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
-            <a href="/service-management" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Volunteer Lists</a>
-            <a href="/applications" class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">Applications</a>
-            <a href="/assignments" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Assignments</a>
-            <a href="/events"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Events
-            </a>
-            <a href="/track-activity" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Track Activity</a>
+<div class="flex-1 p-8">
+
+    @include('components.header', [
+        'title' => 'Volunteer Management'
+    ])
+
+
+    {{-- ========================================= --}}
+    {{-- NAVIGATION --}}
+    {{-- ========================================= --}}
+
+    <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
+
+        <a href="/service-management"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Volunteer Lists
+
+        </a>
+
+
+        <a href="/applications"
+           class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
+
+            Applications
+
+        </a>
+
+
+        <a href="/assignments"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Assignments
+
+        </a>
+
+
+        <a href="/events"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Events
+
+        </a>
+
+
+        <a href="/track-activity"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Track Activity
+
+        </a>
+
+    </div>
+
+
+
+    {{-- ========================================= --}}
+    {{-- MAIN CONTAINER --}}
+    {{-- ========================================= --}}
+
+    <div class="bg-[#0e243a] p-6 rounded-2xl">
+
+
+        {{-- ========================================= --}}
+        {{-- FILTERS --}}
+        {{-- ========================================= --}}
+
+        <div class="bg-gray-300 p-6 rounded-xl mb-4 flex justify-between flex-wrap gap-4">
+
+            <div class="flex items-center gap-4">
+
+
+                {{-- SKILL FILTER --}}
+
+                <select
+                    id="skillFilter"
+                    class="p-2 border rounded-md"
+                    onchange="applyFilters()">
+
+                    <option value="">
+                        All Skills
+                    </option>
+
+
+                    @foreach($skills as $skill)
+
+                        <option value="{{ strtolower($skill) }}">
+
+                            {{ $skill }}
+
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+
+
+                {{-- STATUS FILTER --}}
+
+                <select
+                    id="statusFilter"
+                    class="p-2 border rounded-md"
+                    onchange="applyFilters()">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="0">
+                        Pending
+                    </option>
+
+                    <option value="1">
+                        Approved
+                    </option>
+
+                    <option value="2">
+                        Rejected
+                    </option>
+
+                    <option value="3">
+                        Archived
+                    </option>
+
+                </select>
+
+            </div>
 
         </div>
 
-        <div class="bg-[#0e243a] p-6 rounded-2xl">
-            <div class="bg-gray-300 p-6 rounded-xl mb-4 flex justify-between flex-wrap gap-4">
-                <div>
-                    <p>Pending Application/s:</p>
-                    <p>Approved Application/s:</p>
-                    <p>Rejected Application/s:</p>
-                </div>
 
-                <div class="flex items-center gap-4">
-                    <span>Filter:</span>
-                    <input type="text" placeholder="Skills" class="p-2 border rounded-md">
-                    <input type="date" class="p-2 border rounded-md">
-                </div>
-            </div>
 
-            <div class="bg-gray-200 rounded-xl p-4 overflow-x-auto">
-                <table class="w-full text-center border border-gray-400">
-                    <thead class="bg-gray-300">
-                        <tr>
-                            <th class="p-3 border">#</th>
-                            <th class="p-3 border">Name</th>
-                            <th class="p-3 border">Status</th>
-                            <th class="p-3 border">Action</th>
-                        </tr>
-                    </thead>
+        {{-- ========================================= --}}
+        {{-- TABLE --}}
+        {{-- ========================================= --}}
 
-                    <tbody>
-                    @forelse($applications as $index => $app)
+        <div class="bg-gray-200 rounded-xl p-4 overflow-x-auto">
 
-                    <tr class="bg-white border hover:bg-gray-100">
+            <table class="w-full text-center border border-gray-400">
 
-                        <td class="p-3 border">
-                            {{ $index + 1 }}
+
+                <thead class="bg-gray-300">
+
+                    <tr>
+
+                        <th class="p-3 border">
+                            #
+                        </th>
+
+                        <th class="p-3 border">
+                            Name
+                        </th>
+
+                        <th class="p-3 border">
+                            Status
+                        </th>
+
+                        <th class="p-3 border">
+                            Action
+                        </th>
+
+                    </tr>
+
+                </thead>
+
+
+
+                <tbody>
+
+
+                @forelse($applications as $index => $app)
+
+
+                    <tr
+                        class="bg-white border hover:bg-gray-100"
+
+                        data-status="{{ $app['status'] }}"
+
+                        data-skills="{{ strtolower($app['skills'] ?? '') }}"
+                    >
+
+
+                        {{-- NUMBER --}}
+
+                        <td class="p-3 border row-number">
+
                         </td>
 
-                        <td class="p-3 border">
-                            {{ $app->first_name }} {{ $app->last_name }}
-                        </td>
+
+
+                        {{-- NAME --}}
 
                         <td class="p-3 border">
-                            <span class="px-3 py-1 rounded-full bg-yellow-200 text-yellow-800 text-sm">
-                                Pending
-                            </span>
+
+                            {{ $app['first_name'] }}
+                            {{ $app['last_name'] }}
+
                         </td>
+
+
+
+                        {{-- STATUS --}}
+
+                        <td class="p-3 border">
+
+
+                            @if($app['status'] == 0)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-yellow-200 text-yellow-800 text-sm">
+
+                                    Pending
+
+                                </span>
+
+
+                            @elseif($app['status'] == 1)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-green-200 text-green-800 text-sm">
+
+                                    Approved
+
+                                </span>
+
+
+                            @elseif($app['status'] == 2)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-red-200 text-red-800 text-sm">
+
+                                    Rejected
+
+                                </span>
+
+
+                            @elseif($app['status'] == 3)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-gray-200 text-gray-800 text-sm">
+
+                                    Archived
+
+                                </span>
+
+                            @endif
+
+
+                        </td>
+
+
+
+                        {{-- ACTIONS --}}
 
                         <td class="p-3 border space-x-2">
 
-                            <button 
-                                class="bg-blue-500 px-4 py-1 rounded-full text-white"
-                                onclick='openAppModal(@json($app))'
+
+                            {{-- ================================= --}}
+                            {{-- DATA FOR MODAL --}}
+                            {{-- ================================= --}}
+
+                            @php
+
+                                $appData = [
+
+                                    'id' =>
+                                        $app['id'] ?? null,
+
+                                    'volunteer_event_id' =>
+                                        $app['volunteer_event_id'] ?? null,
+
+                                    'account_id' =>
+                                        $app['account_id'] ?? null,
+
+                                    'application_date' =>
+                                        $app['application_date'] ?? '',
+
+                                    'first_name' =>
+                                        $app['first_name'] ?? '',
+
+                                    'last_name' =>
+                                        $app['last_name'] ?? '',
+
+                                    'email' =>
+                                        $app['email'] ?? '',
+
+                                    'address' =>
+                                        $app['address'] ?? '',
+
+                                    'contact_number' =>
+                                        $app['contact_number'] ?? '',
+
+                                    'birth_date' =>
+                                        $app['birth_date'] ?? '',
+
+                                    'skills' =>
+                                        $app['skills'] ?? '',
+
+                                    'remarks' =>
+                                        $app['remarks'] ?? '',
+
+                                    'status' =>
+                                        $app['status'] ?? 0,
+
+                                ];
+
+                            @endphp
+
+
+
+                            {{-- VIEW --}}
+
+                            <button
+                                type="button"
+
+                                class="bg-blue-500
+                                       hover:bg-blue-600
+                                       px-4 py-1
+                                       rounded-full
+                                       text-white"
+
+                                onclick="openAppModal(this)"
+
+                                data-app='@json(
+                                    $appData,
+                                    JSON_HEX_APOS | JSON_HEX_QUOT
+                                )'
                             >
+
                                 View
+
                             </button>
 
-                            <button class="bg-green-500 px-4 py-1 rounded-full text-white">
-                                Approve
-                            </button>
 
-                            <button class="bg-red-500 px-4 py-1 rounded-full text-white">
-                                Reject
-                            </button>
+
+                            {{-- ================================= --}}
+                            {{-- PENDING --}}
+                            {{-- ================================= --}}
+
+                            @if($app['status'] == 0)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-green-500
+                                           hover:bg-green-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="updateStatus(
+                                        {{ $app['id'] }},
+                                        'approve'
+                                    )">
+
+                                    Approve
+
+                                </button>
+
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-red-500
+                                           hover:bg-red-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="updateStatus(
+                                        {{ $app['id'] }},
+                                        'reject'
+                                    )">
+
+                                    Reject
+
+                                </button>
+
+
+                            {{-- ================================= --}}
+                            {{-- APPROVED --}}
+                            {{-- ================================= --}}
+
+                            @elseif($app['status'] == 1)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-gray-600
+                                           hover:bg-gray-700
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="archiveApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Archive
+
+                                </button>
+
+
+                            {{-- ================================= --}}
+                            {{-- REJECTED --}}
+                            {{-- ================================= --}}
+
+                            @elseif($app['status'] == 2)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-yellow-500
+                                           hover:bg-yellow-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="restoreApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Restore
+
+                                </button>
+
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-gray-600
+                                           hover:bg-gray-700
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="archiveApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Archive
+
+                                </button>
+
+
+                            {{-- ================================= --}}
+                            {{-- ARCHIVED --}}
+                            {{-- ================================= --}}
+
+                            @elseif($app['status'] == 3)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-yellow-500
+                                           hover:bg-yellow-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="restoreApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Restore
+
+                                </button>
+
+                            @endif
+
 
                         </td>
 
+
                     </tr>
 
-                    @empty
+
+                @empty
+
+
                     <tr>
-                        <td colspan="4" class="p-4 text-gray-500">
-                            No pending applications found.
+
+                        <td
+                            colspan="4"
+                            class="p-4 text-gray-500 text-center">
+
+                            No applications found.
+
                         </td>
+
                     </tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
+
+
+                @endforelse
+
+
+
+                {{-- NO FILTER RESULTS --}}
+
+                <tr
+                    id="noResultsRow"
+                    class="hidden">
+
+                    <td
+                        colspan="4"
+                        class="p-4 text-gray-500 text-center">
+
+                        No applications found.
+
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
         </div>
+
     </div>
+
 </div>
+```
+
+</div>
+
+{{-- ========================================= --}}
+{{-- MODALS --}}
+{{-- ========================================= --}}
+
 @include('components.application-modal')
+
 @include('components.logout-modal')
+
+{{-- ========================================= --}}
+{{-- FILTER SCRIPT --}}
+{{-- ========================================= --}}
+
 <script>
-function openAppModal(data) {
-    const modal = document.getElementById('appModal');
-    const box = document.getElementById('modalBox');
 
-    // show modal
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
+function applyFilters()
+{
+    const status =
+        document.getElementById('statusFilter').value;
 
-    // reset animation
-    box.classList.add('scale-95');
-    setTimeout(() => {
-        box.classList.remove('scale-95');
-    }, 10);
+    const skill =
+        document
+            .getElementById('skillFilter')
+            .value
+            .toLowerCase();
 
-    // ✅ RESET TO PAGE 1 EVERY TIME
-    document.getElementById('page1').classList.remove('hidden');
-    document.getElementById('page2').classList.add('hidden');
 
-    // fill data
-    document.getElementById('first_name').innerText = data.first_name ?? '';
-    document.getElementById('last_name').innerText = data.last_name ?? '';
-    document.getElementById('address').innerText = data.address ?? '';
-    document.getElementById('contact').innerText = data.contact_number ?? '';
-    document.getElementById('email').innerText = data.email ?? '';
-    document.getElementById('dob').innerText = data.birth_date ?? '';
+    const rows =
+        document.querySelectorAll(
+            "tbody tr[data-status]"
+        );
+
+
+    const noResultsRow =
+        document.getElementById(
+            "noResultsRow"
+        );
+
+
+    let visibleCount = 0;
+
+
+    rows.forEach(row => {
+
+        const rowStatus =
+            row.dataset.status;
+
+
+        const rowSkills =
+            (
+                row.dataset.skills || ''
+            ).toLowerCase();
+
+
+        const statusMatch =
+            !status ||
+            rowStatus === status;
+
+
+        const skillMatch =
+            !skill ||
+            rowSkills.includes(skill);
+
+
+        if (
+            statusMatch &&
+            skillMatch
+        ) {
+
+            row.classList.remove(
+                "hidden"
+            );
+
+            visibleCount++;
+
+        }
+        else {
+
+            row.classList.add(
+                "hidden"
+            );
+
+        }
+
+    });
+
+
+    if (noResultsRow) {
+
+        noResultsRow.classList.toggle(
+            "hidden",
+            visibleCount !== 0
+        );
+
+    }
+
+
+    renumberRows();
 }
 
-function closeModal() {
-    const modal = document.getElementById('appModal');
-    const box = document.getElementById('modalBox');
 
-    // animate out
-    box.classList.add('scale-95');
 
-    setTimeout(() => {
-        modal.classList.add('hidden');
-    }, 150);
-}
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
 
-function nextPage() {
-    document.getElementById('page1').classList.add('hidden');
-    document.getElementById('page2').classList.remove('hidden');
-}
+        applyFilters();
 
-function prevPage() {
-    document.getElementById('page2').classList.add('hidden');
-    document.getElementById('page1').classList.remove('hidden');
-}
+    }
+);
+
 </script>
+
+{{-- ========================================= --}}
+{{-- NUMBER ROWS --}}
+{{-- ========================================= --}}
+
+<script>
+
+function renumberRows()
+{
+
+    let count = 1;
+
+
+    document
+        .querySelectorAll(
+            "tbody tr[data-status]"
+        )
+        .forEach(row => {
+
+
+            if (
+                !row.classList.contains(
+                    "hidden"
+                )
+            ) {
+
+                const cell =
+                    row.querySelector(
+                        ".row-number"
+                    );
+
+
+                if (cell) {
+
+                    cell.innerText =
+                        count++;
+
+                }
+
+            }
+
+        });
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- APPLICATION MODAL --}}
+{{-- ========================================= --}}
+
+<script>
+
+function openAppModal(button)
+{
+
+    const app =
+        JSON.parse(
+            button.dataset.app
+        );
+
+
+    const setText =
+        (id, value) => {
+
+            const el =
+                document.getElementById(id);
+
+
+            if (el) {
+
+                el.innerText =
+                    (
+                        value !== null &&
+                        value !== undefined &&
+                        value !== ''
+                    )
+                    ? value
+                    : '---';
+
+            }
+
+        };
+
+
+    // Personal information
+
+    setText(
+        'first_name',
+        app.first_name
+    );
+
+
+    setText(
+        'last_name',
+        app.last_name
+    );
+
+
+    setText(
+        'address',
+        app.address
+    );
+
+
+    setText(
+        'contact',
+        app.contact_number
+    );
+
+
+    setText(
+        'email',
+        app.email
+    );
+
+
+    setText(
+        'dob',
+        app.birth_date
+    );
+
+
+    // Application information
+
+    setText(
+        'application_date',
+        app.application_date
+    );
+
+
+    setText(
+        'skills_text',
+        app.skills
+    );
+
+
+    setText(
+        'remarks_text',
+        app.remarks
+    );
+
+
+    // Show modal
+
+    const modal =
+        document.getElementById(
+            'appModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
+    }
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- CLOSE MODAL --}}
+{{-- ========================================= --}}
+
+<script>
+
+function closeModal()
+{
+
+    const modal =
+        document.getElementById(
+            'appModal'
+        );
+
+
+    const box =
+        document.getElementById(
+            'modalBox'
+        );
+
+
+    if (box) {
+
+        box.classList.add(
+            'scale-95'
+        );
+
+    }
+
+
+    setTimeout(() => {
+
+        if (modal) {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+        }
+
+    }, 150);
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- UPDATE STATUS --}}
+{{-- ========================================= --}}
+
+<script>
+
+function updateStatus(
+    id,
+    action
+)
+{
+
+    let message = '';
+
+
+    if (action === 'approve') {
+
+        message =
+            "Are you sure you want to APPROVE this application?";
+
+    }
+    else {
+
+        message =
+            "Are you sure you want to REJECT this application?";
+
+    }
+
+
+    if (!confirm(message)) {
+
+        return;
+
+    }
+
+
+    let url = '';
+
+
+    if (action === 'approve') {
+
+        url =
+            `/applications/approve/${id}`;
+
+    }
+    else {
+
+        url =
+            `/applications/reject/${id}`;
+
+    }
+
+
+    fetch(
+        url,
+        {
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to update application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Status updated successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to update application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- ARCHIVE --}}
+{{-- ========================================= --}}
+
+<script>
+
+function archiveApplication(id)
+{
+
+    if (
+        !confirm(
+            "Archive this application?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/applications/archive/${id}`,
+        {
+
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to archive application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Application archived successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to archive application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Archive error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- RESTORE --}}
+{{-- ========================================= --}}
+
+<script>
+
+function restoreApplication(id)
+{
+
+    if (
+        !confirm(
+            "Restore this application back to PENDING?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/applications/restore/${id}`,
+        {
+
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to restore application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Application restored successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to restore application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Restore error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
 </body>
 </html>

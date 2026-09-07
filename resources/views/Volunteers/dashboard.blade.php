@@ -80,9 +80,53 @@
 
                 {{-- ICON + TITLE --}}
                 <div class="flex flex-col items-center mb-6">
-                    <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] flex items-center justify-center mb-2">
-                        <span class="text-xl">👤</span>
+                    <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] mb-2 overflow-hidden bg-gray-100 flex items-center justify-center">
+                        @if(data_get($user, 'profile_picture'))
+                            <img 
+                                src="{{ data_get($user, 'profile_picture') }}" 
+                                alt="Profile Picture"
+                                class="w-full h-full object-cover"
+                            >
+                        @else
+                            <span class="text-xl">👤</span>
+                        @endif
                     </div>
+
+                    <!-- <form method="POST" action="/volunteer/update-profile-picture" enctype="multipart/form-data">
+                    @csrf
+
+                    <div class="flex flex-col items-center mb-6"> -->
+
+                        <!-- {{-- CLICKABLE AVATAR --}}
+                        <label for="profile_picture" class="cursor-pointer">
+                            <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] mb-2 overflow-hidden bg-gray-100 flex items-center justify-center hover:opacity-80 transition">
+
+                                @if(data_get($user, 'profile_picture'))
+                                    <img 
+                                        src="{{ data_get($user, 'profile_picture') }}" 
+                                        class="w-full h-full object-cover"
+                                        alt="Profile Picture"
+                                    >
+                                @else
+                                    <span class="text-xl">👤</span>
+                                @endif
+
+                            </div>
+                        </label> -->
+
+                        <!-- {{-- HIDDEN FILE INPUT --}}
+                        <input 
+                            type="file" 
+                            id="profile_picture" 
+                            name="profile_picture"
+                            class="hidden"
+                            accept="image/*"
+                            onchange="this.form.submit()"
+                        >
+
+                        <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
+                    </div> -->
+                </form>
                     <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
                 </div>
 

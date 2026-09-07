@@ -34,26 +34,9 @@
 
 <body class="bg-gray-100">
 
-<!-- NAVBAR -->
-<nav class="bg-white shadow-md">
-    <div class="w-full px-8 py-6 flex justify-between items-center">
-        <div class="flex items-center gap-0 ml-2">
-            <img src="{{ asset('images/suhayLogo.png') }}" class="h-16 w-auto">
-        </div>
+{{-- NAVBAR --}}
+    @include('components.navbar')
 
-        <div class="hidden md:flex items-center gap-10 font-bold text-xl mr-2">
-            <a href="/" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Home</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">About</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">NGOs</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Impact</a>
-            <a href="/volunteer-page" class="bg-[#f2c94c] text-white px-4 py-2 rounded-lg">Get Involved</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Donate</a>
-            <a href="/login-page" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Log in</a>
-        </div>
-    </div>
-</nav>
-
-<!-- HEADER USING HERO IMAGE -->
 <section class="relative h-[250px] flex items-center">
     <img src="{{ asset('images/hero.jpg') }}" class="absolute inset-0 w-full h-full object-cover">
 
@@ -69,28 +52,31 @@
     </div>
 </section>
 
-<!-- TEXT-ONLY CARDS -->
 <section class="py-14 px-12">
     <div class="grid grid-cols-3 gap-8">
+        @foreach ($events as $event)
 
-            @foreach ($events as $event)
-                <div class="bg-white rounded-3xl shadow-md p-8 text-center fade-up">
+            <div class="bg-white rounded-3xl shadow-md p-8 text-center fade-up">
 
-                    <h2 class="text-2xl font-bold text-[#0e243a] mb-4">
-                        {{ $event['name'] }}
-                    </h2>
+                <h2 class="text-2xl font-bold text-[#0e243a] mb-4">
+                    {{ $event['name'] }}
+                </h2>
 
-                    <p class="text-gray-600 mb-6">
-                        {{ $event['description'] }}
-                    </p>
+                <p class="text-gray-600 mb-4">
+                    {{ $event['description'] }}
+                </p>
 
-                    <a href="/login-page"
-                    class="bg-[#d4a017] text-white px-10 py-3 rounded-full text-xl hover:bg-yellow-600 transition inline-block">
-                        Volunteer Now
-                    </a>
+                <p class="text-[#d4a017] font-semibold mb-6">
+                    📅 {{ \Carbon\Carbon::parse($event['date'])->format('F d, Y') }}
+                </p>
 
-                </div>
-            @endforeach
+                <a href="/login-page"
+                class="bg-[#d4a017] text-white px-10 py-3 rounded-full text-xl hover:bg-yellow-600 transition inline-block">
+                    Volunteer Now
+                </a>
+
+            </div>
+         @endforeach
     </div>
 </section>
 

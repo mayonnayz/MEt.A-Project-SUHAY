@@ -48,23 +48,8 @@
 
 <body class="bg-gray-100 overflow-hidden">
 
-<nav class="bg-white shadow-md">
-    <div class="w-full px-8 py-6 flex justify-between items-center">
-        <div class="flex items-center gap-0 ml-2">
-            <img src="{{ asset('images/suhayLogo.png') }}" class="h-16 w-auto">
-        </div>
+@include('components.navbar')
 
-        <div class="hidden md:flex items-center gap-10 font-bold text-xl mr-2">
-            <a href="/" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Home</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">About</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">NGOs</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Impact</a>
-            <a href="/volunteer-page" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Get Involved</a>
-            <a href="#" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Donate</a>
-            <a href="/login-page" class="text-[#0e243a] px-4 py-2 rounded-lg hover:bg-[#f2c94c] hover:text-white transition">Log in</a>
-        </div>
-    </div>
-</nav>
 
 <section class="flex h-[calc(100vh-96px)]">
     <div class="w-1/2 bg-gray-100 flex justify-center items-center fade-left">
