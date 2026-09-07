@@ -259,9 +259,18 @@ function openActivities(eventId, eventName) {
                             <div class="mt-2 text-sm text-gray-600">
                                 <p class="font-semibold">Assigned Volunteers:</p>
                                 <ul class="list-disc ml-5">
-                                    ${act.volunteer_assignments.map(v => `
-                                        <li>
-                                            ${v.accounts.first_name} ${v.accounts.last_name}
+                                   ${act.volunteer_assignments.map(v => `
+                                        <li class="flex justify-between items-center gap-2 mb-2">
+                                            <span>
+                                                ${v.accounts.first_name} ${v.accounts.last_name}
+                                            </span>
+
+                                            <button 
+                                                onclick="removeAssignment(${v.id})"
+                                                class="bg-red-500 text-white px-3 py-1 rounded-full text-xs ml-2"
+                                            >
+                                                Remove
+                                            </button>
                                         </li>
                                     `).join('')}
                                 </ul>
@@ -297,8 +306,35 @@ function openActivities(eventId, eventName) {
                 '<p class="text-red-500">Failed to load activities.</p>';
         });
 }
+
+function removeAssignment(assignmentId) {
+    if (!confirm("Remove this volunteer from the activity?")) return;
+
+    fetch(`/remove-assignment/${assignmentId}`, {
+        method: 'DELETE',
+        headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        }
+    })
+    .then(res => {
+        if (!res.ok) {
+            alert("Failed to remove");
+            return;
+        }
+
+        alert("Removed successfully!");
+
+        refreshActivities(); 
+    })
+    .catch(err => {
+        console.error(err);
+        alert("Error removing assignment");
+    });
+}
 function refreshActivities() {
     if (!currentEventId) return;
+
+    document.getElementById('activityList').innerHTML = 'Refreshing...';
 
     fetch(`/events/${currentEventId}/activities`)
         .then(res => res.json())
@@ -316,7 +352,18 @@ function refreshActivities() {
                             <p class="font-semibold">Assigned Volunteers:</p>
                             <ul class="list-disc ml-5">
                                 ${act.volunteer_assignments.map(v => `
-                                    <li>${v.accounts.first_name} ${v.accounts.last_name}</li>
+                                    <li class="flex justify-between items-center gap-2 mb-2">
+                                        <span>
+                                            ${v.accounts.first_name} ${v.accounts.last_name}
+                                        </span>
+
+                                        <button 
+                                            onclick="removeAssignment(${v.id})"
+                                            class="bg-red-500 text-white px-3 py-1 rounded-full text-xs ml-2"
+                                        >
+                                            Remove
+                                        </button>
+                                    </li>
                                 `).join('')}
                             </ul>
                         </div>
@@ -330,6 +377,7 @@ function refreshActivities() {
                         <div>
                             <p class="font-semibold">${act.name}</p>
                             <p class="text-sm text-gray-500">${act.remarks ?? ''}</p>
+
                             ${volunteersHTML}
                         </div>
 

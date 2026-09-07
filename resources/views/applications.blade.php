@@ -1,435 +1,1226 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applications</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            font-family: 'Poppins', sans-serif;
-        }
-    </style>
+
+<title>Applications</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap"
+      rel="stylesheet">
+
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+    body {
+        font-family: 'Poppins', sans-serif;
+    }
+</style>
+
+
 </head>
 
 <body class="bg-gray-200">
+
 <div class="flex">
-    @include('components.nav')
 
-    <div class="flex-1 p-8">
-       @include('components.header', ['title' => 'Volunteer Management'])
+@include('components.nav')
 
 
-        <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
-            <a href="/service-management" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Volunteer Lists</a>
-            <a href="/applications" class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">Applications</a>
-            <a href="/assignments" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Assignments</a>
-            <a href="/events"
-               class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
-                Events
-            </a>
-            <a href="/track-activity" class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">Track Activity</a>
+<div class="flex-1 p-8">
 
-        </div>
+    @include('components.header', [
+        'title' => 'Volunteer Management'
+    ])
 
-        <div class="bg-[#0e243a] p-6 rounded-2xl">
 
-            <!-- FILTERS -->
-            <div class="bg-gray-300 p-6 rounded-xl mb-4 flex justify-between flex-wrap gap-4">
+    {{-- ========================================= --}}
+    {{-- NAVIGATION --}}
+    {{-- ========================================= --}}
 
-                <div class="flex items-center gap-4">
+    <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
 
-                    <select id="skillFilter" class="p-2 border rounded-md" onchange="applyFilters()">
-                        <option value="">All Skills</option>
-                        @foreach($skills as $skill)
-                            <option value="{{ strtolower($skill) }}">{{ $skill }}</option>
-                        @endforeach
-                    </select>
+        <a href="/service-management"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
 
-                    <select id="statusFilter" class="p-2 border rounded-md" onchange="applyFilters()">
-                        <option value="">All Status</option>
-                        <option value="0">Rejected</option>
-                        <option value="1">Approved</option>
-                        <option value="2">Pending</option>
-                        <option value="3">Archived</option>
-                    </select>
+            Volunteer Lists
 
-                </div>
+        </a>
+
+
+        <a href="/applications"
+           class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
+
+            Applications
+
+        </a>
+
+
+        <a href="/assignments"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Assignments
+
+        </a>
+
+
+        <a href="/events"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Events
+
+        </a>
+
+
+        <a href="/track-activity"
+           class="bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+
+            Track Activity
+
+        </a>
+
+    </div>
+
+
+
+    {{-- ========================================= --}}
+    {{-- MAIN CONTAINER --}}
+    {{-- ========================================= --}}
+
+    <div class="bg-[#0e243a] p-6 rounded-2xl">
+
+
+        {{-- ========================================= --}}
+        {{-- FILTERS --}}
+        {{-- ========================================= --}}
+
+        <div class="bg-gray-300 p-6 rounded-xl mb-4 flex justify-between flex-wrap gap-4">
+
+            <div class="flex items-center gap-4">
+
+
+                {{-- SKILL FILTER --}}
+
+                <select
+                    id="skillFilter"
+                    class="p-2 border rounded-md"
+                    onchange="applyFilters()">
+
+                    <option value="">
+                        All Skills
+                    </option>
+
+
+                    @foreach($skills as $skill)
+
+                        <option value="{{ strtolower($skill) }}">
+
+                            {{ $skill }}
+
+                        </option>
+
+                    @endforeach
+
+                </select>
+
+
+
+                {{-- STATUS FILTER --}}
+
+                <select
+                    id="statusFilter"
+                    class="p-2 border rounded-md"
+                    onchange="applyFilters()">
+
+                    <option value="">
+                        All Status
+                    </option>
+
+                    <option value="0">
+                        Pending
+                    </option>
+
+                    <option value="1">
+                        Approved
+                    </option>
+
+                    <option value="2">
+                        Rejected
+                    </option>
+
+                    <option value="3">
+                        Archived
+                    </option>
+
+                </select>
 
             </div>
 
-            <!-- TABLE (NOW INSIDE BLUE CONTAINER) -->
-            <div class="bg-gray-200 rounded-xl p-4 overflow-x-auto">
+        </div>
 
-                <table class="w-full text-center border border-gray-400">
 
-                    <thead class="bg-gray-300">
-                        <tr>
-                            <th class="p-3 border">#</th>
-                            <th class="p-3 border">Name</th>
-                            <th class="p-3 border">Status</th>
-                            <th class="p-3 border">Action</th>
-                        </tr>
-                    </thead>
 
-                    <tbody>
+        {{-- ========================================= --}}
+        {{-- TABLE --}}
+        {{-- ========================================= --}}
 
-                    @forelse($applications as $index => $app)
+        <div class="bg-gray-200 rounded-xl p-4 overflow-x-auto">
 
-                        <tr class="bg-white border hover:bg-gray-100"
-                            data-status="{{ $app['status'] }}"
-                            data-skills="{{ strtolower($app['skills']) }}"
-                            data-availability="{{ strtolower($app['availability']) }}">
+            <table class="w-full text-center border border-gray-400">
 
-                            <td class="p-3 border row-number"></td>
 
-                            <td class="p-3 border">
-                                {{ $app['first_name'] }} {{ $app['last_name'] }}
-                            </td>
+                <thead class="bg-gray-300">
 
-                            <td class="p-3 border">
+                    <tr>
 
-                                @if($app['status'] == 0)
-                                    <span class="px-3 py-1 rounded-full bg-red-200 text-red-800 text-sm">Rejected</span>
+                        <th class="p-3 border">
+                            #
+                        </th>
 
-                                @elseif($app['status'] == 1)
-                                    <span class="px-3 py-1 rounded-full bg-green-200 text-green-800 text-sm">Approved</span>
+                        <th class="p-3 border">
+                            Name
+                        </th>
 
-                                @elseif($app['status'] == 2)
-                                    <span class="px-3 py-1 rounded-full bg-yellow-200 text-yellow-800 text-sm">Pending</span>
+                        <th class="p-3 border">
+                            Status
+                        </th>
 
-                                @elseif($app['status'] == 3)
-                                    <span class="px-3 py-1 rounded-full bg-gray-200 text-gray-800 text-sm">Archived</span>
-                                @endif
+                        <th class="p-3 border">
+                            Action
+                        </th>
 
-                            </td>
+                    </tr>
 
-                            <td class="p-3 border space-x-2">
+                </thead>
+
+
+
+                <tbody>
+
+
+                @forelse($applications as $index => $app)
+
+
+                    <tr
+                        class="bg-white border hover:bg-gray-100"
+
+                        data-status="{{ $app['status'] }}"
+
+                        data-skills="{{ strtolower($app['skills'] ?? '') }}"
+                    >
+
+
+                        {{-- NUMBER --}}
+
+                        <td class="p-3 border row-number">
+
+                        </td>
+
+
+
+                        {{-- NAME --}}
+
+                        <td class="p-3 border">
+
+                            {{ $app['first_name'] }}
+                            {{ $app['last_name'] }}
+
+                        </td>
+
+
+
+                        {{-- STATUS --}}
+
+                        <td class="p-3 border">
+
+
+                            @if($app['status'] == 0)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-yellow-200 text-yellow-800 text-sm">
+
+                                    Pending
+
+                                </span>
+
+
+                            @elseif($app['status'] == 1)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-green-200 text-green-800 text-sm">
+
+                                    Approved
+
+                                </span>
+
+
+                            @elseif($app['status'] == 2)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-red-200 text-red-800 text-sm">
+
+                                    Rejected
+
+                                </span>
+
+
+                            @elseif($app['status'] == 3)
+
+                                <span
+                                    class="px-3 py-1 rounded-full
+                                           bg-gray-200 text-gray-800 text-sm">
+
+                                    Archived
+
+                                </span>
+
+                            @endif
+
+
+                        </td>
+
+
+
+                        {{-- ACTIONS --}}
+
+                        <td class="p-3 border space-x-2">
+
+
+                            {{-- ================================= --}}
+                            {{-- DATA FOR MODAL --}}
+                            {{-- ================================= --}}
+
+                            @php
+
+                                $appData = [
+
+                                    'id' =>
+                                        $app['id'] ?? null,
+
+                                    'volunteer_event_id' =>
+                                        $app['volunteer_event_id'] ?? null,
+
+                                    'account_id' =>
+                                        $app['account_id'] ?? null,
+
+                                    'application_date' =>
+                                        $app['application_date'] ?? '',
+
+                                    'first_name' =>
+                                        $app['first_name'] ?? '',
+
+                                    'last_name' =>
+                                        $app['last_name'] ?? '',
+
+                                    'email' =>
+                                        $app['email'] ?? '',
+
+                                    'address' =>
+                                        $app['address'] ?? '',
+
+                                    'contact_number' =>
+                                        $app['contact_number'] ?? '',
+
+                                    'birth_date' =>
+                                        $app['birth_date'] ?? '',
+
+                                    'skills' =>
+                                        $app['skills'] ?? '',
+
+                                    'remarks' =>
+                                        $app['remarks'] ?? '',
+
+                                    'status' =>
+                                        $app['status'] ?? 0,
+
+                                ];
+
+                            @endphp
+
+
+
+                            {{-- VIEW --}}
+
+                            <button
+                                type="button"
+
+                                class="bg-blue-500
+                                       hover:bg-blue-600
+                                       px-4 py-1
+                                       rounded-full
+                                       text-white"
+
+                                onclick="openAppModal(this)"
+
+                                data-app='@json(
+                                    $appData,
+                                    JSON_HEX_APOS | JSON_HEX_QUOT
+                                )'
+                            >
+
+                                View
+
+                            </button>
+
+
+
+                            {{-- ================================= --}}
+                            {{-- PENDING --}}
+                            {{-- ================================= --}}
+
+                            @if($app['status'] == 0)
+
 
                                 <button
-                                    class="bg-blue-500 px-4 py-1 rounded-full text-white view-btn"
-                                    data-app='@json($app, JSON_HEX_APOS | JSON_HEX_QUOT)'>
-                                    View
+                                    type="button"
+
+                                    class="bg-green-500
+                                           hover:bg-green-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="updateStatus(
+                                        {{ $app['id'] }},
+                                        'approve'
+                                    )">
+
+                                    Approve
+
                                 </button>
 
-                                @if($app['status'] == 0)
 
-                                    <button class="bg-yellow-500 px-4 py-1 rounded-full text-white restore-btn"
-                                        data-id="{{ $app['id'] }}">
-                                        Restore
-                                    </button>
 
-                                    <button class="bg-gray-600 px-4 py-1 rounded-full text-white archive-btn"
-                                        data-id="{{ $app['id']}}">
-                                        Archive
-                                    </button>
+                                <button
+                                    type="button"
 
-                                @elseif($app['status'] == 1)
+                                    class="bg-red-500
+                                           hover:bg-red-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
 
-                                    <button class="bg-gray-600 px-4 py-1 rounded-full text-white archive-btn"
-                                        data-id="{{ $app['id'] }}">
-                                        Archive
-                                    </button>
+                                    onclick="updateStatus(
+                                        {{ $app['id'] }},
+                                        'reject'
+                                    )">
 
-                                @elseif($app['status'] == 2)
+                                    Reject
 
-                                    <button class="bg-green-500 px-4 py-1 rounded-full text-white update-btn"
-                                        data-id="{{ $app['id'] }}"
-                                        data-action="approve">
-                                        Approve
-                                    </button>
+                                </button>
 
-                                    <button class="bg-red-500 px-4 py-1 rounded-full text-white update-btn"
-                                        data-id="{{ $app['id'] }}"
-                                        data-action="reject">
-                                        Reject
-                                    </button>
 
-                                @elseif($app['status'] == 3)
+                            {{-- ================================= --}}
+                            {{-- APPROVED --}}
+                            {{-- ================================= --}}
 
-                                    <button class="bg-yellow-500 px-4 py-1 rounded-full text-white restore-btn"
-                                        data-id="{{ $app['id'] }}">
-                                        Restore
-                                    </button>
+                            @elseif($app['status'] == 1)
 
-                                @endif
 
-                            </td>
+                                <button
+                                    type="button"
 
-                        </tr>
+                                    class="bg-gray-600
+                                           hover:bg-gray-700
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
 
-                    @empty
-                        <tr id="noResultsRow" class="hidden">
-                            <td colspan="4" class="p-4 text-gray-500 text-center">
-                                No applications found.
-                            </td>
-                        </tr>
-                    @endforelse
+                                    onclick="archiveApplication(
+                                        {{ $app['id'] }}
+                                    )">
 
-                    </tbody>
+                                    Archive
 
-                </table>
+                                </button>
 
-            </div>
+
+                            {{-- ================================= --}}
+                            {{-- REJECTED --}}
+                            {{-- ================================= --}}
+
+                            @elseif($app['status'] == 2)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-yellow-500
+                                           hover:bg-yellow-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="restoreApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Restore
+
+                                </button>
+
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-gray-600
+                                           hover:bg-gray-700
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="archiveApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Archive
+
+                                </button>
+
+
+                            {{-- ================================= --}}
+                            {{-- ARCHIVED --}}
+                            {{-- ================================= --}}
+
+                            @elseif($app['status'] == 3)
+
+
+                                <button
+                                    type="button"
+
+                                    class="bg-yellow-500
+                                           hover:bg-yellow-600
+                                           px-4 py-1
+                                           rounded-full
+                                           text-white"
+
+                                    onclick="restoreApplication(
+                                        {{ $app['id'] }}
+                                    )">
+
+                                    Restore
+
+                                </button>
+
+                            @endif
+
+
+                        </td>
+
+
+                    </tr>
+
+
+                @empty
+
+
+                    <tr>
+
+                        <td
+                            colspan="4"
+                            class="p-4 text-gray-500 text-center">
+
+                            No applications found.
+
+                        </td>
+
+                    </tr>
+
+
+                @endforelse
+
+
+
+                {{-- NO FILTER RESULTS --}}
+
+                <tr
+                    id="noResultsRow"
+                    class="hidden">
+
+                    <td
+                        colspan="4"
+                        class="p-4 text-gray-500 text-center">
+
+                        No applications found.
+
+                    </td>
+
+                </tr>
+
+
+                </tbody>
+
+            </table>
+
         </div>
 
-        
     </div>
+
 </div>
+```
+
+</div>
+
+{{-- ========================================= --}}
+{{-- MODALS --}}
+{{-- ========================================= --}}
+
 @include('components.application-modal')
+
 @include('components.logout-modal')
 
+{{-- ========================================= --}}
+{{-- FILTER SCRIPT --}}
+{{-- ========================================= --}}
+
 <script>
-// =======================
-// INIT EVENTS (ONE SYSTEM)
-// =======================
-document.addEventListener("DOMContentLoaded", function () {
 
-    // View modal
-    document.querySelectorAll('.view-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            const app = JSON.parse(this.getAttribute('data-app'));
-            openAppModal(app);
-        });
-    });
+function applyFilters()
+{
+    const status =
+        document.getElementById('statusFilter').value;
 
-    // Approve / Reject
-    document.querySelectorAll('.update-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            updateStatus(this.dataset.id, this.dataset.action);
-        });
-    });
-
-    // Archive
-    document.querySelectorAll('.archive-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            archiveApplication(this.dataset.id);
-        });
-    });
-
-    // Restore
-    document.querySelectorAll('.restore-btn').forEach(btn => {
-        btn.addEventListener('click', function () {
-            restoreApplication(this.dataset.id);
-        });
-    });
-
-    filterStatus('');
-
-    const statusFilter = document.getElementById('statusFilter');
-    if (statusFilter) statusFilter.value = '';
-});
+    const skill =
+        document
+            .getElementById('skillFilter')
+            .value
+            .toLowerCase();
 
 
-// =======================
-// FILTER SYSTEM (FIXED)
-// =======================
-function applyFilters() {
+    const rows =
+        document.querySelectorAll(
+            "tbody tr[data-status]"
+        );
 
-    let status = document.getElementById('statusFilter').value;
-    let skill = document.getElementById('skillFilter').value.toLowerCase();
 
-    const rows = document.querySelectorAll("tbody tr:not(#noResultsRow)");
-    const noResultsRow = document.getElementById("noResultsRow");
+    const noResultsRow =
+        document.getElementById(
+            "noResultsRow"
+        );
+
 
     let visibleCount = 0;
 
+
     rows.forEach(row => {
 
-        let rowStatus = row.dataset.status;
-        let rowSkills = (row.dataset.skills || "").toLowerCase();
+        const rowStatus =
+            row.dataset.status;
 
-        let statusMatch = !status || rowStatus === status;
-        let skillMatch = !skill || rowSkills.includes(skill);
 
-        if (statusMatch && skillMatch) {
-            row.style.display = "";
+        const rowSkills =
+            (
+                row.dataset.skills || ''
+            ).toLowerCase();
+
+
+        const statusMatch =
+            !status ||
+            rowStatus === status;
+
+
+        const skillMatch =
+            !skill ||
+            rowSkills.includes(skill);
+
+
+        if (
+            statusMatch &&
+            skillMatch
+        ) {
+
+            row.classList.remove(
+                "hidden"
+            );
+
             visibleCount++;
-        } else {
-            row.style.display = "none";
+
         }
+        else {
+
+            row.classList.add(
+                "hidden"
+            );
+
+        }
+
     });
 
+
     if (noResultsRow) {
-        noResultsRow.classList.toggle("hidden", visibleCount !== 0);
+
+        noResultsRow.classList.toggle(
+            "hidden",
+            visibleCount !== 0
+        );
+
     }
+
 
     renumberRows();
 }
 
 
-// =======================
-// ROW NUMBERING
-// =======================
-function renumberRows() {
+
+document.addEventListener(
+    "DOMContentLoaded",
+    function () {
+
+        applyFilters();
+
+    }
+);
+
+</script>
+
+{{-- ========================================= --}}
+{{-- NUMBER ROWS --}}
+{{-- ========================================= --}}
+
+<script>
+
+function renumberRows()
+{
+
     let count = 1;
 
-    document.querySelectorAll("tbody tr:not(#noResultsRow)").forEach(row => {
-        if (row.style.display !== "none") {
-            const cell = row.querySelector(".row-number");
-            if (cell) cell.innerText = count++;
-        }
-    });
+
+    document
+        .querySelectorAll(
+            "tbody tr[data-status]"
+        )
+        .forEach(row => {
+
+
+            if (
+                !row.classList.contains(
+                    "hidden"
+                )
+            ) {
+
+                const cell =
+                    row.querySelector(
+                        ".row-number"
+                    );
+
+
+                if (cell) {
+
+                    cell.innerText =
+                        count++;
+
+                }
+
+            }
+
+        });
+
 }
 
+</script>
 
-// =======================
-// STATUS FILTER (FIXED)
-// =======================
-function filterStatus(status) {
+{{-- ========================================= --}}
+{{-- APPLICATION MODAL --}}
+{{-- ========================================= --}}
 
-    const rows = document.querySelectorAll("tbody tr:not(#noResultsRow)");
-    const noResultsRow = document.getElementById("noResultsRow");
+<script>
 
-    let visibleCount = 0;
+function openAppModal(button)
+{
 
-    rows.forEach(row => {
+    const app =
+        JSON.parse(
+            button.dataset.app
+        );
 
-        if (!status) {
-            row.style.display = "";
-            visibleCount++;
-            return;
-        }
 
-        if (row.dataset.status === status) {
-            row.style.display = "";
-            visibleCount++;
-        } else {
-            row.style.display = "none";
-        }
-    });
+    const setText =
+        (id, value) => {
 
-    if (noResultsRow) {
-        noResultsRow.classList.toggle("hidden", visibleCount !== 0);
+            const el =
+                document.getElementById(id);
+
+
+            if (el) {
+
+                el.innerText =
+                    (
+                        value !== null &&
+                        value !== undefined &&
+                        value !== ''
+                    )
+                    ? value
+                    : '---';
+
+            }
+
+        };
+
+
+    // Personal information
+
+    setText(
+        'first_name',
+        app.first_name
+    );
+
+
+    setText(
+        'last_name',
+        app.last_name
+    );
+
+
+    setText(
+        'address',
+        app.address
+    );
+
+
+    setText(
+        'contact',
+        app.contact_number
+    );
+
+
+    setText(
+        'email',
+        app.email
+    );
+
+
+    setText(
+        'dob',
+        app.birth_date
+    );
+
+
+    // Application information
+
+    setText(
+        'application_date',
+        app.application_date
+    );
+
+
+    setText(
+        'skills_text',
+        app.skills
+    );
+
+
+    setText(
+        'remarks_text',
+        app.remarks
+    );
+
+
+    // Show modal
+
+    const modal =
+        document.getElementById(
+            'appModal'
+        );
+
+
+    if (modal) {
+
+        modal.classList.remove(
+            'hidden'
+        );
+
     }
 
-    renumberRows();
 }
 
+</script>
 
-// =======================
-// MODAL (FIXED)
-// =======================
-function openAppModal(app) {
+{{-- ========================================= --}}
+{{-- CLOSE MODAL --}}
+{{-- ========================================= --}}
 
-    const modal = document.getElementById('appModal');
-    const box = document.getElementById('modalBox');
+<script>
 
-    box.classList.remove('scale-95');
+function closeModal()
+{
 
-    document.getElementById('first_name').innerText = app.first_name ?? '---';
-    document.getElementById('last_name').innerText = app.last_name ?? '---';
-    document.getElementById('address').innerText = app.address ?? '---';
-    document.getElementById('contact').innerText = app.contact_number ?? '---';
-    document.getElementById('email').innerText = app.email ?? '---';
-    document.getElementById('dob').innerText = app.birth_date ?? '---';
-
-    document.getElementById('availability_text').innerText =
-        app.availability ?? '---';
-
-    document.getElementById('experience').innerText =
-        Number(app.has_experience) === 1 ? 'Yes' : 'No';
-
-    document.getElementById('reason').innerText =
-        app.experience_details ?? '---';
-
-    document.getElementById('skills_text').innerText =
-        app.skills ?? '---';
-
-    document.getElementById('interests_text').innerText =
-        app.interests ?? '---';
-
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+    const modal =
+        document.getElementById(
+            'appModal'
+        );
 
 
-// =======================
-// CLOSE MODAL
-// =======================
-function closeModal() {
+    const box =
+        document.getElementById(
+            'modalBox'
+        );
 
-    const modal = document.getElementById('appModal');
-    const box = document.getElementById('modalBox');
 
-    box.classList.add('scale-95');
+    if (box) {
+
+        box.classList.add(
+            'scale-95'
+        );
+
+    }
+
 
     setTimeout(() => {
-        modal.classList.add('hidden');
-        modal.classList.remove('flex');
+
+        if (modal) {
+
+            modal.classList.add(
+                'hidden'
+            );
+
+        }
+
     }, 150);
+
 }
 
-
-// =======================
-// STATUS ACTIONS
-// =======================
-function updateStatus(id, action) {
-
-    let message = action === 'approve'
-        ? "Are you sure you want to APPROVE this application?"
-        : "Are you sure you want to REJECT this application?";
-
-    if (!confirm(message)) return;
-
-    let url = action === 'approve'
-        ? `/applications/approve/${id}`
-        : `/applications/reject/${id}`;
-
-    fetch(url, {
-        method: 'PATCH',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) location.reload();
-        else alert("Failed to update");
-    });
-}
-
-
-// =======================
-// ARCHIVE
-// =======================
-function archiveApplication(id) {
-
-    if (!confirm("Archive this approved application?")) return;
-
-    fetch(`/applications/archive/${id}`, {
-        method: 'PATCH',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json'
-        }
-    }).then(() => location.reload());
-}
-
-
-// =======================
-// RESTORE
-// =======================
-function restoreApplication(id) {
-
-    if (!confirm("Restore this application back to PENDING?")) return;
-
-    fetch(`/applications/restore/${id}`, {
-        method: 'PATCH',
-        headers: {
-            'X-CSRF-TOKEN': '{{ csrf_token() }}',
-            'Content-Type': 'application/json'
-        }
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) location.reload();
-        else alert("Failed to restore");
-    });
-}
 </script>
+
+{{-- ========================================= --}}
+{{-- UPDATE STATUS --}}
+{{-- ========================================= --}}
+
+<script>
+
+function updateStatus(
+    id,
+    action
+)
+{
+
+    let message = '';
+
+
+    if (action === 'approve') {
+
+        message =
+            "Are you sure you want to APPROVE this application?";
+
+    }
+    else {
+
+        message =
+            "Are you sure you want to REJECT this application?";
+
+    }
+
+
+    if (!confirm(message)) {
+
+        return;
+
+    }
+
+
+    let url = '';
+
+
+    if (action === 'approve') {
+
+        url =
+            `/applications/approve/${id}`;
+
+    }
+    else {
+
+        url =
+            `/applications/reject/${id}`;
+
+    }
+
+
+    fetch(
+        url,
+        {
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to update application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Status updated successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to update application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- ARCHIVE --}}
+{{-- ========================================= --}}
+
+<script>
+
+function archiveApplication(id)
+{
+
+    if (
+        !confirm(
+            "Archive this application?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/applications/archive/${id}`,
+        {
+
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to archive application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Application archived successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to archive application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Archive error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
+{{-- ========================================= --}}
+{{-- RESTORE --}}
+{{-- ========================================= --}}
+
+<script>
+
+function restoreApplication(id)
+{
+
+    if (
+        !confirm(
+            "Restore this application back to PENDING?"
+        )
+    ) {
+
+        return;
+
+    }
+
+
+    fetch(
+        `/applications/restore/${id}`,
+        {
+
+            method: 'PATCH',
+
+            headers: {
+
+                'X-CSRF-TOKEN':
+                    '{{ csrf_token() }}',
+
+                'Content-Type':
+                    'application/json',
+
+                'Accept':
+                    'application/json'
+
+            }
+
+        }
+    )
+
+    .then(async response => {
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.message ||
+                'Failed to restore application.'
+            );
+
+        }
+
+
+        return data;
+
+    })
+
+    .then(data => {
+
+        if (data.success) {
+
+            alert(
+                'Application restored successfully.'
+            );
+
+            location.reload();
+
+        }
+        else {
+
+            alert(
+                'Failed to restore application.'
+            );
+
+        }
+
+    })
+
+    .catch(error => {
+
+        console.error(
+            'Restore error:',
+            error
+        );
+
+        alert(
+            error.message ||
+            'Something went wrong.'
+        );
+
+    });
+
+}
+
+</script>
+
 </body>
 </html>

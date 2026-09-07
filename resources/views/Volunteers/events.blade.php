@@ -23,10 +23,21 @@
     <div class="flex-1 p-8">
        @include('components.header', ['title' => 'Events'])
 
+        <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
 
-        <!-- Outer Panel -->
+            <a href="/volunteer/events"
+            class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
+                Events
+            </a>
+
+            <a href="/volunteer/assignments"
+            class="bg-[#f2c94c] text-[#0e243a] px-6 py-2 rounded-full font-semibold hover:opacity-90 transition">
+                Assignments
+            </a>
+
+        </div>
+
         <div class="bg-white rounded-[22px] border-[10px] border-[#0e243a] p-6 sm:p-8">
-            <!-- Search -->
             <form method="GET" action="/volunteer/events" class="mb-6">
                 <div class="flex items-center bg-white border-2 border-[#0e243a] rounded-2xl px-4 py-3">
                     
@@ -38,7 +49,6 @@
                         class="w-full outline-none text-[15px] font-medium placeholder:text-gray-500"
                     />
 
-                    <!-- JUST ICON (not clickable) -->
                     <div class="ml-3 w-10 h-10 rounded-xl bg-[#0e243a] flex items-center justify-center pointer-events-none">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="11" cy="11" r="7"></circle>
@@ -49,14 +59,12 @@
                 </div>
             </form>
 
-            <!-- Event Cards Container -->
             <div class="space-y-5">
              
             @foreach($events as $event)
                     <div class="rounded-2xl border-2 border-[#0e243a] bg-white p-5">
                         <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
 
-                            <!-- LEFT SIDE -->
                             <div class="min-w-0">
                                 <div class="text-lg font-bold text-[#0e243a] mb-2">
                                     {{ $event['name'] }}
@@ -81,7 +89,6 @@
                                 </div>
                             </div>
 
-                            <!-- RIGHT SIDE BUTTONS -->
                             <div class="flex gap-3 md:justify-end">
                                 <button
                                     type="button"
@@ -212,15 +219,11 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
 });
 </script>
 
-<!-- View Activities Modal -->
 <div id="activitiesModal" class="hidden fixed inset-0 z-50 items-center justify-center">
-  <!-- Backdrop -->
   <div class="absolute inset-0 bg-black/50" onclick="closeActivitiesModal()"></div>
 
-  <!-- Modal -->
   <div class="relative w-[90%] max-w-md bg-white border-2 border-[#0e243a] rounded-xl">
     <div class="p-6">
-      <!-- Logo / Title block -->
       <div class="flex justify-center">
         <img
           src="{{ asset('images/suhayLogo.png') }}" 
@@ -230,7 +233,6 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
       </div>
 
       <h2 id="modalEventTitle" class=" text-center text-[#0e243a] font-bold text-lg">
-        <!-- Filled by JS -->
       </h2>
 
       <div class="mt-4">
@@ -255,11 +257,9 @@ document.querySelectorAll('.view-activities-btn').forEach(btn => {
         <h3 class="font-bold text-[#0e243a] mb-3">List of Activities</h3>
 
         <ul id="modalActivitiesList" class="list-none space-y-3">
-          <!-- Filled by JS -->
         </ul>
       </div>
 
-      <!-- Close button -->
       <div class="flex justify-end mt-6">
         <button
           type="button"

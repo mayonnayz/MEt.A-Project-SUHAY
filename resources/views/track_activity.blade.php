@@ -34,53 +34,40 @@
         <!-- Filters -->
         <div class="bg-gray-200 p-4 rounded-2xl flex items-center justify-between mb-6">
             <div class="flex gap-4 w-full">
-                <select class="px-4 py-2 rounded-xl border w-64">
-                    <option>Feeding Program</option>
-                    <option>Clean-Up Drive</option>
+
+                <select id="activityFilter" class="px-4 py-2 rounded-xl border w-64">
+                    <option value="">All Events</option>
+
+                    @foreach ($events as $event)
+                        <option value="{{ strtolower($event['name']) }}">
+                            {{ $event['name'] }}
+                        </option>
+                    @endforeach
                 </select>
 
-                <input type="text" placeholder="Search Volunteer" class="px-4 py-2 rounded-xl border flex-1">
+                <input id="searchInput" type="text" placeholder="Search Volunteer"
+                    class="px-4 py-2 rounded-xl border flex-1">
+
             </div>
 
             <button onclick="openLogActivityModal()"
-                    class="ml-4 bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
+                class="ml-4 bg-[#f2c94c] px-6 py-2 rounded-full font-semibold">
                 + Log Activity
-            </button>         
+            </button>
         </div>
 
-        <!-- Summary Cards -->
-        <div class="grid grid-cols-4 gap-4 mb-6">
-            <div class="bg-gray-200 p-4 rounded-2xl">
-                <p>Total Volunteers</p>
-                <h2 class="text-xl font-bold">2</h2>
-            </div>
-
-            <div class="bg-gray-200 p-4 rounded-2xl">
-                <p>Completed</p>
-                <h2 class="text-xl font-bold">1</h2>
-            </div>
-
-            <div class="bg-gray-200 p-4 rounded-2xl">
-                <p>On Going</p>
-                <h2 class="text-xl font-bold">1</h2>
-            </div>
-
-            <div class="bg-gray-200 p-4 rounded-2xl">
-                <p>Absent</p>
-                <h2 class="text-xl font-bold">0</h2>
-            </div>
-        </div>
-
-        <!-- Table Container -->
+        <!-- Table -->
         <div class="bg-[#0e243a] p-4 rounded-2xl">
-
             <div class="bg-gray-200 rounded-2xl overflow-hidden">
+
                 <table class="w-full">
+
                     <thead class="bg-gray-300 text-left">
                         <tr>
                             <th class="p-4">#</th>
                             <th class="p-4">Volunteer</th>
                             <th class="p-4">Activity</th>
+                            <th class="p-4">Event</th>
                             <th class="p-4">Time In</th>
                             <th class="p-4">Time Out</th>
                             <th class="p-4">Hours</th>
@@ -91,61 +78,64 @@
 
                     <tbody>
                         @forelse ($assignments as $item)
-                            <tr class="border-t">
-                                <td class="p-4">{{ $loop->iteration }}</td>
+                        <tr class="border-t"
+    data-event="{{ strtolower($item['event']['name'] ?? '') }}"
+    data-name="{{ strtolower(($item['accounts']['first_name'] ?? '') . ' ' . ($item['accounts']['last_name'] ?? '')) }}">
 
-                                <td class="p-4">
-                                    {{ $item['accounts']['first_name'] ?? '' }}
-                                    {{ $item['accounts']['last_name'] ?? '' }}
-                                </td>
+    <td class="p-4">{{ $loop->iteration }}</td>
 
-                                <td class="p-4">
-                                    {{ $item['activities']['name'] ?? 'N/A' }}
-                                </td>
+    <td class="p-4">
+        {{ $item['accounts']['first_name'] ?? '' }}
+        {{ $item['accounts']['last_name'] ?? '' }}
+    </td>
 
-                                <td class="p-4">
-                                    {{ $item['time_in'] ?? '-' }}
-                                </td>
+    <!-- Activity -->
+    <td class="p-4">
+        {{ $item['activity']['name'] ?? 'N/A' }}
+    </td>
 
-                                <td class="p-4">
-                                    {{ $item['time_out'] ?? '-' }}
-                                </td>
+    <!-- Event -->
+    <td class="p-4">
+        {{ $item['event']['name'] ?? 'N/A' }}
+    </td>
 
-                                <td class="p-4">
-                                    {{ $item['hours'] ?? '-' }}
-                                </td>
+    <td class="p-4">{{ $item['time_in'] ?? '-' }}</td>
+    <td class="p-4">{{ $item['time_out'] ?? '-' }}</td>
+    <td class="p-4">{{ $item['total_hours'] ?? '-' }}</td>
 
-                                <td class="p-4 font-semibold
-                                    {{ ($item['status'] ?? '') == 'Completed' ? 'text-green-600' : 'text-yellow-500' }}">
-                                    {{ $item['status'] ?? 'On Going' }}
-                                </td>
+    <td class="p-4 font-semibold
+        {{ ($item['status'] ?? 0) == 1 ? 'text-green-600' : 'text-yellow-500' }}">
+        {{ ($item['status'] ?? 0) == 1 ? 'Completed' : 'On Going' }}
+    </td>
 
-                                <td class="p-4">
-                                    <button class="bg-blue-700 text-white px-5 py-2 rounded-full">
-                                        View
-                                    </button>
-                                </td>
-                            </tr>
+    <td class="p-4">
+        <button class="bg-blue-700 text-white px-5 py-2 rounded-full">
+            View
+        </button>
+    </td>
+</tr>
                         @empty
-                            <tr>
-                                <td colspan="8" class="p-4 text-center text-gray-500">
-                                    No activity records found
-                                </td>
-                            </tr>
+                        <tr>
+                            <td colspan="9" class="p-4 text-center text-gray-500">
+                                No activity records found
+                            </td>
+                        </tr>
                         @endforelse
-                        </tbody>
-                </table>
-            </div>
+                    </tbody>
 
+                </table>
+
+            </div>
         </div>
 
     </div>
 </div>
+
 @include('components.log-activity-modal')
 @include('components.logout-modal')
 
 <script>
-   function openLogActivityModal() {
+function openLogActivityModal() {
     const modal = document.getElementById('logActivityModal');
     modal.classList.remove('hidden');
     modal.classList.add('flex');
@@ -157,15 +147,40 @@ function closeLogActivityModal() {
     modal.classList.remove('flex');
 }
 </script>
-<script>
-    function openLogoutModal() {
-        document.getElementById('logoutModal').classList.remove('hidden');
-        document.getElementById('logoutModal').classList.add('flex');
-    }
 
-    function closeLogoutModal() {
-        document.getElementById('logoutModal').classList.add('hidden');
-    }
+<script>
+function openLogoutModal() {
+    document.getElementById('logoutModal').classList.remove('hidden');
+    document.getElementById('logoutModal').classList.add('flex');
+}
+
+function closeLogoutModal() {
+    document.getElementById('logoutModal').classList.add('hidden');
+}
 </script>
+<script>
+const eventFilter = document.getElementById('activityFilter');
+const searchInput = document.getElementById('searchInput');
+
+function filterTable() {
+    const event = eventFilter.value.toLowerCase();
+    const search = searchInput.value.toLowerCase();
+
+    document.querySelectorAll('tbody tr').forEach(row => {
+
+        const rowEvent = (row.dataset.event || '').toLowerCase();
+        const rowName = (row.dataset.name || '').toLowerCase();
+
+        const matchEvent = event === '' || rowEvent === event;
+        const matchSearch = search === '' || rowName.includes(search);
+
+        row.style.display = (matchEvent && matchSearch) ? '' : 'none';
+    });
+}
+
+eventFilter.addEventListener('change', filterTable);
+searchInput.addEventListener('input', filterTable);
+</script>
+
 </body>
 </html>

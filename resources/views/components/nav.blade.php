@@ -40,8 +40,8 @@
 
     {{-- Inventory --}}
     @if(in_array($role, ['ngo head', 'donation manager']))
-        <a href="/sm-inventory"
-           class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2 {{ navActive('sm-inventory') }}">
+        <a href="/inventory-master-list"
+           class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2 {{ navActive('inventory-master-list') }}">
             <img src="{{ asset('images/ServiceManagement/SMInventory.png') }}" class="w-16 h-16 object-contain">
             <span class="opacity-0 group-hover:opacity-100">Inventory</span>
         </a>
@@ -95,9 +95,9 @@
 
         {{-- Donations --}}
         @if(in_array($role, ['ngo head', 'donation manager']))
-            <a href="/sm-donations"
+            <a href="/donations"
                class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-               {{ request()->is('sm-donations') ? $active : $inactive }}">
+               {{ request()->is('donations') ? $active : $inactive }}">
                 <img src="{{ asset('images/ServiceManagement/SMDonations.png') }}" class="w-16 h-16 object-contain">
                 <span class="opacity-0 group-hover:opacity-100">Donations</span>
             </a>
@@ -105,12 +105,11 @@
 
         {{-- Inventory --}}
         @if(in_array($role, ['ngo head', 'donation manager']))
-            <a href="/sm-inventory"
-               class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-               {{ request()->is('sm-inventory') ? $active : $inactive }}">
+             <a href="/inventory-master-list"
+                class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2 {{ navActive('inventory-master-list') }}">
                 <img src="{{ asset('images/ServiceManagement/SMInventory.png') }}" class="w-16 h-16 object-contain">
                 <span class="opacity-0 group-hover:opacity-100">Inventory</span>
-            </a>
+             </a>
         @endif
 
         {{-- Volunteers --}}
@@ -146,9 +145,18 @@
             <span class="opacity-0 group-hover:opacity-100">Dashboard</span>
         </a>
 
+        {{-- NGOs --}}
+        <a href="/volunteer/ngos"
+        class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
+        {{ request()->is('volunteer/ngos') ? $active : $inactive }}">
+
+            <img src="{{ asset('images/ServiceManagement/SMNGOS.png') }}" class="w-16 h-16 object-contain">
+            <span class="opacity-0 group-hover:opacity-100">NGOs</span>
+        </a>
+
         {{-- Events --}}
         <a href="/volunteer/events"
-        class="flex items-center gap-4 px-6 py-4 rounded-xl mx-2
+        class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
         {{ request()->is('volunteer/events') ? $active : $inactive }}">
 
             <img src="{{ asset('images/VolunteerIcons/VEvents.png') }}" class="w-16 h-16 object-contain">
@@ -157,11 +165,21 @@
 
         {{-- Applications --}}
         <a href="/volunteer/applications"
-        class="flex items-center gap-4 px-7 py-4 rounded-xl mx-2
+        class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
         {{ request()->is('volunteer/applications') ? $active : $inactive }}">
 
             <img src="{{ asset('images/VolunteerIcons/VApplications.png') }}" class="w-16 h-16 object-contain">
             <span class="opacity-0 group-hover:opacity-100">Applications</span>
+        </a>
+
+        
+                {{-- Donations --}}
+        <a href="/volunteer/donationhistory"
+        class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
+        {{ request()->is('volunteer/donationhistory') ? $active : $inactive }}">
+
+            <img src="{{ asset('images/VolunteerIcons/VDonations.png') }}" class="w-16 h-16 object-contain">
+            <span class="opacity-0 group-hover:opacity-100">Donations</span>
         </a>
 
     @endif

@@ -1,108 +1,138 @@
+<!-- EDIT NGO MODAL -->
 <div id="editNgoModal"
-     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 opacity-0 transition-opacity duration-200">
+     class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
 
     <div id="ngoModalBox"
-         class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl relative flex flex-col max-h-[90vh]
-                transform scale-95 transition-transform duration-200">
+         class="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl transform scale-95 transition duration-200">
 
-        <button onclick="closeEditNgoModal()" 
-            class="absolute top-4 right-5 text-gray-500 hover:text-gray-800 text-2xl font-bold">
-            ✕
-        </button>
+        <!-- HEADER -->
+        <div class="sticky top-0 bg-white border-b px-8 py-6 flex items-center justify-between">
 
-        <div class="p-10 pb-4 border-b">
-            <h2 class="text-3xl font-extrabold text-[#0e243a]">
-                Edit Organization Details
-            </h2>
+            <div>
+                <h2 class="text-2xl font-extrabold text-[#0e243a]">
+                    Edit Organization Details
+                </h2>
 
-            <p class="text-gray-500 mt-2">
-                Update the information below to keep your organization profile up to date.
-            </p>
+                <p class="text-gray-500 text-sm mt-1">
+                    Update your organization's information
+                </p>
+            </div>
+
+            <button
+                type="button"
+                onclick="closeEditNgoModal()"
+                class="text-gray-400 hover:text-[#0e243a] text-3xl font-bold"
+            >
+                &times;
+            </button>
+
         </div>
 
-        <div class="p-10 pt-6 overflow-y-auto">
 
-            <form method="POST" action="/update-ngo" class="space-y-6">
-                @csrf
+        <!-- FORM -->
+        <form action="{{ url('/sm-ngos/update') }}" method="POST">
 
+            @csrf
+            @method('PATCH')
+
+            <div class="p-8 space-y-6">
+
+                <!-- ORGANIZATION NAME -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Organization Name
                     </label>
-                    <input type="text" name="name"
+
+                    <input
+                        type="text"
+                        name="name"
                         value="{{ $ngo->name ?? '' }}"
-                        class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">
+                        required
+                        class="w-full border border-gray-300 rounded-xl px-4 py-3
+                               focus:outline-none focus:ring-2 focus:ring-[#f2c94c]
+                               focus:border-transparent"
+                    >
                 </div>
 
+
+                <!-- DESCRIPTION -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
-                        Description
+                    <label class="block text-sm font-semibold text-[#0e243a] mb-2">
+                        Organization Description
                     </label>
-                    <textarea name="description" rows="4"
-                        class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">{{ $ngo->description ?? '' }}</textarea>
+
+                    <textarea
+                        name="description"
+                        rows="5"
+                        required
+                        class="w-full border border-gray-300 rounded-xl px-4 py-3
+                               focus:outline-none focus:ring-2 focus:ring-[#f2c94c]
+                               focus:border-transparent resize-none"
+                    >{{ $ngo->description ?? '' }}</textarea>
                 </div>
 
+
+                <!-- CONTACT NUMBER -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Contact Number
                     </label>
-                    <input type="text" name="contact_number"
+
+                    <input
+                        type="text"
+                        name="contact_number"
                         value="{{ $ngo->contact_number ?? '' }}"
-                        class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">
+                        required
+                        class="w-full border border-gray-300 rounded-xl px-4 py-3
+                               focus:outline-none focus:ring-2 focus:ring-[#f2c94c]
+                               focus:border-transparent"
+                    >
                 </div>
 
-                <div class="border-t pt-6">
-                    <h3 class="text-lg font-bold text-[#0e243a] mb-4">
-                        Payment Details
-                    </h3>
 
-                    <div class="grid md:grid-cols-2 gap-6">
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                Bank Account
-                            </label>
-                            <input type="text" name="bank_account"
-                                value="{{ $ngo->bank_account ?? '' }}"
-                                class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-semibold text-gray-700 mb-2">
-                                GCash Number
-                            </label>
-                            <input type="text" name="gcash"
-                                value="{{ $ngo->gcash ?? '' }}"
-                                class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">
-                        </div>
-
-                    </div>
-                </div>
-
+                <!-- ADDRESS -->
                 <div>
-                    <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Complete Address
                     </label>
-                    <textarea name="address" rows="3"
-                        class="w-full border border-gray-300 rounded-xl p-3 focus:ring-2 focus:ring-[#f2c94c] focus:outline-none">{{ $ngo->address ?? '' }}</textarea>
+
+                    <textarea
+                        name="address"
+                        rows="3"
+                        required
+                        class="w-full border border-gray-300 rounded-xl px-4 py-3
+                               focus:outline-none focus:ring-2 focus:ring-[#f2c94c]
+                               focus:border-transparent resize-none"
+                    >{{ $ngo->address ?? '' }}</textarea>
                 </div>
 
-                <div class="flex justify-end gap-3 pt-6">
+            </div>
 
-                    <button type="button" onclick="closeEditNgoModal()"
-                        class="px-6 py-3 rounded-xl border border-gray-300 text-gray-700 hover:bg-gray-100">
-                        Cancel
-                    </button>
 
-                    <button type="submit"
-                        class="bg-[#f2c94c] text-[#0e243a] px-6 py-3 rounded-xl font-bold shadow hover:bg-[#e6bd43] transition">
-                        Save Changes
-                    </button>
+            <!-- FOOTER -->
+            <div class="border-t px-8 py-5 flex justify-end gap-3">
 
-                </div>
+                <button
+                    type="button"
+                    onclick="closeEditNgoModal()"
+                    class="px-6 py-3 rounded-xl font-semibold text-gray-600
+                           bg-gray-100 hover:bg-gray-200 transition"
+                >
+                    Cancel
+                </button>
 
-            </form>
+                <button
+                    type="submit"
+                    class="px-7 py-3 rounded-xl font-bold
+                           bg-[#f2c94c] text-[#0e243a]
+                           hover:bg-[#e6bd43] transition"
+                >
+                    Save Changes
+                </button>
 
-        </div>
+            </div>
+
+        </form>
+
     </div>
 </div>

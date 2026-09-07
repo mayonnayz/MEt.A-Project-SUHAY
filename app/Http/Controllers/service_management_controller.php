@@ -19,198 +19,128 @@ class service_management_controller extends Controller
         return $response->json();
     }
 
-
 public function volunteers(Request $request)
 {
+    // 1. Get active volunteer applications
     $data = $this->supabaseRequest('volunteer_applications', [
-        'select' => 'id,account_id,availability,skills,interests,has_experience,experience_details,status,accounts!inner(first_name,last_name,email,roles,contact_number,address,birth_date,status)',
+        'select' => 'id,volunteer_event_id,account_id,application_date,skills,remarks,status,accounts!inner(first_name,last_name,email,roles,contact_number,address,birth_date,status)',
         'status' => 'eq.1',
         'accounts.status' => 'eq.1'
     ]);
 
+    // Make sure the response is an array/collection
     $volunteers = collect($data);
 
-    // ✅ UNIQUE SKILLS + AVAILABILITY (FROM SAME DATA)
+    // 2. Get UNIQUE SKILLS from the same data
     $skills = $volunteers
         ->pluck('skills')
         ->filter()
-        ->flatMap(fn($item) => explode(',', $item))
-        ->map(fn($s) => trim($s))
+        ->flatMap(function ($item) {
+            return explode(',', $item);
+        })
+        ->map(function ($skill) {
+            return trim($skill);
+        })
         ->filter()
         ->unique()
         ->values();
 
-    $availability = $volunteers
-        ->pluck('availability')
-        ->filter()
-        ->map(fn($a) => trim($a))
-        ->unique()
-        ->values();
-
-    // optional search filter
+    // 3. Search by volunteer name/email
     if ($request->filled('search')) {
-        $search = strtolower($request->search);
+
+        $search = strtolower(trim($request->search));
 
         $volunteers = $volunteers->filter(function ($item) use ($search) {
-            return str_contains(strtolower($item['accounts']['first_name'] ?? ''), $search)
-                || str_contains(strtolower($item['accounts']['last_name'] ?? ''), $search)
-                || str_contains(strtolower($item['accounts']['email'] ?? ''), $search);
+
+            // Make sure item is an array
+            if (!is_array($item)) {
+                return false;
+            }
+
+            // Get account information
+            $account = $item['accounts'] ?? [];
+
+            // Make sure accounts is an array
+            if (!is_array($account)) {
+                return false;
+            }
+
+            $firstName = strtolower($account['first_name'] ?? '');
+            $lastName = strtolower($account['last_name'] ?? '');
+            $email = strtolower($account['email'] ?? '');
+
+            return str_contains($firstName, $search)
+                || str_contains($lastName, $search)
+                || str_contains($email, $search);
         });
     }
-    $skillFilter = strtolower($request->search_skill ?? '');
-    $availabilityFilter = strtolower($request->search_availability ?? '');
 
-    if ($skillFilter || $availabilityFilter) {
+    // 4. Skill filter
+    $skillFilter = strtolower(trim($request->search_skill ?? ''));
 
-        $volunteers = $volunteers->filter(function ($item) use ($skillFilter, $availabilityFilter) {
+    if ($skillFilter) {
 
-            $skills = strtolower($item['skills'] ?? '');
-            $availability = strtolower($item['availability'] ?? '');
+        $volunteers = $volunteers->filter(function ($item) use ($skillFilter) {
 
-            // split skills into array for better matching
-            $skillArray = array_map('trim', explode(',', $skills));
+            if (!is_array($item)) {
+                return false;
+            }
 
-            $skillMatch = !$skillFilter || in_array($skillFilter, $skillArray);
-            $availabilityMatch = !$availabilityFilter || str_contains($availability, $availabilityFilter);
+            $skillsString = strtolower($item['skills'] ?? '');
 
-            return $skillMatch && $availabilityMatch;
+            $skillArray = array_map(
+                'trim',
+                explode(',', $skillsString)
+            );
+
+            return in_array($skillFilter, $skillArray);
         });
     }
-    // map output
+
+    // 5. Convert the data into an easier format for the Blade view
     $volunteers = $volunteers->map(function ($item) {
+
+        $account = $item['accounts'] ?? [];
+
+        if (!is_array($account)) {
+            $account = [];
+        }
+
         return (object) [
-            'application_id' => $item['id'],
+
+            // Application information
+            'application_id' => $item['id'] ?? null,
+            'volunteer_event_id' => $item['volunteer_event_id'] ?? null,
             'account_id' => $item['account_id'] ?? null,
-            'first_name' => $item['accounts']['first_name'] ?? '',
-            'last_name' => $item['accounts']['last_name'] ?? '',
-            'email' => $item['accounts']['email'] ?? '',
-            'contact_number' => $item['accounts']['contact_number'] ?? 'N/A',
-            'address' => $item['accounts']['address'] ?? '',
-            'birth_date' => $item['accounts']['birth_date'] ?? '',
-            'availability' => $item['availability'] ?? '',
-            'has_experience' => $item['has_experience'] ?? 0,
-            'experience_details' => $item['experience_details'] ?? '',
+            'application_date' => $item['application_date'] ?? '',
             'skills' => $item['skills'] ?? '',
-            'interests' => $item['interests'] ?? '',
-        ];
-    });
+            'remarks' => $item['remarks'] ?? '',
 
-    return view('service_management', compact('volunteers', 'skills', 'availability'));
-}
-
-
-
-public function applications()
-{
-    $data = $this->supabaseRequest('volunteer_applications', [
-        // use !inner so accounts is ALWAYS a single object
-        'select' => 'id,status,availability,skills,interests,has_experience,experience_details,accounts!inner(first_name,last_name,email,address,contact_number,birth_date)'
-    ]);
-
-    $applications = collect($data)->map(function ($item) {
-
-        $account = is_array($item['accounts']) && isset($item['accounts'][0])
-            ? $item['accounts'][0]
-            : ($item['accounts'] ?? []);
-
-        return [
-            'id' => $item['id'],
-            'status' => $item['status'],
-
+            // Account information
             'first_name' => $account['first_name'] ?? '',
             'last_name' => $account['last_name'] ?? '',
             'email' => $account['email'] ?? '',
+            'roles' => $account['roles'] ?? '',
+            'contact_number' => $account['contact_number'] ?? 'N/A',
             'address' => $account['address'] ?? '',
-            'contact_number' => $account['contact_number'] ?? '',
             'birth_date' => $account['birth_date'] ?? '',
-
-            'availability' => $item['availability'] ?? '',
-            'skills' => $item['skills'] ?? '',
-            'interests' => $item['interests'] ?? '',
-            'has_experience' => $item['has_experience'] ?? 0,
-            'experience_details' => $item['experience_details'] ?? '',
         ];
-    });
+    })
+    ->values();
 
-    $skills = $applications
-        ->pluck('skills')
-        ->filter()
-        ->flatMap(fn($item) => explode(',', $item))
-        ->map(fn($s) => trim($s))
-        ->filter()
-        ->unique()
-        ->values();
-
-    $availability = $applications
-        ->pluck('availability')
-        ->filter()
-        ->map(fn($a) => trim($a))
-        ->unique()
-        ->values();
-
-    $applications = $applications->sortBy(function ($item) {
-        return strtolower(($item['first_name'] ?? '') . ' ' . ($item['last_name'] ?? ''));
-    })->values();
-
-    return view('applications', compact('applications', 'skills', 'availability'));
+    // 6. Return the view
+    return view(
+        'service_management',
+        compact(
+            'volunteers',
+            'skills'
+        )
+    );
 }
 
 
-    // 🔹 Dashboard stats
-   public function dashboard()
-    {
-        $approved = $this->supabaseRequest('volunteer_applications', [
-            'select' => 'id',
-            'status' => 'eq.1'
-        ]);
-
-        $pending = $this->supabaseRequest('volunteer_applications', [
-            'select' => 'id',
-            'status' => 'eq.0'
-        ]);
-
-        return view('service-management.dashboard', [
-            'totalVolunteers' => count($approved),
-            'pendingApplications' => count($pending),
-            'activeVolunteers' => count($approved)
-        ]);
-    }
-
-    public function approveApplication($id)
-    {
-        return $this->updateStatus($id, 1);
-    }
-
-    public function rejectApplication($id)
-    {
-        return $this->updateStatus($id, 0);
-    }
-
-    public function restoreApplication($id)
-    {
-        return $this->updateStatus($id, 2);
-    }
-    public function archiveApplication($id)
-    {
-        return $this->updateStatus($id, 3);
-    }
 
 
-    private function updateStatus($id, $status)
-    {
-        $response = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-            'Content-Type' => 'application/json',
-        ])->patch(env('SUPABASE_URL') . "/rest/v1/volunteer_applications?id=eq.$id", [
-            'status' => $status
-        ]);
-
-        return response()->json([
-            'success' => $response->successful(),
-            'data' => $response->json()
-        ]);
-    }
 public function deactivate($id)
 {
     $response = Http::withHeaders([
@@ -334,4 +264,32 @@ public function getVolunteers()
 
         return view('service-management', compact('volunteers'));
     }
+
+
+   public function destroy($id)
+{
+    $url = env('SUPABASE_URL') . "/rest/v1/volunteer_assignments?id=eq.$id";
+
+    $response = Http::withHeaders([
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        'Content-Type' => 'application/json',
+        'Prefer' => 'return=representation'
+    ])->delete($url);
+
+    // 🔥 DEBUG (IMPORTANT)
+    if ($response->failed()) {
+        return response()->json([
+            'message' => 'Supabase delete failed',
+            'status' => $response->status(),
+            'error' => $response->json(),
+            'url_used' => $url
+        ], 500);
+    }
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Deleted successfully'
+    ]);
+}
 }

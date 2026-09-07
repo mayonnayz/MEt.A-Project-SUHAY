@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Carbon\Carbon;
 
 class event_controller extends Controller
 {
@@ -242,22 +243,28 @@ public function update(Request $request, $id)
     }
 
    public function volunteerPage()
-    {
-        $ngoId = $this->getNgoIdOrNull();
+{
+    $ngoId = $this->getNgoIdOrNull();
 
-        $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
+    $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
 
-        // only filter if logged in NGO exists
-        if ($ngoId) {
-            $url .= "&ngo_id=eq.$ngoId";
-        }
-
-        $events = collect(
-            $this->supabase()->get($url)->json()
-        );
-
-        return view('volunteer_page', compact('events'));
+    if ($ngoId) {
+        $url .= "&ngo_id=eq.$ngoId";
     }
+
+    $response = $this->supabase()->get($url);
+
+    if ($response->failed()) {
+        dd([
+            'status' => $response->status(),
+            'body' => $response->body(),
+        ]);
+    }
+
+    $events = collect($response->json());
+
+    return view('volunteer_page', compact('events'));
+}
 
     public function assignments(Request $request)
     {
@@ -304,42 +311,40 @@ public function update(Request $request, $id)
     }
 
     public function getActivities($eventId)
-    {
-        // 1. Get activities
-        $activities = collect(
-            $this->supabase()->get(
-                env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
-                [
-                    'select' => 'id,name,remarks',
-                    'volunteer_event_id' => 'eq.' . $eventId
-                ]
-            )->json()
-        );
+{
+    // 1. Get activities (ONLY for this event)
+    $activities = collect(
+        $this->supabase()->get(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
+            [
+                'select' => 'id,name,remarks',
+                'volunteer_event_id' => 'eq.' . $eventId
+            ]
+        )->json()
+    );
 
-        // 2. Get assignments WITH account info
-        $assignments = collect(
-            $this->supabase()->get(
-                env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
-                [
-                    'select' => 'activity_id, accounts(first_name,last_name,email)'
-                ]
-            )->json()
-        );
+    // 2. Get assignments WITH ID (FIX IS HERE)
+    $assignments = collect(
+        $this->supabase()->get(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
+            [
+                'select' => 'id,activity_id,account_id,accounts(first_name,last_name,email)'
+            ]
+        )->json()
+    );
 
-        // 3. Attach volunteers to each activity
-        $activities = $activities->map(function ($act) use ($assignments) {
+    // 3. Attach assignments to activities
+    $activities = $activities->map(function ($act) use ($assignments) {
 
-            $act['volunteer_assignments'] = $assignments
-                ->filter(function ($a) use ($act) {
-                    return $a['activity_id'] == $act['id'];
-                })
-                ->values();
+        $act['volunteer_assignments'] = $assignments
+            ->filter(fn ($a) => $a['activity_id'] == $act['id'])
+            ->values();
 
-            return $act;
-        });
+        return $act;
+    });
 
-        return response()->json($activities);
-    }
+    return response()->json($activities);
+}
 
    
    

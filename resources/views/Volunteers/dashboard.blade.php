@@ -78,35 +78,61 @@
                     </div>
                 @endif
 
-                <form method="POST"
-                    action="/volunteer/update-account"
-                    enctype="multipart/form-data">
+                {{-- ICON + TITLE --}}
+                <div class="flex flex-col items-center mb-6">
+                    <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] mb-2 overflow-hidden bg-gray-100 flex items-center justify-center">
+                        @if(data_get($user, 'profile_picture'))
+                            <img 
+                                src="{{ data_get($user, 'profile_picture') }}" 
+                                alt="Profile Picture"
+                                class="w-full h-full object-cover"
+                            >
+                        @else
+                            <span class="text-xl">👤</span>
+                        @endif
+                    </div>
 
+                    <!-- <form method="POST" action="/volunteer/update-profile-picture" enctype="multipart/form-data">
                     @csrf
 
-                    {{-- ICON + TITLE --}}
-                    <div class="flex flex-col items-center mb-6">
+                    <div class="flex flex-col items-center mb-6"> -->
 
-                        <img id="profilePreview"
-                            src="{{ data_get($user, 'profile_picture') ?: 'https://placehold.co/150x150?text=Profile' }}"
-                            class="w-20 h-20 rounded-full border-4 border-[#0e243a] object-cover mb-3">
+                        <!-- {{-- CLICKABLE AVATAR --}}
+                        <label for="profile_picture" class="cursor-pointer">
+                            <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] mb-2 overflow-hidden bg-gray-100 flex items-center justify-center hover:opacity-80 transition">
 
-                        <input type="file"
+                                @if(data_get($user, 'profile_picture'))
+                                    <img 
+                                        src="{{ data_get($user, 'profile_picture') }}" 
+                                        class="w-full h-full object-cover"
+                                        alt="Profile Picture"
+                                    >
+                                @else
+                                    <span class="text-xl">👤</span>
+                                @endif
+
+                            </div>
+                        </label> -->
+
+                        <!-- {{-- HIDDEN FILE INPUT --}}
+                        <input 
+                            type="file" 
+                            id="profile_picture" 
                             name="profile_picture"
-                            id="profile_picture"
+                            class="hidden"
                             accept="image/*"
-                            class="hidden">
+                            onchange="this.form.submit()"
+                        >
 
-                        <button type="button"
-                            onclick="document.getElementById('profile_picture').click()"
-                            class="bg-[#0e243a] text-white px-4 py-2 rounded-full text-sm hover:bg-[#163754]">
-                            Add Image
-                        </button>
+                        <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
+                    </div> -->
+                </form>
+                    <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
+                </div>
 
-                        <h2 class="font-bold text-[#0e243a] mt-4">
-                            ACCOUNT DETAILS
-                        </h2>
-                    </div>
+                {{-- TABLE --}}
+                <form method="POST" action="/volunteer/update-account">
+                    @csrf
 
                     <div class="grid grid-cols-2 text-sm">
 
@@ -207,16 +233,6 @@
     function closeLogoutModal() {
         document.getElementById('logoutModal').classList.add('hidden');
     }
-
-    document.getElementById('profile_picture').addEventListener('change', function(e) {
-
-        const file = e.target.files[0];
-
-        if (file) {
-            document.getElementById('profilePreview').src =
-                URL.createObjectURL(file);
-        }
-    });
 </script>
 
 </body>
