@@ -280,9 +280,7 @@ if (!$response->successful()) {
         return view('Volunteers.applications', compact('applications'));
     }
 
-    /* =========================================================
-        ASSIGNMENTS (APPROVED ONLY 🔥)
-    ========================================================= */
+  
     public function assignments(Request $request)
     {
         $userId = session('user_id');
@@ -341,4 +339,62 @@ if (!$response->successful()) {
             'assignments' => $assignments->values()
         ]);
     }
+
+public function volunteers(Request $request)
+{
+    $eventId = $request->query('event_id');
+
+    if (!$eventId) {
+        return response()->json([
+            'message' => 'Event ID is required.'
+        ], 400);
+    }
+
+    $response = Http::withHeaders([
+        'apikey' => env('SUPABASE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+    ])->get(env('SUPABASE_URL') . '/rest/v1/volunteer_applications', [
+        'select' => '
+            id,
+            volunteer_event_id,
+            account_id,
+            status,
+            accounts!inner(
+                id,
+                first_name,
+                last_name,
+                email
+            )
+        ',
+        'volunteer_event_id' => 'eq.' . $eventId,
+        'status' => 'eq.1'
+    ]);
+
+    if (!$response->successful()) {
+        return response()->json([
+            'message' => 'Failed to fetch event volunteers.',
+            'error' => $response->body()
+        ], $response->status());
+    }
+
+    $applications = $response->json();
+
+    $volunteers = collect($applications)->map(function ($application) {
+
+        $account = $application['accounts'] ?? [];
+
+        return [
+            'id' => $application['account_id'],
+            'name' => trim(
+                ($account['first_name'] ?? '') . ' ' .
+                ($account['last_name'] ?? '')
+            ),
+            'email' => $account['email'] ?? '',
+        ];
+
+    })->values();
+
+    return response()->json($volunteers);
 }
+
+    }

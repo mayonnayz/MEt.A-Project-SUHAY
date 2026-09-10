@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Activity</title>
 
@@ -134,53 +135,8 @@
 @include('components.log-activity-modal')
 @include('components.logout-modal')
 
-<script>
-function openLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+    <script src="{{ asset('js/application-management.js') }}"></script>
 
-function closeLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-</script>
-
-<script>
-function openLogoutModal() {
-    document.getElementById('logoutModal').classList.remove('hidden');
-    document.getElementById('logoutModal').classList.add('flex');
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutModal').classList.add('hidden');
-}
-</script>
-<script>
-const eventFilter = document.getElementById('activityFilter');
-const searchInput = document.getElementById('searchInput');
-
-function filterTable() {
-    const event = eventFilter.value.toLowerCase();
-    const search = searchInput.value.toLowerCase();
-
-    document.querySelectorAll('tbody tr').forEach(row => {
-
-        const rowEvent = (row.dataset.event || '').toLowerCase();
-        const rowName = (row.dataset.name || '').toLowerCase();
-
-        const matchEvent = event === '' || rowEvent === event;
-        const matchSearch = search === '' || rowName.includes(search);
-
-        row.style.display = (matchEvent && matchSearch) ? '' : 'none';
-    });
-}
-
-eventFilter.addEventListener('change', filterTable);
-searchInput.addEventListener('input', filterTable);
-</script>
 
 </body>
 </html>

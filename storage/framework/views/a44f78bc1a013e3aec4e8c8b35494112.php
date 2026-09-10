@@ -1,81 +1,151 @@
-<div id="appModal" class="fixed inset-0 bg-black/40 hidden flex items-start justify-center z-50 overflow-y-auto py-10">
-
-
+<div id="appModal"
+     class="fixed inset-0 hidden items-center justify-center bg-black/40 z-[9999] p-4">
 
     <div id="modalBox"
-         class="bg-white w-[750px] rounded-2xl overflow-hidden shadow-xl p-6 transform transition-all duration-200 scale-95 max-h-[90vh] overflow-y-auto">
+         class="relative bg-white w-full max-w-[750px] rounded-2xl overflow-hidden shadow-xl p-6 transform transition-all duration-200 scale-95 max-h-[90vh] overflow-y-auto">
+
+        <button
+            type="button"
+            onclick="closeModal()"
+            class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 text-4xl font-bold leading-none transition">
+            &times;
+        </button>
 
         <div class="flex justify-center mb-2">
-            <img src="<?php echo e(asset('images/suhayLogo.png')); ?>" class="w-[160px] mx-auto mb-2">
+            <img
+                src="<?php echo e(asset('images/suhayLogo.png')); ?>"
+                class="w-[160px] mx-auto mb-2"
+                alt="Suhay Logo">
         </div>
 
-        <h2 class="text-xl text-center mb-4">Volunteer Application Form</h2>
+        <div id="page1">
 
-        
-        <div>
-
-            <p class="mb-2">Personal Information</p>
+            <h2 class="text-xl text-center mb-4">
+                Volunteer Information
+            </h2>
 
             <table class="w-full border text-sm mb-4 table-fixed">
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2 w-1/4">First Name</td>
+                    <td class="bg-[#0e243a] text-white p-2 w-1/4">
+                        First Name
+                    </td>
                     <td class="border p-2" id="first_name">---</td>
                 </tr>
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2">Last Name</td>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Last Name
+                    </td>
                     <td class="border p-2" id="last_name">---</td>
                 </tr>
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2">Address</td>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Skills
+                    </td>
+                    <td class="border p-2" id="skills_text">---</td>
+                </tr>
+
+                <tr>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Address
+                    </td>
                     <td class="border p-2" id="address">---</td>
                 </tr>
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2">Contact Number</td>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Contact Number
+                    </td>
                     <td class="border p-2" id="contact">---</td>
                 </tr>
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2">Email Address</td>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Email Address
+                    </td>
                     <td class="border p-2" id="email">---</td>
                 </tr>
+
                 <tr>
-                    <td class="bg-[#0e243a] text-white p-2">Date of Birth</td>
+                    <td class="bg-[#0e243a] text-white p-2">
+                        Date of Birth
+                    </td>
                     <td class="border p-2" id="dob">---</td>
                 </tr>
+
             </table>
 
-            <p class="mb-2">Availability</p>
-            <div class="border p-3 text-sm mb-4 bg-white rounded-md">
-                <span id="availability_text">---</span>
+            <div id="modalActions"
+                 class="flex justify-end gap-2 mb-4">
             </div>
 
-            <p class="mb-2">General Information</p>
-            <table class="w-full border text-sm mb-4">
-                <tr>
-                    <td class="bg-[#0e243a] text-white p-2">QUESTION</td>
-                    <td class="bg-[#0e243a] text-white p-2">ANSWER</td>
-                </tr>
-                <tr>
-                    <td class="border p-2">Do you have volunteering experience?</td>
-                    <td class="border p-2" id="experience">---</td>
-                </tr>
-                <tr>
-                    <td class="border p-2">Describe your experience.</td>
-                    <td class="border p-2" id="reason">---</td>
-                </tr>
-            </table>
+            <div class="flex justify-between items-center">
 
-            <p class="mb-2">Skills</p>
-            <div class="border p-2 text-sm mb-4" id="skills_text">---</div>
+                <div></div>
 
-            <p class="mb-2">Interests</p>
-            <div class="border p-2 text-sm mb-6" id="interests_text">---</div>
-
-            <div class="flex justify-end">
-                <button onclick="closeModal()" class="bg-red-500 px-4 py-2 rounded-lg text-white">
-                    Close
+                <button
+                    id="eventHistoryButton"
+                    type="button"
+                    onclick="nextPage()"
+                    class="bg-[#0e243a] text-white px-6 py-2 rounded-full">
+                    Event History
                 </button>
+
             </div>
 
         </div>
+
+        <div id="page2" class="hidden">
+
+            <h2 class="text-xl text-center mb-4">
+                Event History
+            </h2>
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full border text-sm">
+
+                    <thead class="bg-[#0e243a] text-white">
+
+                        <tr>
+                            <th class="p-3 border">Event</th>
+                            <th class="p-3 border">Application Date</th>
+                            <th class="p-3 border">Event Date</th>
+                            <th class="p-3 border">Status</th>
+                        </tr>
+
+                    </thead>
+
+                    <tbody id="eventHistoryBody">
+
+                        <tr>
+                            <td colspan="4"
+                                class="p-4 text-center text-gray-500">
+                                No event history found.
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="flex justify-between items-center mt-4">
+
+                <button
+                    type="button"
+                    onclick="prevPage()"
+                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-full transition">
+                    Back
+                </button>
+
+            </div>
+
+        </div>
+
     </div>
+
 </div><?php /**PATH C:\sysands\MEt.A-Project-SUHAY-main\MEt.A-Project-SUHAY-main\resources\views/components/application-modal.blade.php ENDPATH**/ ?>

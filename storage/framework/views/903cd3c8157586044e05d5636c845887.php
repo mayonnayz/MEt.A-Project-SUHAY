@@ -13,7 +13,7 @@
 
         <div class="flex justify-center mb-2">
             <img
-                src="{{ asset('images/suhayLogo.png') }}"
+                src="<?php echo e(asset('images/suhayLogo.png')); ?>"
                 class="w-[160px] mx-auto mb-2"
                 alt="Suhay Logo">
         </div>
@@ -148,4 +148,4 @@
 
     </div>
 
-</div>
+</div><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/components/application-modal.blade.php ENDPATH**/ ?>

@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <title>SUHAY - Volunteer Management</title>
@@ -24,18 +24,18 @@
 
 <div class="flex">
 
-    {{-- SIDEBAR --}}
-     @include('components.nav')
+    
+     <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
 
-        {{-- HEADER --}}
-        @include('components.header', ['title' => 'Volunteer Management'])
+        
+        <?php echo $__env->make('components.header', ['title' => 'Volunteer Management'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
-        {{-- ============================= --}}
-        {{-- NAVIGATION TABS --}}
-        {{-- ============================= --}}
+        
+        
+        
 
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
 
@@ -67,9 +67,9 @@
         </div>
 
 
-        {{-- ============================= --}}
-        {{-- VOLUNTEER STATISTICS --}}
-        {{-- ============================= --}}
+        
+        
+        
 
         <div class="bg-gray-300 rounded-xl p-6 mb-6">
 
@@ -81,7 +81,8 @@
                     </p>
 
                     <p class="text-2xl font-bold text-[#0e243a] mt-1">
-                        {{ $volunteers->count() }}
+                        <?php echo e($volunteers->count()); ?>
+
                     </p>
                 </div>
 
@@ -91,7 +92,8 @@
                     </p>
 
                     <p class="text-2xl font-bold text-[#0e243a] mt-1">
-                        {{ $volunteers->count() }}
+                        <?php echo e($volunteers->count()); ?>
+
                     </p>
                 </div>
 
@@ -100,9 +102,9 @@
         </div>
 
 
-        {{-- ============================= --}}
-        {{-- SEARCH --}}
-        {{-- ============================= --}}
+        
+        
+        
 
         <div class="flex justify-center mb-4">
 
@@ -114,7 +116,7 @@
                     type="text"
                     id="searchInput"
                     name="search"
-                    value="{{ request('search') }}"
+                    value="<?php echo e(request('search')); ?>"
                     placeholder="Search Volunteer...."
                     class="w-full p-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-[#0e243a]"
                 >
@@ -136,9 +138,9 @@
         </div>
 
 
-        {{-- ============================= --}}
-        {{-- SKILL FILTER --}}
-        {{-- ============================= --}}
+        
+        
+        
 
         <div class="flex items-center justify-center gap-4 mb-6 flex-wrap">
 
@@ -154,39 +156,40 @@
                     All Skills
                 </option>
 
-                @foreach($skills as $skill)
+                <?php $__currentLoopData = $skills; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $skill): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                     <option
-                        value="{{ strtolower($skill) }}"
-                        {{ strtolower(request('search_skill')) == strtolower($skill) ? 'selected' : '' }}>
+                        value="<?php echo e(strtolower($skill)); ?>"
+                        <?php echo e(strtolower(request('search_skill')) == strtolower($skill) ? 'selected' : ''); ?>>
 
-                        {{ $skill }}
+                        <?php echo e($skill); ?>
+
 
                     </option>
 
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             </select>
 
         </div>
 
 
-        {{-- ============================= --}}
-        {{-- VOLUNTEER LIST --}}
-        {{-- ============================= --}}
+        
+        
+        
 
         <div
             id="volunteerGrid"
             class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
 
-            @forelse($volunteers as $volunteer)
+            <?php $__empty_1 = true; $__currentLoopData = $volunteers; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $volunteer): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
                 <div
                     class="volunteer-card bg-[#4a5568] text-white rounded-2xl p-6 text-center
                            hover:scale-105 hover:shadow-xl transition-all duration-300">
 
 
-                    {{-- PROFILE ICON --}}
+                    
                     <div
                         class="w-20 h-20 bg-white rounded-full mx-auto mb-3 flex items-center justify-center">
 
@@ -209,16 +212,18 @@
                     </div>
 
 
-                    {{-- NAME --}}
+                    
                     <h3 class="font-bold text-lg">
 
-                        {{ $volunteer->first_name }}
-                        {{ $volunteer->last_name }}
+                        <?php echo e($volunteer->first_name); ?>
+
+                        <?php echo e($volunteer->last_name); ?>
+
 
                     </h3>
 
 
-                    {{-- BASIC INFORMATION --}}
+                    
                     <div
                         class="text-xs mt-4 text-left space-y-2
                                bg-[#3b4252] p-3 rounded-lg">
@@ -228,7 +233,8 @@
                                 Email:
                             </span>
 
-                            {{ $volunteer->email ?: 'N/A' }}
+                            <?php echo e($volunteer->email ?: 'N/A'); ?>
+
                         </p>
 
                         <p>
@@ -236,7 +242,8 @@
                                 Phone:
                             </span>
 
-                            {{ $volunteer->contact_number ?: 'N/A' }}
+                            <?php echo e($volunteer->contact_number ?: 'N/A'); ?>
+
                         </p>
 
                        
@@ -244,13 +251,13 @@
                     </div>
 
 
-                    {{-- BUTTONS --}}
+                    
                     <div class="flex justify-between mt-4 gap-2">
 
-                        {{-- VIEW --}}
+                        
                         <button
                             type="button"
-                            onclick='openModal(@json($volunteer))'
+                            onclick='openModal(<?php echo json_encode($volunteer, 15, 512) ?>)'
                             class="bg-blue-500 hover:bg-blue-600 text-white
                                    px-4 py-2 rounded-full text-xs font-semibold">
 
@@ -259,10 +266,10 @@
                         </button>
 
 
-                        {{-- DEACTIVATE --}}
+                        
                         <button
                             type="button"
-                            onclick="deactivateVolunteer({{ $volunteer->account_id }})"
+                            onclick="deactivateVolunteer(<?php echo e($volunteer->account_id); ?>)"
                             class="bg-red-500 hover:bg-red-600 text-white
                                    px-4 py-2 rounded-full text-xs font-semibold">
 
@@ -274,7 +281,7 @@
 
                 </div>
 
-            @empty
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                 <div class="col-span-full text-center py-12">
 
@@ -284,7 +291,7 @@
 
                 </div>
 
-            @endforelse
+            <?php endif; ?>
 
         </div>
 
@@ -293,13 +300,13 @@
 </div>
 
 
-{{-- MODALS --}}
-@include('components.application-modal')
-@include('components.logout-modal')
 
-<script src="{{ asset('js/volunteer-management.js') }}"></script>
+<?php echo $__env->make('components.application-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+<script src="<?php echo e(asset('js/volunteer-management.js')); ?>"></script>
 
 
 
 </body>
-</html>
+</html><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/service_management.blade.php ENDPATH**/ ?>

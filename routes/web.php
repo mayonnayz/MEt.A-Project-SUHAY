@@ -1,6 +1,8 @@
+
 <?php
 
 use Illuminate\Support\Facades\Route;
+
 use App\Http\Controllers\login_controller;
 use App\Http\Controllers\category_controller;
 use App\Http\Controllers\event_controller;
@@ -16,9 +18,12 @@ use App\Http\Controllers\donate_controller;
 use App\Http\Controllers\application_controller;
 
 
-// ======================
-// LANDING & AUTH
-// ======================
+/*
+|--------------------------------------------------------------------------
+| LANDING & AUTHENTICATION
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/', function () {
     return view('landing');
 })->name('home');
@@ -31,145 +36,339 @@ Route::get('/login-page', function () {
     return view('login');
 })->name('login.page');
 
-Route::get('/donations', function () {
-    return view('donations');
-});
+Route::post('/login', [login_controller::class, 'login']);
+
+Route::get('/sm-logout', [login_controller::class, 'logout']);
+
+
+/*
+|--------------------------------------------------------------------------
+| DONATIONS
+|--------------------------------------------------------------------------
+*/
+
+Route::get('/donations', [donation_controller::class, 'index']);
+
 Route::get('/impact', function () {
     return view('impact');
 })->name('impact');
 
-Route::get('/donate', [donate_controller::class, 'index'])->name('donate');
+Route::get('/donate', [donate_controller::class, 'index'])
+    ->name('donate');
 
+
+/*
+|--------------------------------------------------------------------------
+| NGO PUBLIC PAGE
+|--------------------------------------------------------------------------
+*/
 
 Route::get('/ngos', [ngo_controller::class, 'ngosPage'])
     ->name('ngos');
-Route::post('/login', [login_controller::class, 'login']);
-Route::get('/sm-logout', [login_controller::class, 'logout']);
 
+
+/*
+|--------------------------------------------------------------------------
+| VOLUNTEER USER PAGES
+|--------------------------------------------------------------------------
+*/
 
 Route::prefix('volunteer')->group(function () {
 
+    // Volunteer Dashboard
     Route::get('/dashboard', [volunteer_controller::class, 'dashboard']);
 
+    // Volunteer Applications
     Route::get('/applications', [volunteer_controller::class, 'applications'])
         ->name('volunteer.applications');
 
+    // Update Account
     Route::post('/update-account', [volunteer_controller::class, 'updateAccount']);
 
+    // NGO Page
     Route::get('/ngos', [volunteer_controller::class, 'ngos'])
-    ->name('volunteer.ngos');
+        ->name('volunteer.ngos');
 
-    // EVENTS PAGE
+    // Volunteer Events
     Route::get('/events', [volunteer_controller::class, 'activeEvents']);
 
-    // ✅ ASSIGNMENTS PAGE (FIXED)
+    // Volunteer Assignments
     Route::get('/assignments', [volunteer_controller::class, 'assignments']);
+
+    // Profile Picture
+    Route::post('/update-profile-picture', [volunteer_controller::class, 'updateProfilePicture']);
 });
 
-// ======================
-// VOLUNTEER / EVENTS PAGE
-// ======================
+
+/*
+|--------------------------------------------------------------------------
+| VOLUNTEER / EVENTS PUBLIC PAGE
+|--------------------------------------------------------------------------
+*/
+
 Route::get('/volunteer-page', [event_controller::class, 'volunteerPage'])
     ->name('volunteer.page');
 
 
+/*
+|--------------------------------------------------------------------------
+| SERVICE MANAGEMENT
+|--------------------------------------------------------------------------
+*/
 
-// ======================
-// SERVICE MANAGEMENT
-// ======================
+// Service Management main page
 Route::get('/service-management', [service_management_controller::class, 'volunteers']);
+
+// Volunteers page
 Route::get('/volunteers', [service_management_controller::class, 'volunteers']);
-Route::post('/assign-volunteer', [service_management_controller::class, 'store']);
-Route::patch('/volunteers/deactivate/{id}', [service_management_controller::class, 'deactivate']);
 
-//application
-
-Route::get('/applications', [application_controller::class, 'applications']);
-Route::patch('/applications/approve/{id}', [application_controller::class, 'approveApplication']);
-Route::patch('/applications/reject/{id}', [application_controller::class, 'rejectApplication']);
-Route::patch('/applications/restore/{id}', [application_controller::class, 'restoreApplication']);
-Route::patch('/applications/archive/{id}', [application_controller::class, 'archiveApplication']);
+// Deactivate volunteer
+Route::patch(
+    '/volunteers/deactivate/{id}',
+    [service_management_controller::class, 'deactivate']
+);
 
 
-// ======================
-// EVENTS (UPDATED SECTION)
-// ======================
-Route::get('/events', [event_controller::class, 'index']);
-Route::post('/events', [event_controller::class, 'store']);
-Route::put('/events/{id}', [event_controller::class, 'update']);
-Route::put('/events/{id}/archive', [event_controller::class, 'archive']);
-Route::put('/events/{id}/reactivate', [event_controller::class, 'reactivate']);
-Route::delete('/activities/{id}', [event_controller::class, 'deleteActivity']);
+/*
+|--------------------------------------------------------------------------
+| VOLUNTEER APPLICATIONS
+|--------------------------------------------------------------------------
+*/
+
+// Application form
+Route::get(
+    '/volunteer-application-form',
+    [volunteer_application_controller::class, 'showForm']
+);
+
+// Submit application
+Route::post(
+    '/submit-application',
+    [volunteer_application_controller::class, 'submit_application']
+);
 
 
-// 🔥 THIS IS WHAT YOUR MODAL USES
-Route::get('/events/{id}/activities', [event_controller::class, 'getActivities']);
+/*
+|--------------------------------------------------------------------------
+| APPLICATION MANAGEMENT
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/applications',
+    [application_controller::class, 'applications']
+);
+
+Route::patch(
+    '/applications/approve/{id}',
+    [application_controller::class, 'approveApplication']
+);
+
+Route::patch(
+    '/applications/reject/{id}',
+    [application_controller::class, 'rejectApplication']
+);
+
+Route::patch(
+    '/applications/restore/{id}',
+    [application_controller::class, 'restoreApplication']
+);
+
+Route::patch(
+    '/applications/archive/{id}',
+    [application_controller::class, 'archiveApplication']
+);
 
 
-// ======================
-// ASSIGNMENTS (FIXED)
-// ======================
-Route::get('/assignments', [event_controller::class, 'assignments']);
-Route::get('/api/volunteers', [service_management_controller::class, 'getVolunteers']);
+/*
+|--------------------------------------------------------------------------
+| EVENTS MANAGEMENT
+|--------------------------------------------------------------------------
+*/
 
-Route::delete('/remove-assignment/{id}', [service_management_controller::class, 'destroy']);
-// ======================
-// PROGRAM CONTROLLER
-// ======================
-Route::post('/assign-volunteer', [service_management_controller::class, 'store']);
+// Events page
+Route::get(
+    '/events',
+    [event_controller::class, 'index']
+);
 
-// ======================
-// OTHER PAGES
-// ======================
-Route::get('/volunteer-application-form', function () {
-    return view('volunteer-application-form');
-});
+// Create event
+Route::post(
+    '/events',
+    [event_controller::class, 'store']
+);
+
+// Update event
+Route::put(
+    '/events/{id}',
+    [event_controller::class, 'update']
+);
+
+// Archive event
+Route::put(
+    '/events/{id}/archive',
+    [event_controller::class, 'archive']
+);
+
+// Reactivate event
+Route::put(
+    '/events/{id}/reactivate',
+    [event_controller::class, 'reactivate']
+);
+
+// Get activities belonging to an event
+Route::get(
+    '/events/{id}/activities',
+    [event_controller::class, 'getActivities']
+);
+
+// Get number of assigned volunteers for an event
+Route::get(
+    '/events/{id}/assigned-count',
+    [event_controller::class, 'assignedCount']
+);
+
+// Delete activity
+Route::delete(
+    '/activities/{id}',
+    [event_controller::class, 'deleteActivity']
+);
 
 
-Route::get('/volunteer-manager/dashboard', function () {
-    return view('VolunteerManager.dashboard');
-});
+/*
+|--------------------------------------------------------------------------
+| VOLUNTEER ASSIGNMENTS
+|--------------------------------------------------------------------------
+*/
+
+// Get volunteers who applied to the selected event
+//
+// IMPORTANT:
+// This is the endpoint used by your JavaScript:
+//
+// fetch(`/api/volunteers?event_id=${currentEventId}`)
+//
+// Keep ONLY ONE /api/volunteers route.
+Route::get(
+    '/api/volunteers',
+    [service_management_controller::class, 'getVolunteers']
+);
+
+// Assign volunteer to activity
+Route::post(
+    '/assign-volunteer',
+    [service_management_controller::class, 'store']
+);
+
+// Remove volunteer assignment
+Route::delete(
+    '/remove-assignment/{id}',
+    [service_management_controller::class, 'destroy']
+);
 
 
-//TRACK ACTIVITY
-Route::get('/track-activity', [track_activity_controller::class, 'index']);
+/*
+|--------------------------------------------------------------------------
+| ASSIGNMENTS PAGE
+|--------------------------------------------------------------------------
+*/
+
+// Event/service management assignments page
+Route::get(
+    '/assignments',
+    [event_controller::class, 'assignments']
+);
 
 
-// NGO MANAGEMENT
-Route::get('/sm-ngos', [ngo_controller::class, 'profile']);
-Route::post('/update-ngo', [ngo_controller::class, 'update']);
-Route::get('/ngo-members', function () {
-    return view('ngo_members');
-});
+/*
+|--------------------------------------------------------------------------
+| VOLUNTEER MANAGER
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/volunteer-manager/dashboard',
+    function () {
+        return view('VolunteerManager.dashboard');
+    }
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| TRACK ACTIVITY
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/track-activity',
+    [track_activity_controller::class, 'index']
+);
+
+
+/*
+|--------------------------------------------------------------------------
+| NGO MANAGEMENT
+|--------------------------------------------------------------------------
+*/
+
+// NGO profiles
+Route::get(
+    '/sm-ngos',
+    [ngo_controller::class, 'profile']
+);
+
+// Update NGO
+Route::post(
+    '/update-ngo',
+    [ngo_controller::class, 'update']
+);
+
+// NGO members
+Route::get(
+    '/ngo-members',
+    function () {
+        return view('ngo_members');
+    }
+);
+
+// Add NGO account
 Route::post(
     '/sm-ngos/accounts',
     [ngo_controller::class, 'addAccount']
 );
 
+// Update NGO account
 Route::patch(
     '/sm-ngos/accounts/{id}',
     [ngo_controller::class, 'updateAccount']
 );
 
+// Delete NGO account
 Route::delete(
     '/sm-ngos/accounts/{id}',
     [ngo_controller::class, 'deleteAccount']
 );
 
 
+/*
+|--------------------------------------------------------------------------
+| INVENTORY
+|--------------------------------------------------------------------------
+*/
 
+Route::get(
+    '/inventory-master-list',
+    [inventory_controller::class, 'index']
+)->name('inventory.master');
 
-// DONATION
+Route::get(
+    '/inventory',
+    [inventory_controller::class, 'index']
+);
 
-Route::get('/donations', [donation_controller::class, 'index']);
+Route::post(
+    '/inventory/update/{id}',
+    [inventory_controller::class, 'update']
+);
 
-//Inventory
-
-Route::get('/inventory-master-list', [inventory_controller::class, 'index'])
-    ->name('inventory.master');
-Route::get('/inventory', [inventory_controller::class, 'index']);
-Route::post('/inventory/update/{id}', [inventory_controller::class, 'update']);
-
-//Volunteer applicartion
-Route::get('/volunteer-application-form', [volunteer_application_controller::class, 'showForm']);
-Route::post('/submit-application', [volunteer_application_controller::class, 'submit_application']);

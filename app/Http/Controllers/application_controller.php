@@ -7,12 +7,6 @@ use Illuminate\Support\Facades\Http;
 
 class application_controller extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | SUPABASE REQUEST
-    |--------------------------------------------------------------------------
-    */
-
     private function supabaseRequest($endpoint, $params = [])
     {
         $response = Http::withHeaders([
@@ -34,39 +28,24 @@ class application_controller extends Controller
         return $response->json();
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET APPLICATIONS
-    |--------------------------------------------------------------------------
-    */
-
     public function applications()
     {
-        $data = $this->supabaseRequest('volunteer_applications', [
+        $today = now()->format('Y-m-d');
 
+        $data = $this->supabaseRequest('volunteer_applications', [
             'select' =>
                 'id,volunteer_event_id,account_id,application_date,skills,remarks,status,' .
-                'accounts!inner(first_name,last_name,email,address,contact_number,birth_date)',
+                'accounts!inner(first_name,last_name,email,address,contact_number,birth_date),' .
+                'volunteer_events!inner(id,name,date)',
 
-            // Only active applications
-            'status' => 'eq.1',
-
-            // Only active accounts
             'accounts.status' => 'eq.1',
+
+            'volunteer_events.date' => 'gte.' . $today,
         ]);
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | CONVERT DATA
-        |--------------------------------------------------------------------------
-        */
 
         $applications = collect($data)
             ->map(function ($item) {
 
-                // Make sure item is an array
                 if (!is_array($item)) {
                     return null;
                 }
@@ -77,13 +56,23 @@ class application_controller extends Controller
                     $account = [];
                 }
 
+                $event = $item['volunteer_events'] ?? [];
+
+                if (!is_array($event)) {
+                    $event = [];
+                }
+
                 return [
-                    // Application information
-                    'id' =>
-                        $item['id'] ?? null,
+                    'id' => $item['id'] ?? null,
 
                     'volunteer_event_id' =>
                         $item['volunteer_event_id'] ?? null,
+
+                    'event_name' =>
+                        $event['name'] ?? '',
+
+                    'event_date' =>
+                        $event['date'] ?? '',
 
                     'account_id' =>
                         $item['account_id'] ?? null,
@@ -100,8 +89,6 @@ class application_controller extends Controller
                     'status' =>
                         $item['status'] ?? 0,
 
-
-                    // Account information
                     'first_name' =>
                         $account['first_name'] ?? '',
 
@@ -124,40 +111,34 @@ class application_controller extends Controller
             ->filter()
             ->values();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | UNIQUE SKILLS
-        |--------------------------------------------------------------------------
-        */
-
         $skills = $applications
             ->pluck('skills')
             ->filter()
             ->flatMap(function ($item) {
-
                 return explode(',', $item);
-
             })
             ->map(function ($skill) {
-
                 return trim($skill);
-
             })
             ->filter()
             ->unique()
             ->sort()
             ->values();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SEARCH
-        |--------------------------------------------------------------------------
-        */
-
-        // If you have a search parameter
-        // such as ?search=Maria
+        $events = $applications
+            ->map(function ($item) {
+                return [
+                    'id' => $item['volunteer_event_id'],
+                    'name' => $item['event_name'],
+                    'event_date' => $item['event_date'],
+                ];
+            })
+            ->filter(function ($event) {
+                return !empty($event['name']);
+            })
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
 
         request()->whenHas('search', function () use (&$applications) {
 
@@ -180,30 +161,12 @@ class application_controller extends Controller
                         $item['email'] ?? ''
                     );
 
-                    return str_contains(
-                        $firstName,
-                        $search
-                    )
-                    ||
-                    str_contains(
-                        $lastName,
-                        $search
-                    )
-                    ||
-                    str_contains(
-                        $email,
-                        $search
-                    );
+                    return str_contains($firstName, $search)
+                        || str_contains($lastName, $search)
+                        || str_contains($email, $search);
                 }
             );
         });
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | SKILL FILTER
-        |--------------------------------------------------------------------------
-        */
 
         if (request()->filled('search_skill')) {
 
@@ -231,12 +194,21 @@ class application_controller extends Controller
             );
         }
 
+        if (request()->filled('search_event')) {
 
-        /*
-        |--------------------------------------------------------------------------
-        | SORT BY NAME
-        |--------------------------------------------------------------------------
-        */
+            $eventFilter = strtolower(
+                trim(request('search_event'))
+            );
+
+            $applications = $applications->filter(
+                function ($item) use ($eventFilter) {
+
+                    return strtolower(
+                        $item['event_name'] ?? ''
+                    ) === $eventFilter;
+                }
+            );
+        }
 
         $applications = $applications
             ->sortBy(function ($item) {
@@ -250,81 +222,39 @@ class application_controller extends Controller
             })
             ->values();
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN VIEW
-        |--------------------------------------------------------------------------
-        */
-
         return view(
             'applications',
             compact(
                 'applications',
-                'skills'
+                'skills',
+                'events'
             )
         );
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | APPROVE APPLICATION
-    |--------------------------------------------------------------------------
-    */
 
     public function approveApplication($id)
     {
         return $this->updateStatus($id, 1);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | REJECT APPLICATION
-    |--------------------------------------------------------------------------
-    */
-
     public function rejectApplication($id)
     {
         return $this->updateStatus($id, 2);
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | RESTORE APPLICATION
-    |--------------------------------------------------------------------------
-    */
 
     public function restoreApplication($id)
     {
         return $this->updateStatus($id, 0);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | ARCHIVE APPLICATION
-    |--------------------------------------------------------------------------
-    */
-
     public function archiveApplication($id)
     {
         return $this->updateStatus($id, 3);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE STATUS
-    |--------------------------------------------------------------------------
-    */
-
     private function updateStatus($id, $status)
     {
         $response = Http::withHeaders([
-
             'apikey' =>
                 env('SUPABASE_SERVICE_KEY'),
 
@@ -335,25 +265,20 @@ class application_controller extends Controller
                 'application/json',
 
         ])->patch(
-
             env('SUPABASE_URL') .
             "/rest/v1/volunteer_applications?id=eq.$id",
 
             [
                 'status' => $status
             ]
-
         );
 
-
         return response()->json([
-
             'success' =>
                 $response->successful(),
 
             'data' =>
                 $response->json()
-
         ]);
     }
 }

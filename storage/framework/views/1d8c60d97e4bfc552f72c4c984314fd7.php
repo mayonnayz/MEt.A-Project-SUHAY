@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+        <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Activity</title>
 
@@ -140,53 +141,8 @@
 <?php echo $__env->make('components.log-activity-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-<script>
-function openLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+    <script src="<?php echo e(asset('js/application-management.js')); ?>"></script>
 
-function closeLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-</script>
-
-<script>
-function openLogoutModal() {
-    document.getElementById('logoutModal').classList.remove('hidden');
-    document.getElementById('logoutModal').classList.add('flex');
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutModal').classList.add('hidden');
-}
-</script>
-<script>
-const eventFilter = document.getElementById('activityFilter');
-const searchInput = document.getElementById('searchInput');
-
-function filterTable() {
-    const event = eventFilter.value.toLowerCase();
-    const search = searchInput.value.toLowerCase();
-
-    document.querySelectorAll('tbody tr').forEach(row => {
-
-        const rowEvent = (row.dataset.event || '').toLowerCase();
-        const rowName = (row.dataset.name || '').toLowerCase();
-
-        const matchEvent = event === '' || rowEvent === event;
-        const matchSearch = search === '' || rowName.includes(search);
-
-        row.style.display = (matchEvent && matchSearch) ? '' : 'none';
-    });
-}
-
-eventFilter.addEventListener('change', filterTable);
-searchInput.addEventListener('input', filterTable);
-</script>
 
 </body>
 </html><?php /**PATH C:\sysands\MEt.A-Project-SUHAY-main\MEt.A-Project-SUHAY-main\resources\views/track_activity.blade.php ENDPATH**/ ?>
