@@ -16,8 +16,8 @@ use App\Http\Controllers\inventory_controller;
 use App\Http\Controllers\volunteer_application_controller;
 use App\Http\Controllers\donate_controller;
 use App\Http\Controllers\application_controller;
-
-
+use App\Http\Controllers\donation_history_controller;
+use App\Http\Controllers\inventory_movement_controller;
 /*
 |--------------------------------------------------------------------------
 | LANDING & AUTHENTICATION
@@ -305,6 +305,16 @@ Route::get(
     [track_activity_controller::class, 'index']
 );
 
+Route::post('/track-activity/store', [
+    track_activity_controller::class,
+    'store'
+]);
+
+Route::post('/track-activity/update', [
+    track_activity_controller::class,
+    'update'
+]);
+
 
 /*
 |--------------------------------------------------------------------------
@@ -371,4 +381,33 @@ Route::post(
     '/inventory/update/{id}',
     [inventory_controller::class, 'update']
 );
+ 
+Route::get(
+    '/inventory/movement',
+    [inventory_movement_controller::class, 'index']
+)->name('inventory.movement');
 
+
+Route::post(
+    '/inventory/movement',
+    [inventory_movement_controller::class, 'store']
+)->name('inventory.movement.store');
+
+
+Route::get(
+    '/inventory/movement/{id}',
+    [inventory_movement_controller::class, 'show']
+)->name('inventory.movement.show');
+
+
+Route::delete(
+    '/inventory/movement/{id}',
+    [inventory_movement_controller::class, 'destroy']
+)->name('inventory.movement.destroy');
+
+//DOVOL DONATION HISTORY
+Route::get('/Volunteers/donation_history', [donation_history_controller::class, 'index'])
+    ->name('donations.history');
+
+Route::post('/submit-donation', [donation_controller::class, 'store'])
+    ->name('submit-donation');

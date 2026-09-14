@@ -5,12 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Validation\ValidationException;
 
 class donation_controller extends Controller
 {
-    // =========================
-    // ADMIN / NGO SIDE (LIST)
-    // =========================
+    // =========================================================
+    // ADMIN / NGO SIDE - DONATION MANAGEMENT
+    // =========================================================
+
     public function index()
     {
         $ngo_id = session('ngo_id');
@@ -22,19 +24,27 @@ class donation_controller extends Controller
         $supabaseUrl = env('SUPABASE_URL');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-        $response = Http::withHeaders([
+        $headers = [
             'apikey' => $supabaseKey,
             'Authorization' => 'Bearer ' . $supabaseKey,
-        ])->get($supabaseUrl . '/rest/v1/donation_history', [
-            'select' => '*, donation_items(*), accounts(*)',
-            'ngo_id' => 'eq.' . $ngo_id,
-            'order' => 'id.desc'
-        ]);
+        ];
 
-        if (!$response->successful()) {
+        // =====================================================
+        // GET DONATIONS
+        // =====================================================
+
+        $donationResponse = Http::withHeaders($headers)
+            ->get($supabaseUrl . '/rest/v1/donations_table', [
+                'select' => '*',
+                'ngo_id' => 'eq.' . $ngo_id,
+                'order' => 'id.desc'
+            ]);
+
+        if (!$donationResponse->successful()) {
+
             Log::error('Fetch donations failed', [
-                'status' => $response->status(),
-                'body' => $response->body()
+                'status' => $donationResponse->status(),
+                'body' => $donationResponse->body()
             ]);
 
             return view('donations', [
@@ -43,162 +53,634 @@ class donation_controller extends Controller
             ]);
         }
 
-        $donations = collect($response->json())->map(function ($item) {
-            return (object) $item;
+        $donationsRaw = collect($donationResponse->json());
+
+        // =====================================================
+        // GET ACCOUNT IDS
+        // =====================================================
+
+        $accountIds = $donationsRaw
+            ->pluck('account_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        $accounts = collect();
+
+        // =====================================================
+        // GET ACCOUNT INFORMATION
+        // =====================================================
+
+        if (!empty($accountIds)) {
+
+            $accountResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/accounts', [
+                    'select' => 'id,first_name,last_name',
+                    'id' => 'in.(' . implode(',', $accountIds) . ')'
+                ]);
+
+            if ($accountResponse->successful()) {
+
+                $accounts = collect($accountResponse->json())
+                    ->keyBy('id');
+            }
+        }
+
+        // =====================================================
+        // ADD DONOR NAME
+        // =====================================================
+
+        $donations = $donationsRaw->map(function ($donation) use ($accounts) {
+
+            $donation = (object) $donation;
+
+            $account = $accounts->get($donation->account_id);
+
+            if ($account) {
+
+                $donation->donor_name = trim(
+                    ($account['first_name'] ?? '') . ' ' .
+                    ($account['last_name'] ?? '')
+                );
+
+            } else {
+
+                $donation->donor_name = 'Unknown';
+            }
+
+            return $donation;
         });
 
         $total_donations = $donations->count();
 
-        return view('donations', compact('donations', 'total_donations'));
+        return view('donations', compact(
+            'donations',
+            'total_donations'
+        ));
     }
 
-    // =========================
-    // VOLUNTEER SIDE (HISTORY)
-    // =========================
+
+    // =========================================================
+    // VOLUNTEER SIDE - DONATION HISTORY
+    // =========================================================
+
     public function history()
     {
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect()->back()->with('error', 'Unauthorized access');
+
+            return redirect()->back()
+                ->with('error', 'Unauthorized access');
         }
 
         $supabaseUrl = env('SUPABASE_URL');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-        // GET DONATIONS
-        $donationResponse = Http::withHeaders([
+        $headers = [
             'apikey' => $supabaseKey,
             'Authorization' => 'Bearer ' . $supabaseKey,
-        ])->get($supabaseUrl . '/rest/v1/donation_history', [
-            'select' => '*, donation_items(*)',
-            'account_id' => 'eq.' . $userId,
-            'order' => 'date.desc'
-        ]);
+        ];
+
+        // =====================================================
+        // GET USER DONATIONS
+        // =====================================================
+
+        $donationResponse = Http::withHeaders($headers)
+            ->get($supabaseUrl . '/rest/v1/donations_table', [
+                'select' => '*',
+                'account_id' => 'eq.' . $userId,
+                'order' => 'date.desc'
+            ]);
 
         if (!$donationResponse->successful()) {
+
             Log::error('Fetch donation history failed', [
                 'status' => $donationResponse->status(),
                 'body' => $donationResponse->body()
             ]);
+            
 
-            return view('Volunteers.donationhistory', ['donations' => []]);
+            return view('Volunteers.donationhistory', [
+                'donations' => []
+            ]);
         }
 
         $donationsRaw = collect($donationResponse->json());
 
-        // GET NGO NAMES
-        $ngoResponse = Http::withHeaders([
-            'apikey' => $supabaseKey,
-            'Authorization' => 'Bearer ' . $supabaseKey,
-        ])->get($supabaseUrl . '/rest/v1/ngo_profile', [
-            'select' => 'id,name'
-        ]);
+        // =====================================================
+        // GET NGO INFORMATION
+        // =====================================================
 
-        $ngoMap = collect($ngoResponse->json())->keyBy('id');
+        $ngoResponse = Http::withHeaders($headers)
+            ->get($supabaseUrl . '/rest/v1/ngo_profile', [
+                'select' => 'id,name'
+            ]);
 
-        // MAP DATA
-        $donations = $donationsRaw->map(function ($item) use ($ngoMap) {
-            $item = (object) $item;
-            $item->name = $ngoMap[$item->ngo_id]['name'] ?? 'Unknown NGO';
-            return $item;
+        $ngoMap = collect();
+
+        if ($ngoResponse->successful()) {
+
+            $ngoMap = collect($ngoResponse->json())
+                ->keyBy('id');
+        }
+
+        // =====================================================
+        // ADD NGO NAME
+        // =====================================================
+
+        $donations = $donationsRaw->map(function ($donation) use ($ngoMap) {
+
+            $donation = (object) $donation;
+
+            $ngo = $ngoMap->get($donation->ngo_id);
+
+            $donation->name = $ngo['name'] ?? 'Unknown NGO';
+
+            return $donation;
         });
 
-        return view('Volunteers.donationhistory', compact('donations'));
+        return view(
+            'Volunteers.donationhistory',
+            compact('donations')
+        );
     }
 
-    // =========================
+
+    // =========================================================
     // STORE DONATION
-    // =========================
+    // =========================================================
+
     public function store(Request $request)
     {
         try {
-            $userId = session('user_id') ?? 1; // fallback for testing
+
+            // =================================================
+            // GET LOGGED-IN USER
+            // =================================================
+
+            $userId = session('user_id');
+
+            if (!$userId) {
+
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized.'
+                ], 401);
+            }
+
+
+            // =================================================
+            // SUPABASE SETTINGS
+            // =================================================
 
             $supabaseUrl = env('SUPABASE_URL');
             $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-            Log::info('Donation data received:', $request->all());
-            Log::info('TYPE VALUE:', ['type' => $request->type]);
-            Log::info('PAYMENT VALUE:', ['payment_type' => $request->payment_type]);
 
-            // =========================
-            // INSERT MAIN DONATION
-            // =========================
-            $response = Http::withHeaders([
-                'apikey' => $supabaseKey,
-                'Authorization' => 'Bearer ' . $supabaseKey,
-                'Content-Type' => 'application/json',
-                'Prefer' => 'return=representation'
-            ])->post($supabaseUrl . '/rest/v1/donation_history', [
-                'account_id' => $userId,
-                'ngo_id' => $request->ngo_id,
-                'type' => $request->type,
-                'payment_type' => ($request->type === 'monetary' && $request->payment_type)
-                    ? $request->payment_type
-                    : 'N/A',
-                'reference_number' => $request->reference_number ?? null,
-                'date' => now()
+            // =================================================
+            // LOG EVERYTHING RECEIVED
+            // =================================================
+
+            Log::info('========================================');
+            Log::info('DONATION SUBMISSION');
+            Log::info('Request data:', $request->all());
+            Log::info('Donation type received:', [
+                'type' => $request->input('type')
+            ]);
+            Log::info('========================================');
+
+
+            // =================================================
+            // BASIC VALIDATION ONLY
+            // =================================================
+            //
+            // IMPORTANT:
+            // Do NOT use "in:" validation here.
+            //
+            // The frontend may send:
+            //
+            // monetary
+            // Monetary
+            // MONETARY
+            // online_monetary
+            // Online Monetary
+            // ONLINE_MONETARY
+            //
+            // We normalize it below.
+            // =================================================
+
+            $validated = $request->validate([
+
+                'ngo_id' => 'required|integer',
+
+                'type' => 'required|string',
+
+                'description' => 'nullable|string',
+
+                'amount' => 'nullable|numeric',
+
+                'unit' => 'nullable|string',
+
+                'reference_no' => 'nullable|string',
+
+                'date' => 'nullable|date',
             ]);
 
-            // =========================
-            // CHECK ERROR
-            // =========================
-            if (!$response->successful()) {
-                Log::error('Supabase Donation Insert Error:', [
-                    'status' => $response->status(),
-                    'body' => $response->body()
+
+            // =================================================
+            // NORMALIZE DONATION TYPE
+            // =================================================
+
+            $rawType = trim($validated['type']);
+
+            $normalizedType = strtolower($rawType);
+
+            /*
+             * Convert spaces and hyphens to underscores.
+             *
+             * Examples:
+             *
+             * Online Monetary
+             * Online-Monetary
+             * ONLINE MONETARY
+             *
+             * all become:
+             *
+             * online_monetary
+             */
+
+            $normalizedType = str_replace(
+                [' ', '-'],
+                '_',
+                $normalizedType
+            );
+
+
+            // =================================================
+            // DONATION TYPE MAP
+            // =================================================
+
+            $typeMap = [
+
+                'monetary' =>
+                    'MONETARY',
+
+                'online_monetary' =>
+                    'ONLINE_MONETARY',
+
+                'consumable' =>
+                    'CONSUMABLE',
+
+                'reusable' =>
+                    'REUSABLE',
+            ];
+
+
+            // =================================================
+            // CHECK TYPE
+            // =================================================
+
+            if (!isset($typeMap[$normalizedType])) {
+
+                Log::error('Invalid donation type', [
+                    'received' => $rawType,
+                    'normalized' => $normalizedType,
+                    'request' => $request->all()
                 ]);
 
                 return response()->json([
+
                     'success' => false,
-                    'message' => $response->body()
+
+                    'message' =>
+                        'Invalid donation type received: ' .
+                        $rawType
+
+                ], 422);
+            }
+
+
+            // =================================================
+            // FINAL DATABASE TYPE
+            // =================================================
+
+            $donationType =
+                $typeMap[$normalizedType];
+
+
+            // =================================================
+            // GET DONOR ACCOUNT
+            // =================================================
+
+            $accountResponse = Http::withHeaders([
+
+                'apikey' =>
+                    $supabaseKey,
+
+                'Authorization' =>
+                    'Bearer ' . $supabaseKey,
+
+            ])->get(
+                $supabaseUrl . '/rest/v1/accounts',
+                [
+                    'select' =>
+                        'id,first_name,last_name',
+
+                    'id' =>
+                        'eq.' . $userId,
+
+                    'limit' =>
+                        1
+                ]
+            );
+
+
+            if (!$accountResponse->successful()) {
+
+                Log::error(
+                    'Fetch donor account failed',
+                    [
+                        'status' =>
+                            $accountResponse->status(),
+
+                        'body' =>
+                            $accountResponse->body()
+                    ]
+                );
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' =>
+                        'Unable to get donor information.'
+
                 ], 500);
             }
 
-            $donationData = $response->json();
-            $donationId = $donationData[0]['id'] ?? null;
 
-            Log::info('Donation created', ['id' => $donationId]);
+            // =================================================
+            // GET ACCOUNT DATA
+            // =================================================
 
-            // =========================
-            // INSERT ITEMS (NON-MONETARY)
-            // =========================
-            if ($request->type === 'non-monetary' && $donationId && is_array($request->items)) {
+            $accountData = collect(
+                $accountResponse->json()
+            )->first();
 
-                foreach ($request->items as $item) {
 
-                    Http::withHeaders([
-                        'apikey' => $supabaseKey,
-                        'Authorization' => 'Bearer ' . $supabaseKey,
-                        'Content-Type' => 'application/json'
-                    ])->post($supabaseUrl . '/rest/v1/donation_items', [
-                        'donation_id' => $donationId,
-                        'name' => $item['name'] ?? 'Item',
-                        'quantity' => (int) ($item['quantity'] ?? 1)
-                    ]);
-                }
+            if (!$accountData) {
 
-                Log::info('Items inserted', ['count' => count($request->items)]);
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' =>
+                        'Donor account not found.'
+
+                ], 404);
             }
 
-            // =========================
-            // SUCCESS RESPONSE
-            // =========================
+
+            // =================================================
+            // CREATE SOURCE / DONOR NAME
+            // =================================================
+
+            $source = trim(
+
+                ($accountData['first_name'] ?? '') .
+                ' ' .
+                ($accountData['last_name'] ?? '')
+
+            );
+
+
+            if ($source === '') {
+
+                $source = 'Unknown User';
+            }
+
+
+            // =================================================
+            // PREPARE DONATION DATA
+            // =================================================
+
+            $donationData = [
+
+                'ngo_id' =>
+                    $validated['ngo_id'],
+
+                'account_id' =>
+                    $userId,
+
+                'type' =>
+                    $donationType,
+
+                'description' =>
+                    $validated['description'] ?? null,
+
+                'amount' =>
+                    $validated['amount'] ?? null,
+
+                'unit' =>
+                    $validated['unit'] ?? null,
+
+                'source' =>
+                    $source,
+
+                'date' =>
+                    $validated['date']
+                    ?? now()->format('Y-m-d'),
+
+                'status' =>
+                    'Pending',
+            ];
+
+
+            // =================================================
+            // REFERENCE NUMBER
+            // =================================================
+            //
+            // Mainly used for ONLINE_MONETARY.
+            //
+            // Only add it when the frontend actually sends it.
+            // =================================================
+
+            if (
+                isset($validated['reference_no']) &&
+                trim($validated['reference_no']) !== ''
+            ) {
+
+                $donationData['reference_no'] =
+                    trim($validated['reference_no']);
+            }
+
+
+            // =================================================
+            // LOG FINAL DATA
+            // =================================================
+
+            Log::info(
+                'Final donation data:',
+                $donationData
+            );
+
+
+            // =================================================
+            // INSERT INTO SUPABASE
+            // =================================================
+
+            $response = Http::withHeaders([
+
+                'apikey' =>
+                    $supabaseKey,
+
+                'Authorization' =>
+                    'Bearer ' . $supabaseKey,
+
+                'Content-Type' =>
+                    'application/json',
+
+                'Prefer' =>
+                    'return=representation'
+
+            ])->post(
+
+                $supabaseUrl .
+                '/rest/v1/donations_table',
+
+                $donationData
+            );
+
+            if (!$response->successful()) {
+
+                Log::error(
+                    'Donation insert failed',
+                    [
+                        'status' =>
+                            $response->status(),
+
+                        'body' =>
+                            $response->body(),
+
+                        'data' =>
+                            $donationData
+                    ]
+                );
+
+                return response()->json([
+
+                    'success' => false,
+
+                    'message' =>
+                        'Failed to save donation: ' .
+                        $response->body()
+
+                ], 500);
+            }
+
+
+            // =================================================
+            // GET SAVED DONATION
+            // =================================================
+
+            $savedDonation =
+                $response->json();
+
+
+            // =================================================
+            // SUCCESS LOG
+            // =================================================
+
+            Log::info(
+                'Donation created successfully',
+                [
+                    'data' =>
+                        $savedDonation
+                ]
+            );
+
+
+            // =================================================
+            // RETURN SUCCESS
+            // =================================================
+
             return response()->json([
+
                 'success' => true,
-                'message' => 'Donation saved successfully!',
-                'donation_id' => $donationId
+
+                'message' =>
+                    'Donation saved successfully!',
+
+                'donation' =>
+                    $savedDonation
+
             ]);
+
+
+        } catch (ValidationException $e) {
+
+            // =================================================
+            // VALIDATION ERROR
+            // =================================================
+
+            Log::error(
+                'Donation validation failed',
+                [
+                    'errors' =>
+                        $e->errors(),
+
+                    'request' =>
+                        $request->all()
+                ]
+            );
+
+
+            return response()->json([
+
+                'success' => false,
+
+                'message' =>
+                    $e->validator
+                        ->errors()
+                        ->first(),
+
+                'errors' =>
+                    $e->validator->errors()
+
+            ], 422);
+
 
         } catch (\Exception $e) {
 
-            Log::error('Donation error: ' . $e->getMessage());
-            Log::error('Request data:', $request->all());
+            // =================================================
+            // GENERAL ERROR
+            // =================================================
+
+            Log::error(
+                'Donation error',
+                [
+                    'message' =>
+                        $e->getMessage(),
+
+                    'file' =>
+                        $e->getFile(),
+
+                    'line' =>
+                        $e->getLine()
+                ]
+            );
+
 
             return response()->json([
+
                 'success' => false,
-                'message' => 'Server error: ' . $e->getMessage()
+
+                'message' =>
+                    'Server error: ' .
+                    $e->getMessage()
+
             ], 500);
         }
     }
