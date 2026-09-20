@@ -18,6 +18,8 @@ use App\Http\Controllers\donate_controller;
 use App\Http\Controllers\application_controller;
 use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
+
+
 /*
 |--------------------------------------------------------------------------
 | LANDING & AUTHENTICATION
@@ -46,15 +48,21 @@ Route::get('/sm-logout', [login_controller::class, 'logout']);
 | DONATIONS
 |--------------------------------------------------------------------------
 */
-
 Route::get('/donations', [donation_controller::class, 'index']);
 
 Route::get('/impact', function () {
     return view('impact');
 })->name('impact');
 
-Route::get('/donate', [donate_controller::class, 'index'])
-    ->name('donate');
+Route::get(
+    '/donate',
+    [donate_controller::class, 'index']
+)->name('donate');
+
+Route::post(
+    '/submit-donation',
+    [donate_controller::class, 'submitDonation']
+)->name('submit-donation');
 
 
 /*
@@ -408,6 +416,3 @@ Route::delete(
 //DOVOL DONATION HISTORY
 Route::get('/Volunteers/donation_history', [donation_history_controller::class, 'index'])
     ->name('donations.history');
-
-Route::post('/submit-donation', [donation_controller::class, 'store'])
-    ->name('submit-donation');

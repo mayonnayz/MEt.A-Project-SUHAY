@@ -8,7 +8,7 @@
 <meta charset="UTF-8">
 <meta
     name="csrf-token"
-    content="{{ csrf_token() }}"
+    content="<?php echo e(csrf_token()); ?>"
 >
 <meta
     name="viewport"
@@ -19,7 +19,7 @@
 
 <link
     rel="icon"
-    href="{{ asset('images/suhayLogo.png') }}"
+    href="<?php echo e(asset('images/suhayLogo.png')); ?>"
 >
 
 <link
@@ -95,8 +95,8 @@
 
 <body class="bg-gray-100">
 
-@include('components.navbar')
-@if (session('success') || $errors->any())
+<?php echo $__env->make('components.navbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php if(session('success') || $errors->any()): ?>
 
 <div
     id="resultModal"
@@ -107,7 +107,7 @@
         class="bg-white w-full max-w-md rounded-2xl shadow-2xl p-8 text-center"
     >
 
-        @if (session('success'))
+        <?php if(session('success')): ?>
 
             <!-- SUCCESS ICON -->
 
@@ -125,7 +125,8 @@
             </h2>
 
             <p class="text-gray-600 mt-3">
-                {{ session('success') }}
+                <?php echo e(session('success')); ?>
+
             </p>
 
 
@@ -137,7 +138,7 @@
                 Done
             </button>
 
-        @else
+        <?php else: ?>
 
             <!-- ERROR ICON -->
 
@@ -157,13 +158,14 @@
 
             <div class="text-left bg-red-50 border border-red-200 rounded-xl p-4 mt-4">
 
-                @foreach ($errors->all() as $error)
+                <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                     <p class="text-sm text-red-700 mb-1">
-                        {{ $error }}
+                        <?php echo e($error); ?>
+
                     </p>
 
-                @endforeach
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
             </div>
 
@@ -176,13 +178,13 @@
                 Close
             </button>
 
-        @endif
+        <?php endif; ?>
 
     </div>
 
 </div>
 
-@endif
+<?php endif; ?>
 
 <!-- ======================================== -->
 
@@ -198,7 +200,7 @@
 
 
 <img
-    src="{{ asset('images/hero.jpg') }}"
+    src="<?php echo e(asset('images/hero.jpg')); ?>"
     class="w-full h-full object-cover"
     alt="Suhay"
 >
@@ -253,10 +255,10 @@
 
     <div class="space-y-5">
 
-        @foreach($ngos as $ngo)
+        <?php $__currentLoopData = $ngos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ngo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
             <div
-                onclick="openModal({{ $ngo['id'] }})"
+                onclick="openModal(<?php echo e($ngo['id']); ?>)"
                 class="bg-white border-2 border-[#0e243a] rounded-2xl p-8 md:p-10 flex items-center justify-between hover-scale cursor-pointer"
             >
 
@@ -268,24 +270,24 @@
                         class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center"
                     >
 
-                        @if(!empty($ngo['logo']))
+                        <?php if(!empty($ngo['logo'])): ?>
 
                             <img
-                                src="https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/profile-pictures/{{ $ngo['logo'] }}"
+                                src="https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/profile-pictures/<?php echo e($ngo['logo']); ?>"
                                 class="w-full h-full object-contain rounded-lg"
-                                alt="{{ $ngo['name'] }} Logo"
-                                onerror="this.src='{{ asset('images/suhayLogo.png') }}'"
+                                alt="<?php echo e($ngo['name']); ?> Logo"
+                                onerror="this.src='<?php echo e(asset('images/suhayLogo.png')); ?>'"
                             >
 
-                        @else
+                        <?php else: ?>
 
                             <img
-                                src="{{ asset('images/suhayLogo.png') }}"
+                                src="<?php echo e(asset('images/suhayLogo.png')); ?>"
                                 class="w-full h-full object-contain rounded-lg"
                                 alt="Suhay Logo"
                             >
 
-                        @endif
+                        <?php endif; ?>
 
                     </div>
 
@@ -297,16 +299,19 @@
                         <h3
                             class="font-bold text-[#0e243a] text-xl md:text-2xl"
                         >
-                            {{ $ngo['name'] }}
+                            <?php echo e($ngo['name']); ?>
+
                         </h3>
 
                         <p class="text-base text-gray-600 mt-1">
 
-                            {{ $ngo['contact_number'] ?? 'No contact' }}
+                            <?php echo e($ngo['contact_number'] ?? 'No contact'); ?>
+
 
                             •
 
-                            {{ $ngo['address'] ?? 'No address' }}
+                            <?php echo e($ngo['address'] ?? 'No address'); ?>
+
 
                         </p>
 
@@ -324,7 +329,7 @@
 
             </div>
 
-        @endforeach
+        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
     </div>
 
@@ -355,16 +360,17 @@
 <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
 <script>
-    window.ngoData = @json($ngos);
+    window.ngoData = <?php echo json_encode($ngos, 15, 512) ?>;
 
     window.suhayAssets = {
-        logo: @json(asset('images/suhayLogo.png')),
-        phoneIcon: @json(asset('images/VolunteerIcons/VPhone.png')),
-        locationIcon: @json(asset('images/VolunteerIcons/VLocation.png'))
+        logo: <?php echo json_encode(asset('images/suhayLogo.png'), 15, 512) ?>,
+        phoneIcon: <?php echo json_encode(asset('images/VolunteerIcons/VPhone.png'), 15, 512) ?>,
+        locationIcon: <?php echo json_encode(asset('images/VolunteerIcons/VLocation.png'), 15, 512) ?>
     };
 </script>
 
-<script src="{{ asset('js/donate.js') }}"></script>
+<script src="<?php echo e(asset('js/donate.js')); ?>"></script>
 
 </body>
 </html>
+<?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/donate.blade.php ENDPATH**/ ?>
