@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Applications</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <title>Inventory</title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
     <script src="https://cdn.tailwindcss.com"></script>
+
     <style>
         body {
             font-family: 'Poppins', sans-serif;
@@ -15,280 +21,541 @@
     </style>
 </head>
 
-<body class="bg-gray-200">
-<div class="flex">
+
+<body class="bg-gray-100">
+
+<div class="flex min-h-screen">
+
     @include('components.nav')
 
-    <div class="flex-1 p-8 bg-gray-200 min-h-screen">
-    
+
+    <div class="flex-1 p-6 lg:p-8 bg-gray-100 min-h-screen">
+
         @include('components.header', ['title' => 'Inventory'])
 
-        <!-- Tabs -->
-        <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6">
-            <button class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
-                Master List
-            </button>
-            <button class="bg-[#f2c94c] text-[#0e243a] px-6 py-2 rounded-full font-semibold">
-                Inventory Movement
-            </button>
-        </div>
 
-        <!-- Container -->
-        <div class="bg-white rounded-2xl p-6 shadow-md border-4 border-[#0e243a]">
+        <!-- ==========================================
+             TABS
+        =========================================== -->
+<div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 shadow-sm">
 
-            <!-- Top Controls -->
-           <div class="flex justify-between items-center mb-4 flex-wrap gap-3">
+    {{-- MASTER LIST: ACTIVE --}}
+    <button
+        type="button"
+        class="bg-gray-200
+               text-[#0e243a]
+               px-6 py-2
+               rounded-full
+               font-semibold">
+        Master List
+    </button>
 
-                <!-- LEFT SIDE -->
-                <div class="flex gap-3">
-                    <!-- Search -->
-                    <div class="flex items-center bg-gray-100 px-3 py-2 rounded-full">
-                        <span class="mr-2">🔍</span>
-                        <input type="text" placeholder="Search"
-                            class="bg-transparent outline-none text-sm">
-                    </div>
+    {{-- INVENTORY MOVEMENT --}}
+    <a
+        href="{{ route('inventory.movement') }}"
+        class="bg-[#f2c94c]
+               hover:bg-[#e5bb35]
+               text-[#0e243a]
+               px-6 py-2
+               rounded-full
+               font-semibold
+               transition">
+        Inventory Movement
+    </a>
 
-                    <!-- Category -->
-                    <select class="bg-gray-100 px-4 py-2 rounded-lg text-sm">
-                        <option>Category</option>
-                    </select>
+</div>
+
+
+<!-- ==========================================
+     MAIN CONTAINER
+=========================================== -->
+
+<div class="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+
+
+    <!-- ==========================================
+         SEARCH / FILTER / ADD ITEM
+    =========================================== -->
+
+    <div class="px-6 py-5 bg-gray-50 border-b border-gray-200">
+
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+
+
+            <!-- ======================================
+                 LEFT: SEARCH + CATEGORY
+            ======================================= -->
+
+            <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+
+
+                <!-- SEARCH -->
+
+                <div
+                    class="relative flex items-center
+                           bg-white
+                           border border-gray-200
+                           rounded-xl
+                           w-full sm:w-72
+                           focus-within:border-[#0e243a]
+                           focus-within:ring-2
+                           focus-within:ring-[#0e243a]/10
+                           transition">
+
+                    <img
+                        src="/images/searchbar.png"
+                        alt="Search"
+                        class="absolute left-4 w-4 h-4 object-contain">
+
+                    <input
+                        id="searchInput"
+                        type="text"
+                        placeholder="Search inventory..."
+                        autocomplete="off"
+                        class="w-full
+                               bg-transparent
+                               outline-none
+                               text-sm
+                               text-gray-700
+                               placeholder-gray-400
+                               pl-11
+                               pr-4
+                               py-3">
+
                 </div>
 
-                <!-- RIGHT SIDE -->
-                    <div class="flex flex-col items-end gap-2">
 
-                        <button class="bg-[#f2c94c] px-5 py-2 rounded-full font-semibold">
-                            Add Item
-                        </button>
+                <!-- CATEGORY -->
 
-                        <span class="text-sm text-gray-600">
-                            {{ $inventory->firstItem() }} to {{ $inventory->lastItem() }} of {{ $inventory->total() }}
-                        </span>
+                <select
+                    id="categoryFilter"
+                    class="bg-white
+                           border border-gray-200
+                           rounded-xl
+                           px-4
+                           py-3
+                           text-sm
+                           text-gray-600
+                           outline-none
+                           focus:border-[#0e243a]
+                           focus:ring-2
+                           focus:ring-[#0e243a]/10
+                           transition">
 
-                        <!-- Pagination -->
-                        <div>
-                            {{ $inventory->links() }}
-                        </div>
+                    <option value="">
+                        All Categories
+                    </option>
 
-                    </div>
+                    @foreach($categories as $category)
+
+                        <option value="{{ strtolower($category) }}">
+                            {{ $category }}
+                        </option>
+
+                    @endforeach
+
+                </select>
 
             </div>
 
-            <!-- Table -->
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left border-collapse">
 
-                    <thead>
-                        <tr class="border-b">
-                            <th class="py-2 px-2">#</th>
-                            <th class="py-2 px-2">Item Name</th>
-                            <th class="py-2 px-2">Category</th>
-                            <th class="py-2 px-2">Quantity</th>
-                            <th class="py-2 px-2">Unit</th>
-                            <th class="py-2 px-2">Status</th>
-                            <th class="py-2 px-2">Last Updated</th>
-                        </tr>
-                    </thead>
+            <!-- ======================================
+                 RIGHT: TOTAL + ADD ITEM
+            ======================================= -->
 
-                    <tbody>
-                        @foreach($inventory as $item)
-                        <tr 
-                            class="cursor-pointer hover:bg-gray-100 transition
-                            @if($item->stock_status == 'Low Stock' || $item->stock_status == 'No Stock')
-                                bg-red-100
-                            @endif"
-                            onclick="openModal(@js($item))"
-                        >
-                            <td class="py-2 px-2">{{ $loop->iteration }}</td>
-                            <td class="py-2 px-2">{{ $item->name }}</td>
-                            <td class="py-2 px-2">{{ $item->category }}</td>
+            <div
+                class="flex items-center
+                       justify-between
+                       md:justify-end
+                       gap-4
+                       w-full
+                       md:w-auto">
 
-                            <td class="py-2 px-2 
-                                @if($item->stock_status != 'In Stock') text-red-600 font-bold @endif">
-                                {{ $item->current_quantity }}
-                            </td>
 
-                            <td class="py-2 px-2">{{ $item->unit }}</td>
+                <!-- TOTAL ITEMS -->
 
-                            <td class="py-2 px-2
-                                @if($item->stock_status == 'In Stock') text-green-600
-                                @else text-red-500 font-semibold
-                                @endif
-                            ">
-                                {{ $item->stock_status }}
-                            </td>
+                <div
+                    id="inventoryCount"
+                    class="text-sm text-gray-500 whitespace-nowrap">
 
-                            <td class="py-2 px-2">
-                                {{ $item->last_movement_date }}
-                            </td>
-                        </tr>
-                        @endforeach
-                        </tbody>
-                        
-                </table>
-                
+                    <span class="font-semibold text-[#0e243a]">
+                        {{ $inventory->total() }}
+                    </span>
+
+                    items
+
+                </div>
+
+
+                <!-- ADD ITEM -->
+
+                <button
+                    type="button"
+                    class="inline-flex
+                           items-center
+                           justify-center
+                           gap-2
+                           bg-[#f2c94c]
+                           hover:bg-[#e5bb35]
+                           text-[#0e243a]
+                           px-5
+                           py-2.5
+                           rounded-full
+                           font-semibold
+                           text-sm
+                           shadow-sm
+                           transition
+                           duration-200
+                           hover:shadow-md">
+
+                    <span class="text-lg leading-none">
+                        +
+                    </span>
+
+                    Add Item
+
+                </button>
+
             </div>
-
 
         </div>
 
     </div>
+
+
+            <!-- ==========================================
+                 TABLE
+            =========================================== -->
+
+            <div class="overflow-x-auto">
+
+                <table class="w-full text-sm text-left">
+
+                    <thead>
+
+                        <tr class="bg-gray-50 border-b border-gray-200">
+
+                            <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                #
+                            </th>
+
+                            <th class="py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Item Name
+                            </th>
+
+                            <th class="py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Category
+                            </th>
+
+                            <th class="py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Quantity
+                            </th>
+
+                            <th class="py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Unit
+                            </th>
+
+                            <th class="py-4 px-4 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Status
+                            </th>
+
+                            <th class="py-4 px-6 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                                Last Updated
+                            </th>
+
+                        </tr>
+
+                    </thead>
+
+
+                  <tbody
+                        id="inventoryTableBody"
+                        class="divide-y divide-gray-100">
+
+                        @forelse($inventory as $item)
+
+                            <tr
+                                data-item-id="{{ $item->id }}"
+                                data-name="{{ strtolower($item->name) }}"
+                                data-category="{{ strtolower($item->category) }}"
+                                data-unit="{{ strtolower($item->unit) }}"
+                                class="inventory-row
+                                    cursor-pointer
+                                    transition duration-150
+                                    hover:bg-gray-50
+                                    
+                                    @if($item->stock_status == 'Low Stock' || $item->stock_status == 'No Stock')
+                                        bg-red-50/60
+                                    @endif"
+
+                                onclick="openModal(@js($item))"
+                            >
+
+
+                                <!-- NUMBER -->
+
+                                <td class="py-4 px-6 text-gray-500 font-medium">
+
+                                    {{ $loop->iteration }}
+
+                                </td>
+
+
+                                <!-- ITEM NAME -->
+
+                                <td class="py-4 px-4">
+
+                                    <div class="font-semibold text-[#0e243a]">
+
+                                        {{ $item->name }}
+
+                                    </div>
+
+                                </td>
+
+
+                                <!-- CATEGORY -->
+
+                                <td class="py-4 px-4 text-gray-600">
+
+                                    {{ $item->category }}
+
+                                </td>
+
+
+                                <!-- QUANTITY -->
+
+                                <td
+                                    class="py-4 px-4 font-semibold
+                                    @if($item->stock_status != 'In Stock')
+                                        text-red-600
+                                    @else
+                                        text-gray-700
+                                    @endif">
+
+                                    {{ $item->current_quantity }}
+
+                                </td>
+
+
+                                <!-- UNIT -->
+
+                                <td class="py-4 px-4 text-gray-600">
+
+                                    {{ $item->unit }}
+
+                                </td>
+
+
+                                <!-- STATUS -->
+
+                                <td class="py-4 px-4">
+
+                                    @if($item->stock_status == 'In Stock')
+
+                                        <span
+                                            class="inline-flex items-center
+                                                   px-3 py-1
+                                                   rounded-full
+                                                   bg-green-100
+                                                   text-green-700
+                                                   text-xs
+                                                   font-semibold">
+
+                                            <span
+                                                class="w-1.5 h-1.5
+                                                       bg-green-500
+                                                       rounded-full
+                                                       mr-2">
+                                            </span>
+
+                                            In Stock
+
+                                        </span>
+
+                                    @elseif($item->stock_status == 'Low Stock')
+
+                                        <span
+                                            class="inline-flex items-center
+                                                   px-3 py-1
+                                                   rounded-full
+                                                   bg-orange-100
+                                                   text-orange-700
+                                                   text-xs
+                                                   font-semibold">
+
+                                            <span
+                                                class="w-1.5 h-1.5
+                                                       bg-orange-500
+                                                       rounded-full
+                                                       mr-2">
+                                            </span>
+
+                                            Low Stock
+
+                                        </span>
+
+                                    @else
+
+                                        <span
+                                            class="inline-flex items-center
+                                                   px-3 py-1
+                                                   rounded-full
+                                                   bg-red-100
+                                                   text-red-700
+                                                   text-xs
+                                                   font-semibold">
+
+                                            <span
+                                                class="w-1.5 h-1.5
+                                                       bg-red-500
+                                                       rounded-full
+                                                       mr-2">
+                                            </span>
+
+                                            No Stock
+
+                                        </span>
+
+                                    @endif
+
+                                </td>
+
+
+                                <!-- LAST UPDATED -->
+
+                                <td class="py-4 px-6 text-gray-500">
+
+                                    {{ $item->last_movement_date }}
+
+                                </td>
+
+                            </tr>
+
+                        @empty
+
+                            <tr>
+
+                                <td
+                                    colspan="7"
+                                    class="py-12 text-center text-gray-500">
+
+                                    <p class="font-semibold">
+                                        No inventory items found
+                                    </p>
+
+                                    <p class="text-sm text-gray-400 mt-1">
+                                        Try adjusting your search or category filter.
+                                    </p>
+
+                                </td>
+
+                            </tr>
+
+                        @endforelse
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+
+            <!-- ==========================================
+                 PAGINATION
+            =========================================== -->
+
+            <div
+                class="px-6 py-4
+                       border-t border-gray-200
+                       flex flex-col sm:flex-row
+                       items-center
+                       justify-between
+                       gap-3">
+
+                <div class="text-sm text-gray-500">
+
+                    Showing
+
+                    <span class="font-semibold text-gray-700">
+                        {{ $inventory->firstItem() ?? 0 }}
+                    </span>
+
+                    to
+
+                    <span class="font-semibold text-gray-700">
+                        {{ $inventory->lastItem() ?? 0 }}
+                    </span>
+
+                    of
+
+                    <span class="font-semibold text-gray-700">
+                        {{ $inventory->total() }}
+                    </span>
+
+                    items
+
+                </div>
+
+
+                <div>
+
+                    {{ $inventory->links() }}
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
 </div>
-<div id="toast"
-     class="hidden fixed bottom-5 right-5 bg-green-600 text-white px-4 py-2 rounded-lg shadow-lg transition">
+
+
+<!-- ==========================================
+     TOAST
+=========================================== -->
+
+<div
+    id="toast"
+    class="hidden fixed bottom-5 right-5
+           bg-[#0e243a]
+           text-white
+           px-5 py-3
+           rounded-xl
+           shadow-lg
+           text-sm
+           font-medium
+           z-50">
+
     Saved successfully!
+
 </div>
+
+
+
 @include('components.inventory-item-modal')
+
 @include('components.logout-modal')
+
 @include('components.confirm-modal')
+
 @include('components.confirm-modal-script')
+
+
 <script>
-function showToast(message) {
-    const toast = document.getElementById('toast');
-    toast.innerText = message;
 
-    toast.classList.remove('hidden');
-    toast.classList.add('opacity-100');
-
-    setTimeout(() => {
-        toast.classList.add('hidden');
-    }, 2000);
-}
-let selectedItem = null;
-
-// open modal
-function openModal(item) {
-    selectedItem = item;
-
-    document.getElementById('inventoryModal').classList.remove('hidden');
-    document.getElementById('inventoryModal').classList.add('flex');
-
-    document.getElementById('item_name').value = item.name;
-    document.getElementById('quantity').value = item.current_quantity;
-    document.getElementById('unit').value = item.unit;
-    document.getElementById('threshold').value = item.minimum_threshold;
-    // document.getElementById('status').value = item.status;
-
-    loadCategories(item.category);
-
-    resetButtons();
-}
-
-// close modal
-function closeModal() {
-    document.getElementById('inventoryModal').classList.add('hidden');
-    document.getElementById('inventoryModal').classList.remove('flex');
-}
-
-// load unique categories (simple version)
-function loadCategories(selected) {
-    const categories = @json($categories->values());
-    let html = '';
-    categories.forEach(cat => {
-        html += `<option value="${cat}" ${cat === selected ? 'selected' : ''}>${cat}</option>`;
-    });
-
-    document.getElementById('category').innerHTML = html;
-}
-
-// detect edit
-document.querySelectorAll('#inventoryModal input, #inventoryModal select')
-.forEach(el => {
-    el.addEventListener('input', () => {
-        document.getElementById('saveBtn').classList.remove('hidden');
-        document.getElementById('closeBtn').innerText = "Cancel";
-    });
-});
-
-// reset buttons
-function resetButtons() {
-    document.getElementById('saveBtn').classList.add('hidden');
-    document.getElementById('closeBtn').innerText = "Close";
-}
-
-
-function confirmSave() {
-    showConfirmModal({
-        title: "Save Changes",
-        message: "Are you sure you want to save this item?",
-        onConfirm: () => {
-            saveToBackend(); // your real save function
-        }
-    });
-}
-
-function saveToBackend() {
-
-    if (!selectedItem?.id) {
-        alert("No item selected");
-        return;
-    }
-
-    let id = selectedItem.id;
-console.log("SELECTED ITEM:", selectedItem);
-console.log("ID:", selectedItem?.id);
-   fetch(`/inventory/update/${id}`, {
-    method: "POST",
-    headers: {
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').getAttribute('content')
-    },
-    body: JSON.stringify({
-        item_name: document.getElementById('item_name').value,
-        category: document.getElementById('category').value,
-        quantity: document.getElementById('quantity').value,
-        unit: document.getElementById('unit').value,
-        threshold: document.getElementById('threshold').value
-    })
-})
-.then(async res => {
-    const text = await res.text();
-    console.log("STATUS:", res.status);
-    console.log("RESPONSE:", text);
-
-    return text;
-})
-.then(data => {
-    console.log("RAW:", data);
-
-   showToast("Inventory updated successfully!");
-
-setTimeout(() => {
-    location.reload();
-}, 500);
-})
-.catch(err => console.error(err));
-    
-}
-function updateTableRow() {
-    let row = document.querySelector(`tr[onclick*="${selectedItem.id}"]`);
-
-    if (!row) {
-        location.reload(); // fallback
-        return;
-    }
-
-    row.children[1].innerText = document.getElementById('item_name').value;
-    row.children[2].innerText = document.getElementById('category').value;
-    row.children[3].innerText = document.getElementById('quantity').value;
-    row.children[4].innerText = document.getElementById('unit').value;
-
-    closeModal();
-}
-
-function openLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
-
-function closeLogoutModal() {
-    const modal = document.getElementById('logoutModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
+    window.inventoryCategories =
+        @json($categories->values());
 
 </script>
+
+
+
+<script src="{{ asset('js/masterlist.js') }}"></script>
+
+
 </body>
+
 </html>

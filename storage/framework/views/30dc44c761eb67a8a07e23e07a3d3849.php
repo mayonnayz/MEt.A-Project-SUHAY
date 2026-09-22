@@ -1,0 +1,1 @@
+<?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/components/donation-modal.blade.php ENDPATH**/ ?>

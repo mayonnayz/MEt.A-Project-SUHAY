@@ -275,67 +275,6 @@ function renderActivities(data) {
             let volunteersHTML = '';
 
 
-            // =================================================
-            // ASSIGNED VOLUNTEERS
-            // =================================================
-
-            if (
-                act.volunteer_assignments &&
-                act.volunteer_assignments.length > 0
-            ) {
-
-                volunteersHTML = `
-                    <div class="mt-2 text-sm text-gray-600">
-
-                        <p class="font-semibold">
-                            Assigned Volunteers:
-                        </p>
-
-                        <ul class="list-disc ml-5">
-
-                            ${act.volunteer_assignments.map(v => `
-
-                                <li class="flex justify-between items-center gap-2 mb-2">
-
-                                    <span>
-                                        ${v.accounts.first_name}
-                                        ${v.accounts.last_name}
-                                    </span>
-
-                                    ${
-                                        // REMOVE BUTTON
-                                        // Only show for UPCOMING events
-                                        currentEventStatus !== "done"
-                                            ? `
-                                                <button
-                                                    type="button"
-                                                    onclick="removeAssignment(${v.id})"
-                                                    class="bg-red-500 text-white px-3 py-1 rounded-full text-xs ml-2 hover:bg-red-600"
-                                                >
-                                                    Remove
-                                                </button>
-                                            `
-                                            : ''
-                                    }
-
-                                </li>
-
-                            `).join('')}
-
-                        </ul>
-
-                    </div>
-                `;
-
-            } else {
-
-                volunteersHTML = `
-                    <p class="text-xs text-gray-400 mt-2">
-                        No volunteers assigned
-                    </p>
-                `;
-            }
-
 
             // =================================================
             // ACTIVITY CARD
@@ -388,98 +327,6 @@ function renderActivities(data) {
     // Display activities
     document.getElementById('activityList').innerHTML =
         html;
-}
-
-
-// =====================================================
-// REMOVE ASSIGNMENT
-// =====================================================
-
-function removeAssignment(assignmentId) {
-
-    // Extra protection:
-    // Completed events cannot remove assignments
-    if (currentEventStatus === "done") {
-
-        alert(
-            "Volunteers cannot be removed from completed events."
-        );
-
-        return;
-    }
-
-
-    if (
-        !confirm(
-            "Remove this volunteer from the activity?"
-        )
-    ) {
-
-        return;
-    }
-
-
-    fetch(
-        `/remove-assignment/${assignmentId}`,
-        {
-            method: 'DELETE',
-
-            headers: {
-
-                'X-CSRF-TOKEN':
-                    document
-                        .querySelector(
-                            'meta[name="csrf-token"]'
-                        )
-                        .getAttribute('content'),
-
-                'Accept': 'application/json'
-            }
-        }
-    )
-
-    .then(async res => {
-
-        const data =
-            await res.json().catch(() => ({}));
-
-
-        if (!res.ok) {
-
-            throw new Error(
-                data.message ||
-                "Failed to remove assignment."
-            );
-        }
-
-
-        alert("Removed successfully!");
-
-
-        // Refresh activities
-        await refreshActivities();
-
-
-        // Refresh event card count
-        await refreshEventAssignmentCount(
-            currentEventId
-        );
-
-
-        // Clear volunteer cache
-        delete cachedVolunteers[currentEventId];
-
-    })
-
-    .catch(err => {
-
-        console.error(err);
-
-        alert(
-            err.message ||
-            "Error removing assignment."
-        );
-    });
 }
 
 
@@ -799,7 +646,7 @@ async function confirmAssign(volunteerId) {
                         event_id:
                             currentEventId,
 
-                        status: 1
+                        status: 0
 
                     })
                 }
@@ -984,8 +831,6 @@ window.assignVolunteer =
 window.confirmAssign =
     confirmAssign;
 
-window.removeAssignment =
-    removeAssignment;
 
 window.closeVolunteerModal =
     closeVolunteerModal;
