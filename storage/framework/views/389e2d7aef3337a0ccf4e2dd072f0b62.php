@@ -58,82 +58,129 @@
             </button>
         </div>
 
-        <!-- Table -->
-        <div class="bg-[#0e243a] p-4 rounded-2xl">
-            <div class="bg-gray-200 rounded-2xl overflow-hidden">
+<!-- Table -->
+<div class="bg-[#0e243a] p-4 rounded-2xl">
+    <div class="bg-gray-200 rounded-2xl overflow-hidden">
 
-                <table class="w-full">
+        <table class="w-full">
 
-                    <thead class="bg-gray-300 text-left">
-                        <tr>
-                            <th class="p-4">#</th>
-                            <th class="p-4">Volunteer</th>
-                            <th class="p-4">Activity</th>
-                            <th class="p-4">Event</th>
-                            <th class="p-4">Time In</th>
-                            <th class="p-4">Time Out</th>
-                            <th class="p-4">Hours</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Actions</th>
-                        </tr>
-                    </thead>
+            <thead class="bg-gray-300 text-left">
+                <tr>
+                    <th class="p-4">#</th>
+                    <th class="p-4">Volunteer</th>
+                    <th class="p-4">Activity</th>
+                    <th class="p-4">Event</th>
+                    <th class="p-4">Time In</th>
+                    <th class="p-4">Time Out</th>
+                    <th class="p-4">Hours</th>
+                    <th class="p-4">Status</th>
+                </tr>
+            </thead>
 
-                    <tbody>
-                        <?php $__empty_1 = true; $__currentLoopData = $assignments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
-                        <tr class="border-t"
-    data-event="<?php echo e(strtolower($item['event']['name'] ?? '')); ?>"
-    data-name="<?php echo e(strtolower(($item['accounts']['first_name'] ?? '') . ' ' . ($item['accounts']['last_name'] ?? ''))); ?>">
+            <tbody>
 
-    <td class="p-4"><?php echo e($loop->iteration); ?></td>
+                <?php $__empty_1 = true; $__currentLoopData = $assignments; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
-    <td class="p-4">
-        <?php echo e($item['accounts']['first_name'] ?? ''); ?>
+            <tr
+                class="border-t activity-row cursor-pointer hover:bg-gray-300 transition"
+                data-assignment-id="<?php echo e($item['id'] ?? ''); ?>"
+                data-event="<?php echo e($item['event']['name'] ?? ''); ?>"
+                data-name="<?php echo e(strtolower(
+                    ($item['accounts']['first_name'] ?? '') . ' ' .
+                    ($item['accounts']['last_name'] ?? '')
+                )); ?>"
+                data-account-id="<?php echo e($item['account_id'] ?? ''); ?>"
+                data-activity-id="<?php echo e($item['activity_id'] ?? ''); ?>"
+                data-event-date="<?php echo e($item['event']['date'] ?? ''); ?>"
+                data-time-in="<?php echo e($item['time_in'] ?? ''); ?>"
+                data-time-out="<?php echo e($item['time_out'] ?? ''); ?>"
+                data-status="<?php echo e($item['status'] ?? 0); ?>"
+            >
+                    <!-- Number -->
+                    <td class="p-4">
+                        <?php echo e($loop->iteration); ?>
 
-        <?php echo e($item['accounts']['last_name'] ?? ''); ?>
+                    </td>
 
-    </td>
 
-    <!-- Activity -->
-    <td class="p-4">
-        <?php echo e($item['activity']['name'] ?? 'N/A'); ?>
+                    <!-- Volunteer -->
+                    <td class="p-4">
+                        <?php echo e($item['accounts']['first_name'] ?? ''); ?>
 
-    </td>
+                        <?php echo e($item['accounts']['last_name'] ?? ''); ?>
 
-    <!-- Event -->
-    <td class="p-4">
-        <?php echo e($item['event']['name'] ?? 'N/A'); ?>
+                    </td>
 
-    </td>
 
-    <td class="p-4"><?php echo e($item['time_in'] ?? '-'); ?></td>
-    <td class="p-4"><?php echo e($item['time_out'] ?? '-'); ?></td>
-    <td class="p-4"><?php echo e($item['total_hours'] ?? '-'); ?></td>
+                    <!-- Activity -->
+                    <td class="p-4">
+                        <?php echo e($item['activity']['name'] ?? 'N/A'); ?>
 
-    <td class="p-4 font-semibold
-        <?php echo e(($item['status'] ?? 0) == 1 ? 'text-green-600' : 'text-yellow-500'); ?>">
-        <?php echo e(($item['status'] ?? 0) == 1 ? 'Completed' : 'On Going'); ?>
+                    </td>
 
-    </td>
 
-    <td class="p-4">
-        <button class="bg-blue-700 text-white px-5 py-2 rounded-full">
-            View
-        </button>
-    </td>
-</tr>
-                        <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-                        <tr>
-                            <td colspan="9" class="p-4 text-center text-gray-500">
-                                No activity records found
-                            </td>
-                        </tr>
-                        <?php endif; ?>
-                    </tbody>
+                    <!-- Event -->
+                    <td class="p-4">
+                        <?php echo e($item['event']['name'] ?? 'N/A'); ?>
 
-                </table>
+                    </td>
 
-            </div>
-        </div>
+
+                    <!-- Time In -->
+                    <td class="p-4">
+                        <?php echo e($item['time_in'] ?? '-'); ?>
+
+                    </td>
+
+
+                    <!-- Time Out -->
+                    <td class="p-4">
+                        <?php echo e($item['time_out'] ?? '-'); ?>
+
+                    </td>
+
+
+                    <!-- Hours -->
+                    <td class="p-4">
+                        <?php echo e($item['total_hours'] ?? '-'); ?>
+
+                    </td>
+
+
+                    <!-- Status -->
+                    <td
+                        class="p-4 font-semibold
+                        <?php echo e(($item['status'] ?? 0) == 1
+                            ? 'text-green-600'
+                            : 'text-yellow-500'); ?>"
+                    >
+                        <?php echo e(($item['status'] ?? 0) == 1
+                            ? 'Completed'
+                            : 'On Going'); ?>
+
+                    </td>
+
+                </tr>
+
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+
+                <tr>
+                    <td
+                        colspan="8"
+                        class="p-4 text-center text-gray-500"
+                    >
+                        No activity records found
+                    </td>
+                </tr>
+
+                <?php endif; ?>
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
 
     </div>
 </div>
@@ -141,7 +188,7 @@
 <?php echo $__env->make('components.log-activity-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
-    <script src="<?php echo e(asset('js/application-management.js')); ?>"></script>
+    <script src="<?php echo e(asset('js/track-activity.js')); ?>"></script>
 
 
 </body>

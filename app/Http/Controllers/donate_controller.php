@@ -58,6 +58,46 @@ class donate_controller extends Controller
             );
 
         }
+        unset($ngo);
+
+
+        // =========================================
+        // RESOLVE NGO LOGOS
+        // =========================================
+        //
+        // 'logo' on ngo_profile is a foreign key into
+        // media_table, not a usable file path/URL. Look
+        // up all of them in a single batched request and
+        // attach the resolved public URL as 'logo_url'.
+
+        $logoIds = array_filter(array_column($ngos, 'logo'));
+
+        $logoMap = [];
+
+        if (!empty($logoIds)) {
+
+            $ids = implode(',', $logoIds);
+
+            $mediaResponse = $this->supabase()
+                ->get(
+                    'media_table?select=id,path'
+                    . '&id=in.(' . $ids . ')'
+                    . '&type=eq.NGO_LOGO'
+                );
+
+            if ($mediaResponse->successful()) {
+
+                foreach ($mediaResponse->json() as $media) {
+                    $logoMap[$media['id']] = $media['path'];
+                }
+            }
+        }
+
+        foreach ($ngos as &$ngo) {
+            $ngo['logo_url'] = $logoMap[$ngo['logo']] ?? null;
+        }
+        unset($ngo);
+
 
         return view('donate', compact('ngos'));
     }

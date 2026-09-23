@@ -96,9 +96,7 @@ function openModal(id) {
     // NGO LOGO
     // ========================================
 
-    const logoUrl = ngo.logo
-        ? `https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/profile-pictures/${ngo.logo}`
-        : assets.logo;
+    const logoUrl = ngo.logo_url || assets.logo;
 
 
     // ========================================
