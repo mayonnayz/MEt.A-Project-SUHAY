@@ -1,4 +1,4 @@
-@php
+<?php
     $role = strtolower(trim(session('role')));
 
     $active = 'bg-[#1a3554] text-white';
@@ -8,26 +8,26 @@
     {
         return request()->is($path);
     }
-@endphp
+?>
 
 <div
     class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden"
 >
 
-    {{-- ===================================================== --}}
-    {{-- NGO / STAFF NAVIGATION                                --}}
-    {{-- ===================================================== --}}
+    
+    
+    
 
-    @if(in_array($role, ['0', '1', '2']))
+    <?php if(in_array($role, ['0', '1', '2'])): ?>
 
-        {{-- Dashboard --}}
+        
         <a
             href="/sm-dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('sm-dashboard') ? $active : $inactive }}"
+            <?php echo e(navItemActive('sm-dashboard') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/ServiceManagement/SMDash.png') }}"
+                src="<?php echo e(asset('images/ServiceManagement/SMDash.png')); ?>"
                 class="w-16 h-16 object-contain"
                 alt="Dashboard"
             >
@@ -38,16 +38,16 @@
         </a>
 
 
-        {{-- NGOs --}}
-        @if($role === '0')
+        
+        <?php if($role === '0'): ?>
 
             <a
                 href="/sm-ngos"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-                {{ navItemActive('sm-ngos') ? $active : $inactive }}"
+                <?php echo e(navItemActive('sm-ngos') ? $active : $inactive); ?>"
             >
                 <img
-                    src="{{ asset('images/ServiceManagement/SMNGOs.png') }}"
+                    src="<?php echo e(asset('images/ServiceManagement/SMNGOs.png')); ?>"
                     class="w-16 h-16 object-contain"
                     alt="NGOs"
                 >
@@ -57,19 +57,19 @@
                 </span>
             </a>
 
-        @endif
+        <?php endif; ?>
 
 
-        {{-- Donations --}}
-        @if(in_array($role, ['0', '2']))
+        
+        <?php if(in_array($role, ['0', '2'])): ?>
 
             <a
                 href="/donations"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-                {{ navItemActive('donations') ? $active : $inactive }}"
+                <?php echo e(navItemActive('donations') ? $active : $inactive); ?>"
             >
                 <img
-                    src="{{ asset('images/ServiceManagement/SMDonations.png') }}"
+                    src="<?php echo e(asset('images/ServiceManagement/SMDonations.png')); ?>"
                     class="w-16 h-16 object-contain"
                     alt="Donations"
                 >
@@ -80,14 +80,14 @@
             </a>
 
 
-            {{-- Inventory --}}
+            
             <a
                 href="/inventory-master-list"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-                {{ navItemActive('inventory-master-list') ? $active : $inactive }}"
+                <?php echo e(navItemActive('inventory-master-list') ? $active : $inactive); ?>"
             >
                 <img
-                    src="{{ asset('images/ServiceManagement/SMInventory.png') }}"
+                    src="<?php echo e(asset('images/ServiceManagement/SMInventory.png')); ?>"
                     class="w-16 h-16 object-contain"
                     alt="Inventory"
                 >
@@ -97,19 +97,19 @@
                 </span>
             </a>
 
-        @endif
+        <?php endif; ?>
 
 
-        {{-- Volunteers --}}
-        @if(in_array($role, ['0', '1']))
+        
+        <?php if(in_array($role, ['0', '1'])): ?>
 
             <a
                 href="/service-management"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-                {{ navItemActive('service-management') ? $active : $inactive }}"
+                <?php echo e(navItemActive('service-management') ? $active : $inactive); ?>"
             >
                 <img
-                    src="{{ asset('images/ServiceManagement/SMVolunteers.png') }}"
+                    src="<?php echo e(asset('images/ServiceManagement/SMVolunteers.png')); ?>"
                     class="w-16 h-16 object-contain"
                     alt="Volunteers"
                 >
@@ -119,17 +119,17 @@
                 </span>
             </a>
 
-        @endif
+        <?php endif; ?>
 
 
-        {{-- Reports --}}
+        
         <a
             href="/sm-reports"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('sm-reports') ? $active : $inactive }}"
+            <?php echo e(navItemActive('sm-reports') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/ServiceManagement/SMReports.png') }}"
+                src="<?php echo e(asset('images/ServiceManagement/SMReports.png')); ?>"
                 class="w-16 h-16 object-contain"
                 alt="Reports"
             >
@@ -139,23 +139,23 @@
             </span>
         </a>
 
-    @endif
+    <?php endif; ?>
 
 
-    {{-- ===================================================== --}}
-    {{-- VOLUNTEER NAVIGATION                                  --}}
-    {{-- ===================================================== --}}
+    
+    
+    
 
-    @if($role === '3')
+    <?php if($role === '3'): ?>
 
-        {{-- Dashboard --}}
+        
         <a
             href="/volunteer/dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('volunteer/dashboard') ? $active : $inactive }}"
+            <?php echo e(navItemActive('volunteer/dashboard') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/VolunteerIcons/VDash.png') }}"
+                src="<?php echo e(asset('images/VolunteerIcons/VDash.png')); ?>"
                 class="w-12 h-12 object-contain"
                 alt="Dashboard"
             >
@@ -166,14 +166,14 @@
         </a>
 
 
-        {{-- NGOs --}}
+        
         <a
             href="/volunteer/ngos"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('volunteer/ngos') ? $active : $inactive }}"
+            <?php echo e(navItemActive('volunteer/ngos') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/VolunteerIcons/VNGOs.png') }}"
+                src="<?php echo e(asset('images/VolunteerIcons/VNGOs.png')); ?>"
                 class="w-12 h-12 object-contain"
                 alt="NGOs"
             >
@@ -184,14 +184,14 @@
         </a>
 
 
-        {{-- Events --}}
+        
         <a
             href="/volunteer/events"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('volunteer/events') ? $active : $inactive }}"
+            <?php echo e(navItemActive('volunteer/events') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/VolunteerIcons/VEvents.png') }}"
+                src="<?php echo e(asset('images/VolunteerIcons/VEvents.png')); ?>"
                 class="w-12 h-12 object-contain"
                 alt="Events"
             >
@@ -202,14 +202,14 @@
         </a>
 
 
-        {{-- Applications --}}
+        
         <a
             href="/volunteer/applications"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            {{ navItemActive('volunteer/applications') ? $active : $inactive }}"
+            <?php echo e(navItemActive('volunteer/applications') ? $active : $inactive); ?>"
         >
             <img
-                src="{{ asset('images/VolunteerIcons/VApplications.png') }}"
+                src="<?php echo e(asset('images/VolunteerIcons/VApplications.png')); ?>"
                 class="w-12 h-12 object-contain"
                 alt="Applications"
             >
@@ -220,15 +220,15 @@
         </a>
 
 
-{{-- Donations --}}
+
 
 <a
-    href="{{ route('donations.history') }}"
+    href="<?php echo e(route('donations.history')); ?>"
     class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-    {{ request()->routeIs('donations.history') ? $active : $inactive }}"
+    <?php echo e(request()->routeIs('donations.history') ? $active : $inactive); ?>"
 >
     <img
-        src="{{ asset('images/VolunteerIcons/VDonations.png') }}"
+        src="<?php echo e(asset('images/VolunteerIcons/VDonations.png')); ?>"
         class="w-12 h-12 object-contain"
         alt="Donations"
     >
@@ -240,20 +240,20 @@
 
 
 
-    @endif
+    <?php endif; ?>
 
 
-    {{-- ===================================================== --}}
-    {{-- LOGOUT                                                 --}}
-    {{-- ===================================================== --}}
+    
+    
+    
 
     <a
         href="#"
         onclick="openLogoutModal(); return false;"
-        class="mt-auto flex items-center gap-4 px-4 py-4 rounded-xl mx-2 {{ $inactive }}"
+        class="mt-auto flex items-center gap-4 px-4 py-4 rounded-xl mx-2 <?php echo e($inactive); ?>"
     >
         <img
-            src="{{ asset('images/ServiceManagement/SMLogout.png') }}"
+            src="<?php echo e(asset('images/ServiceManagement/SMLogout.png')); ?>"
             class="w-16 h-16 object-contain"
             alt="Logout"
         >
@@ -263,4 +263,4 @@
         </span>
     </a>
 
-</div>
+</div><?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/components/nav.blade.php ENDPATH**/ ?>

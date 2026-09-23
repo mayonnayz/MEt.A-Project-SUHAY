@@ -5,9 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
 
-class login_controller extends Controller
+class signup_controller extends Controller
 {
-    public function signup(Request $request){
+    public function signup(Request $request)
+    {
         $request->validate([
             'first_name' => 'required|string|max:255',
             'last_name' => 'required|string|max:255',
@@ -20,7 +21,6 @@ class login_controller extends Controller
 
         try {
 
-            // Check if email already exists
             $existingUser = Http::withHeaders([
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -29,56 +29,51 @@ class login_controller extends Controller
                 'email' => 'eq.' . $request->email
             ]);
 
-            if (!$existingUser->successful()) {
+            if ($existingUser->successful() && count($existingUser->json()) > 0) {
                 return back()
                     ->withInput()
-                    ->with('error', 'Unable to check email. Please try again.');
+                    ->with('error', 'An account with this email already exists.');
             }
 
-            if (count($existingUser->json()) > 0) {
-                return back()
-                    ->withInput()
-                    ->with('error', 'This email is already registered. Please use a different email.');
-            }
-
-            // Create account
             $response = Http::withHeaders([
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
                 'Content-Type' => 'application/json',
                 'Prefer' => 'return=minimal'
             ])->post(env('SUPABASE_URL') . '/rest/v1/accounts', [
+
                 'first_name' => $request->first_name,
                 'last_name' => $request->last_name,
                 'email' => $request->email,
                 'password' => $request->password,
-                'role' => 3,
+
+                'roles' => 3,
                 'status' => 1,
                 'ngo_id' => null,
+
                 'address' => $request->address,
                 'birth_date' => $request->birthdate,
                 'contact_number' => $request->contact_number,
             ]);
 
             if (!$response->successful()) {
+
                 return back()
                     ->withInput()
-                    ->with('error', 'Unable to create your account. Please try again.');
+                    ->with(
+                        'error',
+                        'Supabase error: ' . $response->body()
+                    );
             }
 
             return redirect('/login-page')
                 ->with('success', 'Account created successfully. You can now log in.');
 
         } catch (\Exception $e) {
+
             return back()
                 ->withInput()
                 ->with('error', 'Something went wrong. Please try again.');
         }
-    }
-
-    public function logout()
-    {
-        session()->flush();
-        return redirect('/login-page');
     }
 }

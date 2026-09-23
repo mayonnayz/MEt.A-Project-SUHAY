@@ -4,10 +4,9 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\login_controller;
-use App\Http\Controllers\category_controller;
+use App\Http\Controllers\signup_controller;
 use App\Http\Controllers\event_controller;
 use App\Http\Controllers\service_management_controller;
-use App\Http\Controllers\program_controller;
 use App\Http\Controllers\track_activity_controller;
 use App\Http\Controllers\ngo_controller;
 use App\Http\Controllers\volunteer_controller;
@@ -22,7 +21,7 @@ use App\Http\Controllers\inventory_movement_controller;
 
 /*
 |--------------------------------------------------------------------------
-| LANDING & AUTHENTICATION
+| LANDING & AUTHENTICATION / SIGNUP
 |--------------------------------------------------------------------------
 */
 
@@ -38,10 +37,15 @@ Route::get('/login-page', function () {
     return view('login');
 })->name('login.page');
 
+
+
+
 Route::post('/login', [login_controller::class, 'login']);
 
 Route::get('/sm-logout', [login_controller::class, 'logout']);
 
+
+Route::post('/register', [signup_controller::class, 'signup']);
 
 /*
 |--------------------------------------------------------------------------

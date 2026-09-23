@@ -141,7 +141,7 @@
 
 <body class="bg-gray-100 overflow-hidden">
 
-    @include('components.navbar')
+    <?php echo $__env->make('components.navbar', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <section id="authContainer" class="auth-container">
 
@@ -150,7 +150,7 @@
 
             <div class="login-content form-content text-center w-full max-w-lg">
 
-                <img src="{{ asset('images/suhayLogo.png') }}"
+                <img src="<?php echo e(asset('images/suhayLogo.png')); ?>"
                     class="h-24 mx-auto mb-6">
 
                 <h1 class="text-5xl font-extrabold text-[#0e243a] mb-3 whitespace-nowrap">
@@ -164,18 +164,19 @@
                 <form method="POST" action="/login"
                     class="space-y-6 flex flex-col items-center">
 
-                    @csrf
+                    <?php echo csrf_field(); ?>
 
-                    @if(session('error'))
+                    <?php if(session('error')): ?>
                         <p class="text-red-500 text-sm">
-                            {{ session('error') }}
+                            <?php echo e(session('error')); ?>
+
                         </p>
-                    @endif
+                    <?php endif; ?>
 
                     <div
                         class="flex items-center border rounded-full px-6 py-4 bg-white shadow-sm w-[550px]">
 
-                        <img src="{{ asset('images/LoginIcons/user.png') }}"
+                        <img src="<?php echo e(asset('images/LoginIcons/user.png')); ?>"
                             class="w-7 h-7 mr-3 opacity-60">
 
                         <input type="email"
@@ -188,7 +189,7 @@
                     <div
                         class="flex items-center border rounded-full px-6 py-4 bg-white shadow-sm w-[550px]">
 
-                        <img src="{{ asset('images/LoginIcons/lock.png') }}"
+                        <img src="<?php echo e(asset('images/LoginIcons/lock.png')); ?>"
                             class="w-7 h-7 mr-3 opacity-60">
 
                         <input id="passwordField"
@@ -199,7 +200,7 @@
                             required>
 
                         <img id="toggleEye"
-                            src="{{ asset('images/LoginIcons/eyeClose.png') }}"
+                            src="<?php echo e(asset('images/LoginIcons/eyeClose.png')); ?>"
                             class="w-7 h-7 ml-3 cursor-pointer opacity-60">
                     </div>
 
@@ -223,7 +224,7 @@
 
             <div class="signup-content form-content text-center w-full max-w-2xl absolute">
 
-                <img src="{{ asset('images/suhayLogo.png') }}"
+                <img src="<?php echo e(asset('images/suhayLogo.png')); ?>"
                     class="h-20 mx-auto mb-3">
 
                 <h1 class="text-4xl font-extrabold text-[#0e243a] mb-2">
@@ -240,7 +241,7 @@
                     action="/register"
                     class="flex flex-col items-center">
 
-                    @csrf
+                    <?php echo csrf_field(); ?>
 
 
                     <div class="flex gap-4 w-[650px] mb-3">
@@ -286,7 +287,7 @@
                             required>
 
                         <img id="signupToggleEye"
-                            src="{{ asset('images/LoginIcons/eyeClose.png') }}"
+                            src="<?php echo e(asset('images/LoginIcons/eyeClose.png')); ?>"
                             class="w-6 h-6 ml-3 cursor-pointer opacity-60">
                     </div>
 
@@ -339,7 +340,7 @@
 
         <div class="panel image-panel relative">
 
-            <img src="{{ asset('images/loginBG.jpg') }}"
+            <img src="<?php echo e(asset('images/loginBG.jpg')); ?>"
                 class="w-full h-full object-cover">
 
             <div id="imageGradient"
@@ -434,10 +435,10 @@
             if (isVisible) {
                 passwordField.type = 'password';
                 toggleEye.src =
-                    "{{ asset('images/LoginIcons/eyeClose.png') }}";
+                    "<?php echo e(asset('images/LoginIcons/eyeClose.png')); ?>";
             } else {
                 passwordField.type = 'text';
-                toggleEye.src = "{{ asset('images/LoginIcons/eyeOpen.png') }}";
+                toggleEye.src = "<?php echo e(asset('images/LoginIcons/eyeOpen.png')); ?>";
             }
 
             isVisible = !isVisible;
@@ -457,11 +458,11 @@
             if (signupPasswordVisible) {
                 signupPassword.type = 'password';
                 signupToggleEye.src =
-                    "{{ asset('images/LoginIcons/eyeClose.png') }}";
+                    "<?php echo e(asset('images/LoginIcons/eyeClose.png')); ?>";
             } else {
                 signupPassword.type = 'text';
                 signupToggleEye.src =
-                    "{{ asset('images/LoginIcons/eyeOpen.png') }}";
+                    "<?php echo e(asset('images/LoginIcons/eyeOpen.png')); ?>";
             }
 
             signupPasswordVisible = !signupPasswordVisible;
@@ -582,3 +583,4 @@
 
 </body>
 </html>
+<?php /**PATH D:\Acads\MEt.A-Project-SUHAY\resources\views/login.blade.php ENDPATH**/ ?>
