@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
@@ -87,137 +88,138 @@ class event_controller extends Controller
         });
 
         return view('events', compact('events'));
-
-        
     }
+
 
     public function deleteActivity($id)
-{
-    $this->supabase()->delete(
-        env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq.$id"
-    );
+    {
+        $this->supabase()->delete(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq.$id"
+        );
 
-    return back()->with('success', 'Activity deleted.');
-}
+        return back()->with('success', 'Activity deleted.');
+    }
+
 
     public function store(Request $request)
-{
-    $ngoId = $this->getNgoId();
+    {
+        $ngoId = $this->getNgoId();
 
-    $request->validate([
-        'name' => 'required',
-        'description' => 'required',
-        'date' => 'required|date',
-        'activities' => 'required|array|min:1',
-        'activities.*.name' => 'required',
-        'activities.*.remarks' => 'required',
-    ]);
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'date' => 'required|date',
+            'activities' => 'required|array|min:1',
+            'activities.*.name' => 'required',
+            'activities.*.remarks' => 'required',
+        ]);
 
         // BLOCK PAST DATES. pls don't remove this comment.
-    if (Carbon::parse($request->date)->isPast()) {
-        return back()->with('error', 'Event date cannot be in the past.');
-    }
+        if (Carbon::parse($request->date)->isPast()) {
+            return back()->with('error', 'Event date cannot be in the past.');
+        }
 
-    // 1. CREATE EVENT
-    $eventResponse = $this->supabase()->post(
-        env('SUPABASE_URL') . '/rest/v1/volunteer_events',
-        [
-            'name' => $request->name,
-            'description' => $request->description,
-            'date' => $request->date,
-            'status' => 1,
-            'ngo_id' => $ngoId,
-        ]
-    );
-
-    // get created event
-    $event = $eventResponse->json()[0] ?? null;
-
-    if (!$event) {
-        return back()->with('error', 'Failed to create event');
-    }
-
-    $eventId = $event['id'];
-
-    // 2. INSERT ACTIVITIES
-    foreach ($request->activities as $activity) {
-        $this->supabase()->post(
-            env('SUPABASE_URL') . '/rest/v1/volunteer_activities',
+        // 1. CREATE EVENT
+        $eventResponse = $this->supabase()->post(
+            env('SUPABASE_URL') . '/rest/v1/volunteer_events',
             [
-                'volunteer_event_id' => $eventId,
-                'name' => $activity['name'],
-                'remarks' => $activity['remarks'],
+                'name' => $request->name,
+                'description' => $request->description,
+                'date' => $request->date,
+                'status' => 1,
+                'ngo_id' => $ngoId,
             ]
         );
-    }
 
-    return back()->with('success', 'Event created successfully.');
-}
+        // get created event
+        $event = $eventResponse->json()[0] ?? null;
 
+        if (!$event) {
+            return back()->with('error', 'Failed to create event');
+        }
 
-public function update(Request $request, $id)
-{
-    $request->validate([
-        'name' => 'required',
-        'description' => 'required',
-        'date' => 'required|date',
-    ]);
+        $eventId = $event['id'];
 
-    if (empty($request->activities) && empty($request->activities_delete)) {
-    return back()->with('error', 'At least one activity is required.');
-}
-
-    // 1. Update event
-    $this->supabase()->patch(
-        env('SUPABASE_URL') . "/rest/v1/volunteer_events?id=eq.$id",
-        [
-            'name' => $request->name,
-            'description' => $request->description,
-            'date' => $request->date,
-        ]
-    );
-
-    // 2. DELETE removed activities
-    if ($request->activities_delete) {
-        foreach ($request->activities_delete as $activityId) {
-            $this->supabase()->delete(
-                env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq.$activityId"
+        // 2. INSERT ACTIVITIES
+        foreach ($request->activities as $activity) {
+            $this->supabase()->post(
+                env('SUPABASE_URL') . '/rest/v1/volunteer_activities',
+                [
+                    'volunteer_event_id' => $eventId,
+                    'name' => $activity['name'],
+                    'remarks' => $activity['remarks'],
+                ]
             );
         }
+
+        return back()->with('success', 'Event created successfully.');
     }
 
-    // 3. UPDATE + INSERT activities
-    if ($request->activities) {
 
-        foreach ($request->activities as $activity) {
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'date' => 'required|date',
+        ]);
 
-            // existing activity → update
-            if (!empty($activity['id'])) {
-                $this->supabase()->patch(
-                    env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq." . $activity['id'],
-                    [
-                        'name' => $activity['name'],
-                        'remarks' => $activity['remarks'],
-                    ]
-                );
+        if (empty($request->activities) && empty($request->activities_delete)) {
+            return back()->with('error', 'At least one activity is required.');
+        }
 
-            } 
-            // new activity → insert
-            else {
-                $this->supabase()->post(
-                    env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
-                    [
-                        'volunteer_event_id' => $id,
-                        'name' => $activity['name'],
-                        'remarks' => $activity['remarks'],
-                    ]
+        // 1. Update event
+        $this->supabase()->patch(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_events?id=eq.$id",
+            [
+                'name' => $request->name,
+                'description' => $request->description,
+                'date' => $request->date,
+            ]
+        );
+
+        // 2. DELETE removed activities
+        if ($request->activities_delete) {
+            foreach ($request->activities_delete as $activityId) {
+                $this->supabase()->delete(
+                    env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq.$activityId"
                 );
             }
         }
+
+        // 3. UPDATE + INSERT activities
+        if ($request->activities) {
+
+            foreach ($request->activities as $activity) {
+
+                // existing activity → update
+                if (!empty($activity['id'])) {
+                    $this->supabase()->patch(
+                        env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq." . $activity['id'],
+                        [
+                            'name' => $activity['name'],
+                            'remarks' => $activity['remarks'],
+                        ]
+                    );
+
+                }
+                // new activity → insert
+                else {
+                    $this->supabase()->post(
+                        env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
+                        [
+                            'volunteer_event_id' => $id,
+                            'name' => $activity['name'],
+                            'remarks' => $activity['remarks'],
+                        ]
+                    );
+                }
+            }
+        }
+
+        return back()->with('success', 'Event updated successfully!');
     }
 
-    return back()->with('success', 'Event updated successfully!');
-}
 
     public function archive($id)
     {
@@ -230,7 +232,9 @@ public function update(Request $request, $id)
 
         return back()->with('success', 'Event archived.');
     }
-   public function reactivate($id)
+
+
+    public function reactivate($id)
     {
         $this->supabase()->patch(
             env('SUPABASE_URL') . "/rest/v1/volunteer_events?id=eq.$id",
@@ -242,61 +246,124 @@ public function update(Request $request, $id)
         return back()->with('success', 'Event reactivated.');
     }
 
-   public function volunteerPage()
-{
-    $ngoId = $this->getNgoIdOrNull();
 
-    $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
+    public function volunteerPage()
+    {
+        $ngoId = $this->getNgoIdOrNull();
 
-    if ($ngoId) {
-        $url .= "&ngo_id=eq.$ngoId";
+        $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
+
+        if ($ngoId) {
+            $url .= "&ngo_id=eq.$ngoId";
+        }
+
+        $response = $this->supabase()->get($url);
+
+        if ($response->failed()) {
+            dd([
+                'status' => $response->status(),
+                'body' => $response->body(),
+            ]);
+        }
+
+        $events = collect($response->json());
+
+        return view('volunteer_page', compact('events'));
     }
 
-    $response = $this->supabase()->get($url);
-
-    if ($response->failed()) {
-        dd([
-            'status' => $response->status(),
-            'body' => $response->body(),
-        ]);
-    }
-
-    $events = collect($response->json());
-
-    return view('volunteer_page', compact('events'));
-}
 
     public function assignments(Request $request)
     {
         $ngoId = $this->getNgoIdOrNull();
 
         // 1. Get events
-        $events = collect(
-            $this->supabase()->get(
-                env('SUPABASE_URL') . '/rest/v1/volunteer_events',
-                [
-                    'select' => 'id,name,description,status,date',
-                    'ngo_id' => $ngoId ? "eq.$ngoId" : null,
-                    'status' => 'eq.1'
-                ]
-            )->json()
+        $eventsResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/volunteer_events',
+            [
+                'select' => 'id,name,description,status,date',
+                'ngo_id' => $ngoId ? "eq.$ngoId" : null,
+                'status' => 'eq.1'
+            ]
         );
 
-        $assignments = collect(
-            $this->supabase()->get(
-                env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
-                [
-                    'select' => 'account_id, volunteer_activities(volunteer_event_id)'
-                ]
-            )->json()
+        if ($eventsResponse->failed()) {
+            dd([
+                'error' => 'Failed to get events',
+                'status' => $eventsResponse->status(),
+                'body' => $eventsResponse->body(),
+            ]);
+        }
+
+        $events = collect($eventsResponse->json());
+
+        // 2. Get assignments
+        $assignmentsResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
+            [
+                'select' => 'account_id,activity_id'
+            ]
         );
 
-        $events = $events->map(function ($event) use ($assignments) {
+        if ($assignmentsResponse->failed()) {
+            dd([
+                'error' => 'Failed to get assignments',
+                'status' => $assignmentsResponse->status(),
+                'body' => $assignmentsResponse->body(),
+            ]);
+        }
 
+        $assignments = collect($assignmentsResponse->json());
+
+        // 3. Get activities
+        $activitiesResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
+            [
+                'select' => 'id,volunteer_event_id'
+            ]
+        );
+
+        if ($activitiesResponse->failed()) {
+            dd([
+                'error' => 'Failed to get activities',
+                'status' => $activitiesResponse->status(),
+                'body' => $activitiesResponse->body(),
+            ]);
+        }
+
+        $activities = collect($activitiesResponse->json());
+
+        // 4. Count volunteers per event
+        $events = $events->map(function ($event) use ($assignments, $activities) {
+
+            // Make sure event is an array
+            if (!is_array($event)) {
+                return $event;
+            }
+
+            $eventId = $event['id'] ?? null;
+
+            if (!$eventId) {
+                $event['volunteer_count'] = 0;
+                return $event;
+            }
+
+            // Get activity IDs belonging to this event
+            $eventActivityIds = $activities
+                ->filter(function ($activity) use ($eventId) {
+                    return is_array($activity)
+                        && isset($activity['id'])
+                        && isset($activity['volunteer_event_id'])
+                        && $activity['volunteer_event_id'] == $eventId;
+                })
+                ->pluck('id');
+
+            // Count unique volunteers assigned to those activities
             $uniqueCount = $assignments
-                ->filter(function ($a) use ($event) {
-                    return isset($a['volunteer_activities']['volunteer_event_id'])
-                        && $a['volunteer_activities']['volunteer_event_id'] == $event['id'];
+                ->filter(function ($assignment) use ($eventActivityIds) {
+                    return is_array($assignment)
+                        && isset($assignment['account_id'])
+                        && isset($assignment['activity_id'])
+                        && $eventActivityIds->contains($assignment['activity_id']);
                 })
                 ->pluck('account_id')
                 ->unique()
@@ -310,42 +377,42 @@ public function update(Request $request, $id)
         return view('assignments', compact('events'));
     }
 
+
     public function getActivities($eventId)
-{
-    // 1. Get activities (ONLY for this event)
-    $activities = collect(
-        $this->supabase()->get(
-            env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
-            [
-                'select' => 'id,name,remarks',
-                'volunteer_event_id' => 'eq.' . $eventId
-            ]
-        )->json()
-    );
+    {
+        // 1. Get activities (ONLY for this event)
+        $activities = collect(
+            $this->supabase()->get(
+                env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
+                [
+                    'select' => 'id,name,remarks',
+                    'volunteer_event_id' => 'eq.' . $eventId
+                ]
+            )->json()
+        );
 
-    // 2. Get assignments WITH ID (FIX IS HERE)
-    $assignments = collect(
-        $this->supabase()->get(
-            env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
-            [
-                'select' => 'id,activity_id,account_id,accounts(first_name,last_name,email)'
-            ]
-        )->json()
-    );
+        // 2. Get assignments WITH ID (FIX IS HERE)
+        $assignments = collect(
+            $this->supabase()->get(
+                env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
+                [
+                    'select' => 'id,activity_id,account_id,accounts(first_name,last_name,email)'
+                ]
+            )->json()
+        );
 
-    // 3. Attach assignments to activities
-    $activities = $activities->map(function ($act) use ($assignments) {
+        // 3. Attach assignments to activities
+        $activities = $activities->map(function ($act) use ($assignments) {
 
-        $act['volunteer_assignments'] = $assignments
-            ->filter(fn ($a) => $a['activity_id'] == $act['id'])
-            ->values();
+            $act['volunteer_assignments'] = $assignments
+                ->filter(fn ($a) => $a['activity_id'] == $act['id'])
+                ->values();
 
-        return $act;
-    });
+            return $act;
+        });
 
-    return response()->json($activities);
-}
+        return response()->json($activities);
+    }
 
-   
-   
+
 }
