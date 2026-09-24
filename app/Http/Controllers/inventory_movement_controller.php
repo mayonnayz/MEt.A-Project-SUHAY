@@ -543,7 +543,7 @@ class inventory_movement_controller extends Controller
         */
 
         $accountId =
-            session('account_id');
+            session('user_id');
 
         if (!$accountId) {
 

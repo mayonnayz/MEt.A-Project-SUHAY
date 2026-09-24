@@ -84,11 +84,14 @@ class login_controller extends Controller
         ]);
 
         try {
-            $response = Http::withHeaders([
+            $headers = [
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
                 'Content-Type' => 'application/json'
-            ])->get(env('SUPABASE_URL') . '/rest/v1/accounts', [
+            ];
+
+            $response = Http::withHeaders($headers)
+                ->get(env('SUPABASE_URL') . '/rest/v1/accounts', [
                 'email' => 'eq.' . $request->email
             ]);
 
@@ -107,13 +110,51 @@ class login_controller extends Controller
                 return back()->with('error', 'Your account is inactive. Please contact admin.');
             }
 
+            $ngoId = $user['ngo_id'] ?? null;
+
+
+            /*
+            |--------------------------------------------------------------------------
+            | GET NGO LOGO (IF THIS ACCOUNT BELONGS TO AN NGO)
+            |--------------------------------------------------------------------------
+            */
+
+            $ngoLogoUrl = null;
+
+            if ($ngoId) {
+
+                $ngoResponse = Http::withHeaders($headers)
+                    ->get(env('SUPABASE_URL') . '/rest/v1/ngo_profile', [
+                        'select' => 'logo',
+                        'id' => 'eq.' . $ngoId
+                    ]);
+
+                $ngoData = $ngoResponse->json();
+                $logoId = $ngoData[0]['logo'] ?? null;
+
+                if ($logoId) {
+
+                    $mediaResponse = Http::withHeaders($headers)
+                        ->get(env('SUPABASE_URL') . '/rest/v1/media_table', [
+                            'select' => 'path',
+                            'id' => 'eq.' . $logoId,
+                            'type' => 'eq.NGO_LOGO'
+                        ]);
+
+                    $mediaData = $mediaResponse->json();
+                    $ngoLogoUrl = $mediaData[0]['path'] ?? null;
+                }
+            }
+
+
             // ✅ FIX: STORE NGO ID HERE
             session([
                 'user_id' => $user['id'],
                 'user_name' => $user['first_name'] . ' ' . $user['last_name'],
                 'user_email' => $user['email'],
                 'role' => $user['roles'],
-                'ngo_id' => $user['ngo_id'] ?? null, 
+                'ngo_id' => $ngoId,
+                'ngo_logo' => $ngoLogoUrl,
             ]);
 
             return match (strtolower($user['roles'])) {

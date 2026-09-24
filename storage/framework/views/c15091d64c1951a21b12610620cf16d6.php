@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 
@@ -68,6 +67,35 @@
     <div class="flex-1 p-6 lg:p-8 bg-gray-100 min-h-screen">
 
         <?php echo $__env->make('components.header', ['title' => 'Inventory'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
+
+        <!-- ==========================================
+             FLASH MESSAGES
+        =========================================== -->
+
+        <?php if(session('success')): ?>
+            <div class="mb-4 px-4 py-3 rounded-xl bg-green-50 border border-green-200 text-green-700 text-sm font-medium">
+                <?php echo e(session('success')); ?>
+
+            </div>
+        <?php endif; ?>
+
+        <?php if(session('error')): ?>
+            <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                <?php echo e(session('error')); ?>
+
+            </div>
+        <?php endif; ?>
+
+        <?php if($errors->any()): ?>
+            <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm font-medium">
+                <ul class="list-disc list-inside space-y-1">
+                    <?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                        <li><?php echo e($error); ?></li>
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+                </ul>
+            </div>
+        <?php endif; ?>
 
 
         <!-- ==========================================
@@ -1308,6 +1336,7 @@
                                         <option value="<?php echo e($item['id']); ?>">
                                             <?php echo e($item['name']); ?>
 
+                                            (<?php echo e($item['current_quantity']); ?> <?php echo e($item['unit']); ?>)
                                         </option>
                                     <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
@@ -1466,6 +1495,4 @@
 
 
 </body>
-</html>
-
-<?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/inventory_movement.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/inventory_movement.blade.php ENDPATH**/ ?>

@@ -18,7 +18,7 @@
     
     
 
-    <?php if(in_array($role, ['ngo head', 'donation manager', 'volunteer manager'])): ?>
+    <?php if(in_array($role, ['0', '1', '2'])): ?>
 
         
         <a
@@ -39,7 +39,7 @@
 
 
         
-        <?php if($role === 'ngo head'): ?>
+        <?php if($role === '0'): ?>
 
             <a
                 href="/sm-ngos"
@@ -61,7 +61,7 @@
 
 
         
-        <?php if(in_array($role, ['ngo head', 'donation manager'])): ?>
+        <?php if(in_array($role, ['0', '2'])): ?>
 
             <a
                 href="/donations"
@@ -101,7 +101,7 @@
 
 
         
-        <?php if(in_array($role, ['ngo head', 'volunteer manager'])): ?>
+        <?php if(in_array($role, ['0', '1'])): ?>
 
             <a
                 href="/service-management"
@@ -146,7 +146,7 @@
     
     
 
-    <?php if($role === 'volunteer'): ?>
+    <?php if($role === '3'): ?>
 
         
         <a
