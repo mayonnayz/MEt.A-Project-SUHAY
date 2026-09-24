@@ -2,12 +2,21 @@
 // AOS
 // ========================================
 
-AOS.init({
-    duration: 800,
-    once: false,
-    offset: 100,
-    easing: 'ease-out-cubic'
-});
+// AOS.init({
+//     duration: 800,
+//     once: false,
+//     offset: 100,
+//     easing: 'ease-out-cubic'
+// });
+
+if (typeof AOS !== 'undefined') {
+    AOS.init({
+        duration: 800,
+        once: false,
+        offset: 100,
+        easing: 'ease-out-cubic'
+    });
+}
 
 
 // ========================================

@@ -16,10 +16,10 @@
 <body class="bg-gray-200">
 
 <div class="flex">
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
-        @include('components.header', ['title' => 'NGO Profile'])
+        <?php echo $__env->make('components.header', ['title' => 'NGO Profile'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-10 flex-wrap">
             <a href="/sm-ngos"
@@ -40,7 +40,7 @@
 
         <div class="text-center mb-16">
             <h1 class="text-3xl md:text-4xl font-extrabold text-[#0e243a]">
-                {{ $ngo->name ?? 'NGO NAME' }} BOARD
+                <?php echo e($ngo->name ?? 'NGO NAME'); ?> BOARD
             </h1>
         </div>
 
@@ -139,7 +139,7 @@
     </div>
 </div>
 
-@include('components.logout-modal')
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <script>
 function openLogoutModal() {
@@ -153,4 +153,4 @@ function closeLogoutModal() {
 </script>
 
 </body>
-</html>
+</html><?php /**PATH C:\ProjectSuhay\MEt.A-Project-SUHAY\resources\views/ngo_members.blade.php ENDPATH**/ ?>

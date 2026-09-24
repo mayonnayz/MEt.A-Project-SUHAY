@@ -17,6 +17,7 @@ use App\Http\Controllers\donate_controller;
 use App\Http\Controllers\application_controller;
 use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
+use App\Http\Controllers\account_controller;
 
 
 /*
@@ -340,6 +341,10 @@ Route::get(
     [ngo_controller::class, 'profile']
 );
 
+Route::get('/ngo-accounts', function () {
+    return view('ngo_accounts');
+});
+
 // Update NGO
 Route::post(
     '/update-ngo',
@@ -420,3 +425,28 @@ Route::delete(
 //DOVOL DONATION HISTORY
 Route::get('/Volunteers/donation_history', [donation_history_controller::class, 'index'])
     ->name('donations.history');
+
+    // ADDING OF ACCOUNT
+
+Route::get('/ngo-accounts', [account_controller::class, 'index'])
+    ->name('ngo-accounts');
+
+Route::post('/ngo-accounts', [account_controller::class, 'store'])
+    ->name('ngo-accounts.store');
+
+Route::post('/ngo-accounts/import', [account_controller::class, 'import'])
+    ->name('ngo-accounts.import');
+
+
+Route::get('/ngo-accounts/archived', [account_controller::class, 'archived'])
+    ->name('ngo-accounts.archived');
+
+Route::patch('/ngo-accounts/{id}/archive', [account_controller::class, 'archive'])
+    ->name('ngo-accounts.archive');
+
+Route::patch('/ngo-accounts/{id}/restore', [account_controller::class, 'restore'])
+    ->name('ngo-accounts.restore');
+
+
+Route::get('/ngo-accounts/{id}', [account_controller::class, 'show'])
+    ->name('ngo-accounts.show');

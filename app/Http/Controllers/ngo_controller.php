@@ -8,51 +8,89 @@ use Illuminate\Support\Facades\Http;
 class ngo_controller extends Controller
 {
     public function ngosPage()
-    {
-        $headers = [
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ];
+{
+    $headers = [
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        'Content-Type' => 'application/json',
+    ];
 
-        $response = Http::withHeaders($headers)
-            ->get(env('SUPABASE_URL') . '/rest/v1/ngo_profile?select=*');
+    $response = Http::withHeaders($headers)
+        ->get(
+            env('SUPABASE_URL') .
+            '/rest/v1/ngo_profile?select=*'
+        );
 
-        $ngos = $response->json();
+    $ngos = $response->json();
 
-        if (empty($ngos)) {
-            return view('ngos', compact('ngos'));
-        }
-
-        // Collect all logo IDs (foreign keys into media_table)
-        $logoIds = array_filter(array_column($ngos, 'logo'));
-
-        $logoMap = [];
-
-        if (!empty($logoIds)) {
-            $ids = implode(',', $logoIds);
-
-            $mediaResponse = Http::withHeaders($headers)->get(
-                env('SUPABASE_URL') .
-                '/rest/v1/media_table?select=id,path' .
-                '&id=in.(' . $ids . ')' .
-                '&type=eq.NGO_LOGO'
-            );
-
-            $mediaData = $mediaResponse->json();
-
-            foreach ($mediaData as $media) {
-                $logoMap[$media['id']] = $media['path'];
-            }
-        }
-
-        // Attach resolved logo_url to each ngo
-        foreach ($ngos as &$ngo) {
-            $ngo['logo_url'] = $logoMap[$ngo['logo']] ?? null;
-        }
-        unset($ngo);
-
+    if (empty($ngos)) {
         return view('ngos', compact('ngos'));
     }
+
+    $accountResponse = Http::withHeaders($headers)
+        ->get(
+            env('SUPABASE_URL') .
+            '/rest/v1/bank_accounts?select=*'
+        );
+
+    $bankAccounts = $accountResponse->json();
+
+
+    foreach ($ngos as &$ngo) {
+
+        $ngo['bank_accounts'] = array_values(
+            array_filter(
+                $bankAccounts,
+                function ($account) use ($ngo) {
+
+                    return $account['ngo_id'] == $ngo['id'];
+
+                }
+            )
+        );
+
+    }
+
+    unset($ngo);
+
+
+    $logoIds = array_filter(
+        array_column($ngos, 'logo')
+    );
+
+    $logoMap = [];
+
+    if (!empty($logoIds)) {
+
+        $ids = implode(',', $logoIds);
+
+        $mediaResponse = Http::withHeaders($headers)->get(
+            env('SUPABASE_URL') .
+            '/rest/v1/media_table?select=id,path' .
+            '&id=in.(' . $ids . ')' .
+            '&type=eq.NGO_LOGO'
+        );
+
+        $mediaData = $mediaResponse->json();
+
+        foreach ($mediaData as $media) {
+
+            $logoMap[$media['id']] = $media['path'];
+
+        }
+    }
+
+    foreach ($ngos as &$ngo) {
+
+        $ngo['logo_url'] =
+            $logoMap[$ngo['logo']] ?? null;
+
+    }
+
+    unset($ngo);
+
+    return view('ngos', compact('ngos'));
+}
 
 
 public function profile()

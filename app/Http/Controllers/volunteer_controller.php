@@ -91,20 +91,104 @@ class volunteer_controller extends Controller
     }
 
     public function ngos()
-    {
-        $response = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ])->get(env('SUPABASE_URL') . '/rest/v1/ngo_profile?select=*');
+{
+    $headers = [
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        'Content-Type' => 'application/json',
+    ];
 
-        if (!$response->successful()) {
-            dd($response->body());
-        }
+    $ngoResponse = Http::withHeaders($headers)
+        ->get(
+            env('SUPABASE_URL') . '/rest/v1/ngo_profile',
+            [
+                'select' => '*'
+            ]
+        );
 
-        $ngos = $response->json();
-
-        return view('Volunteers.ngos', compact('ngos'));
+    if (!$ngoResponse->successful()) {
+        dd([
+            'status' => $ngoResponse->status(),
+            'body' => $ngoResponse->body()
+        ]);
     }
+
+    $ngos = $ngoResponse->json();
+
+    $accountResponse = Http::withHeaders($headers)
+        ->get(
+            env('SUPABASE_URL') . '/rest/v1/bank_accounts',
+            [
+                'select' => '*'
+            ]
+        );
+
+    if (!$accountResponse->successful()) {
+        dd([
+            'status' => $accountResponse->status(),
+            'body' => $accountResponse->body()
+        ]);
+    }
+
+    $bankAccounts = $accountResponse->json();
+
+    foreach ($ngos as &$ngo) {
+
+        $ngo['bank_accounts'] = array_values(
+            array_filter(
+                $bankAccounts,
+                function ($account) use ($ngo) {
+                    return (int) $account['ngo_id'] === (int) $ngo['id'];
+                }
+            )
+        );
+    }
+
+    unset($ngo);
+
+    $logoIds = array_filter(
+        array_column($ngos, 'logo')
+    );
+
+    $logoMap = [];
+
+    if (!empty($logoIds)) {
+
+        $ids = implode(',', $logoIds);
+
+        $mediaResponse = Http::withHeaders($headers)
+            ->get(
+                env('SUPABASE_URL') . '/rest/v1/media_table',
+                [
+                    'select' => 'id,path',
+                    'id' => 'in.(' . $ids . ')',
+                    'type' => 'eq.NGO_LOGO'
+                ]
+            );
+
+        if ($mediaResponse->successful()) {
+
+            foreach ($mediaResponse->json() as $media) {
+
+                $logoMap[$media['id']] = $media['path'];
+            }
+        }
+    }
+
+    foreach ($ngos as &$ngo) {
+
+        $ngo['logo_url'] =
+            $logoMap[$ngo['logo']] ?? null;
+    }
+
+    unset($ngo);
+
+
+    return view(
+        'Volunteers.ngos',
+        compact('ngos')
+    );
+}
 
     public function updateProfilePicture(Request $request)
     {

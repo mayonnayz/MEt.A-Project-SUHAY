@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <title>NGOs | Volunteer</title>
-    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <meta name="csrf-token" content="<?php echo e(csrf_token()); ?>">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -68,11 +68,11 @@
 
 <div class="flex">
 
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-6 md:p-8">
 
-        @include('components.header', ['title' => 'NGOs'])
+        <?php echo $__env->make('components.header', ['title' => 'NGOs'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <div class="bg-[#f5f5f5] rounded-[22px]
                     border-[10px] border-[#0e243a]
@@ -132,7 +132,7 @@
             <div id="ngoList" class="space-y-4">
 
 
-                @forelse($ngos as $ngo)
+                <?php $__empty_1 = true; $__currentLoopData = $ngos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $ngo): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
 
                     <div
                         class="ngo-card
@@ -142,9 +142,9 @@
                                p-5 sm:p-6
                                shadow-sm
                                hover:shadow-md"
-                        data-name="{{ strtolower($ngo['name'] ?? '') }}"
-                        data-address="{{ strtolower($ngo['address'] ?? '') }}"
-                        data-contact="{{ strtolower($ngo['contact_number'] ?? '') }}"
+                        data-name="<?php echo e(strtolower($ngo['name'] ?? '')); ?>"
+                        data-address="<?php echo e(strtolower($ngo['address'] ?? '')); ?>"
+                        data-contact="<?php echo e(strtolower($ngo['contact_number'] ?? '')); ?>"
                     >
 
                         <div class="flex flex-col
@@ -156,7 +156,7 @@
                             <div class="flex items-center gap-4 min-w-0">
 
 
-                                {{-- LOGO --}}
+                                
                                 <div class="w-16 h-16
                                             sm:w-20 sm:h-20
                                             rounded-2xl
@@ -168,8 +168,8 @@
                                             overflow-hidden">
 
                                     <img
-                                        src="{{ $ngo['logo'] ?? asset('images/suhayLogo.png') }}"
-                                        alt="{{ $ngo['name'] ?? 'NGO Logo' }}"
+                                        src="<?php echo e($ngo['logo'] ?? asset('images/suhayLogo.png')); ?>"
+                                        alt="<?php echo e($ngo['name'] ?? 'NGO Logo'); ?>"
                                         class="w-full h-full
                                                object-contain p-2"
                                     >
@@ -177,7 +177,7 @@
                                 </div>
 
 
-                                {{-- DETAILS --}}
+                                
                                 <div class="min-w-0">
 
                                     <h3 class="text-lg sm:text-xl
@@ -185,7 +185,8 @@
                                                text-[#0e243a]
                                                truncate">
 
-                                        {{ $ngo['name'] ?? 'NGO Name' }}
+                                        <?php echo e($ngo['name'] ?? 'NGO Name'); ?>
+
 
                                     </h3>
 
@@ -193,41 +194,43 @@
                                     <div class="space-y-1.5 mt-2">
 
 
-                                        {{-- CONTACT --}}
+                                        
                                         <div class="flex items-center
                                                     gap-2
                                                     text-sm
                                                     text-gray-600">
 
                                             <img
-                                                src="{{ asset('images/VolunteerIcons/VPhone.png') }}"
+                                                src="<?php echo e(asset('images/VolunteerIcons/VPhone.png')); ?>"
                                                 class="w-4 h-4 object-contain
                                                        flex-shrink-0"
                                                 alt="Contact"
                                             >
 
                                             <span class="truncate">
-                                                {{ $ngo['contact_number'] ?? 'N/A' }}
+                                                <?php echo e($ngo['contact_number'] ?? 'N/A'); ?>
+
                                             </span>
 
                                         </div>
 
 
-                                        {{-- LOCATION --}}
+                                        
                                         <div class="flex items-start
                                                     gap-2
                                                     text-sm
                                                     text-gray-600">
 
                                             <img
-                                                src="{{ asset('images/VolunteerIcons/VLocation.png') }}"
+                                                src="<?php echo e(asset('images/VolunteerIcons/VLocation.png')); ?>"
                                                 class="w-4 h-4 object-contain
                                                        flex-shrink-0 mt-0.5"
                                                 alt="Location"
                                             >
 
                                             <span>
-                                                {{ $ngo['address'] ?? 'N/A' }}
+                                                <?php echo e($ngo['address'] ?? 'N/A'); ?>
+
                                             </span>
 
                                         </div>
@@ -241,7 +244,7 @@
 
                             <button
                                 type="button"
-                                onclick="openModal({{ $ngo['id'] }})"
+                                onclick="openModal(<?php echo e($ngo['id']); ?>)"
                                 class="px-6 py-2.5
                                        rounded-full
                                        bg-[#d39a11]
@@ -260,7 +263,7 @@
 
                     </div>
 
-                @empty
+                <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
 
                     <div
                         class="bg-white
@@ -326,7 +329,7 @@
 
                     </div>
 
-                @endforelse
+                <?php endif; ?>
                 <div
                     id="noResults"
                     class="hidden
@@ -440,7 +443,7 @@
                relative"
     >
 
-        {{-- CLOSE --}}
+        
         <button
             type="button"
             onclick="closeDonationModal()"
@@ -462,7 +465,7 @@
         </button>
 
 
-        {{-- HEADER --}}
+        
         <div class="px-6 sm:px-8 pt-7 pb-5
                     border-b border-gray-100">
 
@@ -478,7 +481,7 @@
                 >
 
                     <img
-                        src="{{ asset('images/suhayLogo.png') }}"
+                        src="<?php echo e(asset('images/suhayLogo.png')); ?>"
                         class="h-10 w-10 object-contain"
                         alt="SUHAY"
                     >
@@ -505,11 +508,11 @@
         </div>
 
 
-        {{-- BODY --}}
+        
         <div class="px-6 sm:px-8 py-6">
 
 
-            {{-- DONATION TYPE --}}
+            
             <div class="mb-6">
 
                 <label
@@ -649,7 +652,7 @@
 
     <div class="space-y-5">
 
-        {{-- CHANNEL --}}
+        
         <div>
 
             <label
@@ -682,7 +685,7 @@
 
         </div>
 
-        {{-- AMOUNT --}}
+        
         <div>
 
             <label
@@ -723,7 +726,7 @@
 
         </div>
 
-        {{-- REFERENCE --}}
+        
         <div>
 
             <label
@@ -755,7 +758,7 @@
         </div>
 
 
-        {{-- FOOTER --}}
+        
         <div
             class="px-6 sm:px-8 py-5
                    border-t border-gray-100
@@ -1029,20 +1032,20 @@
 </div>
 
 
-@include('components.logout-modal')
-<!-- <script src="{{ asset('js/dovol-ngos.js') }}"></script> -->
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<!-- <script src="<?php echo e(asset('js/dovol-ngos.js')); ?>"></script> -->
  <script>
-    window.ngoData = @json($ngos);
+    window.ngoData = <?php echo json_encode($ngos, 15, 512) ?>;
 
     window.suhayAssets = {
-        logo: @json(asset('images/suhayLogo.png')),
-        phoneIcon: @json(asset('images/VolunteerIcons/VPhone.png')),
-        locationIcon: @json(asset('images/VolunteerIcons/VLocation.png'))
+        logo: <?php echo json_encode(asset('images/suhayLogo.png'), 15, 512) ?>,
+        phoneIcon: <?php echo json_encode(asset('images/VolunteerIcons/VPhone.png'), 15, 512) ?>,
+        locationIcon: <?php echo json_encode(asset('images/VolunteerIcons/VLocation.png'), 15, 512) ?>
     };
 </script>
 
-<script src="{{ asset('js/donate.js') }}"></script>
+<script src="<?php echo e(asset('js/donate.js')); ?>"></script>
 
 
 </body>
-</html>
+</html><?php /**PATH C:\ProjectSuhay\MEt.A-Project-SUHAY\resources\views/Volunteers/ngos.blade.php ENDPATH**/ ?>

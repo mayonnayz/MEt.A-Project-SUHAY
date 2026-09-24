@@ -16,10 +16,10 @@
 <body class="bg-gray-200">
 
 <div class="flex">
-    @include('components.nav')
+    <?php echo $__env->make('components.nav', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
     <div class="flex-1 p-8">
-        @include('components.header', ['title' => 'NGO Profile'])
+        <?php echo $__env->make('components.header', ['title' => 'NGO Profile'], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
         <!-- 🔥 TABS -->
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
@@ -49,20 +49,22 @@
 
                 <div class="flex justify-center items-center gap-16 mb-6 flex-wrap">
 
-                    <img src="{{ asset('images/suhayLogo.png') }}" class="w-40 h-40 object-contain">
+                    <img src="<?php echo e(asset('images/suhayLogo.png')); ?>" class="w-40 h-40 object-contain">
 
                     <div class="w-px h-28 bg-gradient-to-b from-[#0e243a] to-[#f2c94c] hidden md:block"></div>
 
-                    <img src="{{ $ngo->logo_url ?? asset('images/ngo-logo-placeholder.png') }}"
+                    <img src="<?php echo e($ngo->logo_url ?? asset('images/ngo-logo-placeholder.png')); ?>"
                         class="w-40 h-40 object-contain rounded-full">
                 </div>
 
                 <h1 class="text-3xl md:text-4xl font-extrabold text-[#0e243a] mb-2">
-                    {{ $ngo->name ?? '------' }}
+                    <?php echo e($ngo->name ?? '------'); ?>
+
                 </h1>
 
                 <p class="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-                    {{ $ngo->description ?? '------' }}
+                    <?php echo e($ngo->description ?? '------'); ?>
+
                 </p>
 
             </div>
@@ -77,15 +79,15 @@
     <div class="grid md:grid-cols-2 gap-8 text-lg">
         <div>
             <p class="text-gray-500">Email Address</p>
-            {{-- No email column exists in ngo_profile yet — add one and pass it in
-                 (e.g. {{ $ngo->email ?? '------' }}) once the schema supports it --}}
-            <p class="font-bold text-[#0e243a] text-xl">{{ $ngo->email ?? '------' }}</p>
+            
+            <p class="font-bold text-[#0e243a] text-xl"><?php echo e($ngo->email ?? '------'); ?></p>
         </div>
 
         <div>
             <p class="text-gray-500">Contact Number</p>
             <p class="font-bold text-[#0e243a] text-xl">
-                {{ $ngo->contact_number ?? '------' }}
+                <?php echo e($ngo->contact_number ?? '------'); ?>
+
             </p>
         </div>
     </div>
@@ -100,7 +102,7 @@
 
     <div class="bg-gray-100 rounded-2xl p-6">
 
-        @if(!empty($ngo->bank_accounts))
+        <?php if(!empty($ngo->bank_accounts)): ?>
 
             <div class="flex items-center justify-between gap-6 flex-wrap">
 
@@ -110,8 +112,10 @@
                     </p>
 
                     <p class="font-bold text-[#0e243a] text-xl">
-                        {{ count($ngo->bank_accounts) }}
-                        {{ count($ngo->bank_accounts) === 1 ? 'Account' : 'Accounts' }}
+                        <?php echo e(count($ngo->bank_accounts)); ?>
+
+                        <?php echo e(count($ngo->bank_accounts) === 1 ? 'Account' : 'Accounts'); ?>
+
                     </p>
 
                     <p class="text-gray-500 text-sm mt-1">
@@ -135,7 +139,7 @@
                     Manage Accounts
                 </button> -->
 
-        @else
+        <?php else: ?>
 
             <div class="text-center py-6">
                 <p class="text-gray-500">
@@ -143,7 +147,7 @@
                 </p>
             </div>
 
-        @endif
+        <?php endif; ?>
 
     </div>
 </div>
@@ -154,7 +158,8 @@
                     </h3>
 
                     <p class="font-bold text-[#0e243a] text-xl leading-relaxed">
-                        {{ $ngo->address ?? '------' }}
+                        <?php echo e($ngo->address ?? '------'); ?>
+
                     </p>
                 </div>
 
@@ -203,11 +208,11 @@
         <!-- ACCOUNTS -->
         <div class="p-8">
 
-            @if(!empty($ngo->bank_accounts))
+            <?php if(!empty($ngo->bank_accounts)): ?>
 
                 <div class="space-y-6">
 
-                    @foreach($ngo->bank_accounts as $account)
+                    <?php $__currentLoopData = $ngo->bank_accounts; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $account): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
 
                         <div class="border rounded-2xl p-6">
 
@@ -219,11 +224,12 @@
                                     <div class="flex items-center gap-3 mb-5">
 
                                         <span class="px-4 py-2 rounded-full text-sm font-bold
-                                            {{ strtoupper($account['type']) === 'GCASH'
+                                            <?php echo e(strtoupper($account['type']) === 'GCASH'
                                                 ? 'bg-green-100 text-green-700'
-                                                : 'bg-blue-100 text-blue-700' }}">
+                                                : 'bg-blue-100 text-blue-700'); ?>">
 
-                                            {{ strtoupper($account['type']) }}
+                                            <?php echo e(strtoupper($account['type'])); ?>
+
 
                                         </span>
 
@@ -237,7 +243,8 @@
                                         </p>
 
                                         <p class="font-bold text-[#0e243a] text-xl">
-                                            {{ $account['account_name'] }}
+                                            <?php echo e($account['account_name']); ?>
+
                                         </p>
 
                                     </div>
@@ -250,7 +257,8 @@
                                         </p>
 
                                         <p class="font-bold text-[#0e243a] text-xl tracking-wide">
-                                            {{ $account['account_number'] }}
+                                            <?php echo e($account['account_number']); ?>
+
                                         </p>
 
                                     </div>
@@ -259,7 +267,7 @@
 
 
                                 <!-- QR CODE -->
-                                @if(!empty($account['qr_code']))
+                                <?php if(!empty($account['qr_code'])): ?>
 
                                     <div class="md:w-48 flex flex-col items-center justify-center">
 
@@ -270,8 +278,8 @@
                                         <div class="bg-white border rounded-2xl p-3 shadow-sm">
 
                                             <img
-                                                src="{{ $account['qr_code'] }}"
-                                                alt="{{ $account['type'] }} QR Code"
+                                                src="<?php echo e($account['qr_code']); ?>"
+                                                alt="<?php echo e($account['type']); ?> QR Code"
                                                 class="w-40 h-40 object-contain"
                                             >
 
@@ -279,7 +287,7 @@
 
                                     </div>
 
-                                @else
+                                <?php else: ?>
 
                                     <div class="md:w-48 flex items-center justify-center">
 
@@ -297,17 +305,17 @@
 
                                     </div>
 
-                                @endif
+                                <?php endif; ?>
 
                             </div>
 
                         </div>
 
-                    @endforeach
+                    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
 
                 </div>
 
-            @else
+            <?php else: ?>
 
                 <div class="text-center py-12">
 
@@ -317,7 +325,7 @@
 
                 </div>
 
-            @endif
+            <?php endif; ?>
 
         </div>
 
@@ -347,9 +355,9 @@
 
 </div>
 
-@include('components.logout-modal')
-@include('components.edit-ngo-modal')
-@include('components.manage-accounts-modal')
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('components.edit-ngo-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('components.manage-accounts-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 <script>
 function openEditNgoModal() {
@@ -486,4 +494,4 @@ document.getElementById('manageAccountsModal')
 
 
 </body>
-</html>
+</html><?php /**PATH C:\ProjectSuhay\MEt.A-Project-SUHAY\resources\views/ngo_management.blade.php ENDPATH**/ ?>
