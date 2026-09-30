@@ -583,4 +583,4 @@
 
 </body>
 </html>
-<?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/login.blade.php ENDPATH**/ ?>
+<?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/login.blade.php ENDPATH**/ ?>

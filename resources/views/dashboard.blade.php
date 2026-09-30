@@ -29,6 +29,7 @@
 
     {{-- TAILWIND --}}
 
+
     <script src="https://cdn.tailwindcss.com"></script>
 
 
@@ -861,6 +862,7 @@
 
 </div>
 
+@include('components.logout-modal')
 
 </body>
 

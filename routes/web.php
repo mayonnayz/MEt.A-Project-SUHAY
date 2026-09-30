@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -19,6 +18,7 @@ use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
+use App\Http\Controllers\reports_controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -50,6 +50,22 @@ Route::get(
     [dashboard_controller::class, 'index']
 )->name('sm.dashboard');
 
+
+/*
+|--------------------------------------------------------------------------
+| NGO / STAFF REPORTS (role-based: 0 = NGO Head, 1 = Volunteer Manager, 2 = Donation Manager)
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/sm-reports',
+    [reports_controller::class, 'index']
+)->name('sm.reports');
+
+Route::get(
+    '/sm-reports/download',
+    [reports_controller::class, 'download']
+)->name('sm.reports.download');
 
 
 Route::post('/login', [login_controller::class, 'login']);

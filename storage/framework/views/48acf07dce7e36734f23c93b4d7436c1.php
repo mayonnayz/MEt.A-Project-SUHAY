@@ -29,6 +29,7 @@
 
     
 
+
     <script src="https://cdn.tailwindcss.com"></script>
 
 
@@ -880,7 +881,8 @@
 
 </div>
 
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 </body>
 
-</html><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/dashboard.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/dashboard.blade.php ENDPATH**/ ?>

@@ -38,4 +38,4 @@
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeLogoutModal();
     });
-</script>
+</script><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/components/logout-modal.blade.php ENDPATH**/ ?>

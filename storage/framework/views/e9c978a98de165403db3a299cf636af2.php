@@ -232,4 +232,4 @@
     <script src="<?php echo e(asset('js/page-transition.js')); ?>"></script>
 
 </body>
-</html><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/landing.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/landing.blade.php ENDPATH**/ ?>

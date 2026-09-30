@@ -1,12 +1,14 @@
 <?php
-    $role = strtolower(trim(session('role')));
+    $role = strtolower(trim((string) session('role')));
 
     $active = 'bg-[#1a3554] text-white';
     $inactive = 'hover:bg-[#f2c94c] hover:text-[#0e243a]';
 
-    function navItemActive($path)
-    {
-        return request()->is($path);
+    if (!function_exists('navItemActive')) {
+        function navItemActive($path)
+        {
+            return request()->is($path);
+        }
     }
 ?>
 
@@ -124,9 +126,9 @@
 
         
         <a
-            href="/sm-reports"
+            href="<?php echo e(route('sm.reports')); ?>"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-            <?php echo e(navItemActive('sm-reports') ? $active : $inactive); ?>"
+            <?php echo e(navItemActive('sm-reports*') ? $active : $inactive); ?>"
         >
             <img
                 src="<?php echo e(asset('images/ServiceManagement/SMReports.png')); ?>"
@@ -220,25 +222,22 @@
         </a>
 
 
+        
+        <a
+            href="<?php echo e(route('donations.history')); ?>"
+            class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
+            <?php echo e(request()->routeIs('donations.history') ? $active : $inactive); ?>"
+        >
+            <img
+                src="<?php echo e(asset('images/VolunteerIcons/VDonations.png')); ?>"
+                class="w-12 h-12 object-contain"
+                alt="Donations"
+            >
 
-
-<a
-    href="<?php echo e(route('donations.history')); ?>"
-    class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
-    <?php echo e(request()->routeIs('donations.history') ? $active : $inactive); ?>"
->
-    <img
-        src="<?php echo e(asset('images/VolunteerIcons/VDonations.png')); ?>"
-        class="w-12 h-12 object-contain"
-        alt="Donations"
-    >
-
-    <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap">
-        Donations
-    </span>
-</a>
-
-
+            <span class="opacity-0 group-hover:opacity-100 whitespace-nowrap">
+                Donations
+            </span>
+        </a>
 
     <?php endif; ?>
 
@@ -263,4 +262,4 @@
         </span>
     </a>
 
-</div><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/components/nav.blade.php ENDPATH**/ ?>
+</div><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/components/nav.blade.php ENDPATH**/ ?>
