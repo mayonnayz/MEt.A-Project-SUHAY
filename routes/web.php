@@ -18,7 +18,7 @@ use App\Http\Controllers\application_controller;
 use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
-
+use App\Http\Controllers\dashboard_controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -38,6 +38,17 @@ Route::get('/login-page', function () {
     return view('login');
 })->name('login.page');
 
+
+/*
+|--------------------------------------------------------------------------
+| NGO / STAFF DASHBOARD
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/sm-dashboard',
+    [dashboard_controller::class, 'index']
+)->name('sm.dashboard');
 
 
 
