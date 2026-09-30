@@ -36,6 +36,11 @@
                 Members
             </a>
 
+            <a href="/ngo-accounts"
+               class="bg-[#f2c94c] text-[#0e243a] px-6 py-2 rounded-full font-semibold">
+                Accounts
+            </a>
+
         </div>
 
         <div class="mt-10">

@@ -270,24 +270,12 @@
                         class="w-16 h-16 md:w-20 md:h-20 flex items-center justify-center"
                     >
 
-                        <?php if(!empty($ngo['logo'])): ?>
-
-                            <img
-                                src="https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/profile-pictures/<?php echo e($ngo['logo']); ?>"
-                                class="w-full h-full object-contain rounded-lg"
-                                alt="<?php echo e($ngo['name']); ?> Logo"
-                                onerror="this.src='<?php echo e(asset('images/suhayLogo.png')); ?>'"
-                            >
-
-                        <?php else: ?>
-
-                            <img
-                                src="<?php echo e(asset('images/suhayLogo.png')); ?>"
-                                class="w-full h-full object-contain rounded-lg"
-                                alt="Suhay Logo"
-                            >
-
-                        <?php endif; ?>
+                        <img
+                            src="<?php echo e($ngo['logo_url'] ?? asset('images/suhayLogo.png')); ?>"
+                            class="w-full h-full object-contain rounded-lg"
+                            alt="<?php echo e($ngo['name']); ?> Logo"
+                            onerror="this.src='<?php echo e(asset('images/suhayLogo.png')); ?>'"
+                        >
 
                     </div>
 
@@ -372,5 +360,4 @@
 <script src="<?php echo e(asset('js/donate.js')); ?>"></script>
 
 </body>
-</html>
-<?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/donate.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\sysands\MEt.A-Project-SUHAY\resources\views/donate.blade.php ENDPATH**/ ?>
