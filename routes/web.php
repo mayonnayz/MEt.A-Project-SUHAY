@@ -19,12 +19,17 @@ use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
-
+use App\Http\Controllers\notification_controller;
 /*
 |--------------------------------------------------------------------------
 | LANDING & AUTHENTICATION / SIGNUP
 |--------------------------------------------------------------------------
 */
+
+Route::post(
+    '/notifications/{notificationId}/read',
+    [notification_controller::class, 'markAsRead']
+)->name('notifications.read');
 
 Route::get('/', function () {
     return view('landing');

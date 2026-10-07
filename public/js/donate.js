@@ -332,9 +332,7 @@ function openModal(id) {
                                 Select Donation Type
                             </option>
 
-                            <option value="MONETARY">
-                                Monetary
-                            </option>
+                          
 
                             <option value="ONLINE_MONETARY">
                                 Online Monetary
@@ -634,6 +632,52 @@ function closeModal() {
         document.body.style.overflow = 'auto';
 
     }, 250);
+}
+function openLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
+
+function closeLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
+
 }
 
 

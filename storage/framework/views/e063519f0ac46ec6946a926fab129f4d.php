@@ -68,7 +68,9 @@
         
 
         <?php echo $__env->make('components.header', [
-            'title' => 'Dashboard'
+            'title' => 'Dashboard',
+            'headerNotifications' => $notifications ?? collect(),
+            'headerUnreadNotifications' => $unreadNotifications ?? 0,
         ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
@@ -879,7 +881,57 @@
 
 
 </div>
+<?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<script>
+    
+function openLogoutModal() {
 
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
+
+function closeLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
+
+}
+
+</script>
 
 </body>
 

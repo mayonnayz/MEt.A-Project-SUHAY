@@ -68,7 +68,9 @@
         {{-- ================================================= --}}
 
         @include('components.header', [
-            'title' => 'Dashboard'
+            'title' => 'Dashboard',
+            'headerNotifications' => $notifications ?? collect(),
+            'headerUnreadNotifications' => $unreadNotifications ?? 0,
         ])
 
 
@@ -860,7 +862,57 @@
 
 
 </div>
+@include('components.logout-modal')
+<script>
+    
+function openLogoutModal() {
 
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
+
+function closeLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
+
+}
+
+</script>
 
 </body>
 

@@ -9,11 +9,11 @@ class dashboard_controller extends Controller
 {
     public function index()
     {
-        $ngoId = session('ngo_id');
-
-        if (!$ngoId) {
-            return redirect('/login')->with('error', 'NGO session not found.');
-        }
+        /*
+        |--------------------------------------------------------------------------
+        | SUPABASE CONNECTION
+        |--------------------------------------------------------------------------
+        */
 
         $supabaseUrl = env('SUPABASE_URL');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
@@ -21,68 +21,324 @@ class dashboard_controller extends Controller
         $headers = [
             'apikey' => $supabaseKey,
             'Authorization' => 'Bearer ' . $supabaseKey,
+            'Content-Type' => 'application/json',
         ];
+
         /*
+        |--------------------------------------------------------------------------
+        | LOGGED-IN USER
+        |--------------------------------------------------------------------------
+        */
+
+        $userId = session('user_id');
+
+        if (!$userId) {
+            return redirect('/login')
+                ->with('error', 'User session not found.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | GET ACCOUNT
+        |--------------------------------------------------------------------------
+        */
+
+        $userResponse = Http::withHeaders($headers)
+            ->get($supabaseUrl . '/rest/v1/accounts', [
+                'select' => 'id,first_name,last_name,roles,ngo_id',
+                'id' => 'eq.' . (int) $userId,
+            ]);
+
+        if (!$userResponse->successful()) {
+            return redirect('/login')
+                ->with('error', 'Unable to retrieve account.');
+        }
+
+        $user = collect($userResponse->json())->first();
+
+        if (!$user) {
+            return redirect('/login')
+                ->with('error', 'Account not found.');
+        }
+
+        $userRole = (int) ($user['roles'] ?? 3);
+
+        $userNgoId = $user['ngo_id'] ?? null;
+
+        /*
+        |--------------------------------------------------------------------------
+        | NGO ID
+        |--------------------------------------------------------------------------
+        */
+
+        $ngoId = $userNgoId;
+        \Log::info('NOTIFICATION DEBUG - LOGGED IN USER', [
+    'session_user_id' => $userId,
+    'account_id' => $user['id'] ?? null,
+    'role' => $userRole,
+    'ngo_id' => $ngoId,
+]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | USER NAME
+        |--------------------------------------------------------------------------
+        */
+
+        $userName = trim(
+            ($user['first_name'] ?? '') . ' ' .
+            ($user['last_name'] ?? '')
+        );
+
+        if ($userName === '') {
+            $userName = session('user_name', 'Guest');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | NGO STAFF MUST HAVE AN NGO
+        |--------------------------------------------------------------------------
+        */
+
+        if (
+            in_array($userRole, [0, 1, 2], true)
+            && empty($ngoId)
+        ) {
+            return redirect('/login')
+                ->with('error', 'NGO assignment not found.');
+        }
+
+        /*
+        |--------------------------------------------------------------------------
+        | NGO PROFILE
+        |--------------------------------------------------------------------------
+        */
+
+        $ngo = null;
+
+        $ngoName = 'Your NGO';
+
+        if (!empty($ngoId)) {
+
+            $ngoResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/ngo_profile', [
+                    'select' => '*',
+                    'id' => 'eq.' . (int) $ngoId,
+                ]);
+
+            if ($ngoResponse->successful()) {
+
+                $ngo = collect($ngoResponse->json())->first();
+
+                if ($ngo) {
+                    $ngoName =
+                        $ngo['name']
+                        ?? $ngo['ngo_name']
+                        ?? 'Your NGO';
+                }
+            }
+        }
+
+/*
 |--------------------------------------------------------------------------
-| NGO PROFILE
+| NOTIFICATIONS
 |--------------------------------------------------------------------------
 */
 
-$ngoResponse = Http::withHeaders($headers)
-    ->get($supabaseUrl . '/rest/v1/ngo_profile', [
-        'select' => '*',
-        'id' => 'eq.' . $ngoId,
+$notifications = collect();
+
+if (
+    in_array($userRole, [0, 1, 2], true)
+    && !empty($ngoId)
+) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | Get ALL notifications belonging to this NGO
+    |--------------------------------------------------------------------------
+    |
+    | We intentionally do NOT filter user_id in the Supabase request.
+    | This allows us to receive both:
+    |
+    | 1. NGO-wide notifications: user_id = NULL
+    | 2. Personal notifications: user_id = current account ID
+    |
+    */
+
+    $notificationResponse = Http::withHeaders($headers)
+        ->get(
+            $supabaseUrl . '/rest/v1/notifications',
+            [
+                'select' => '*',
+                'related_id' => 'eq.' . (int) $ngoId,
+                'order' => 'created_at.desc',
+            ]
+        );
+
+    \Log::info('NOTIFICATION DEBUG - NGO ALL', [
+        'user_id' => $userId,
+        'role' => $userRole,
+        'ngo_id' => $ngoId,
+        'status' => $notificationResponse->status(),
+        'body' => $notificationResponse->body(),
     ]);
 
-$ngo = collect($ngoResponse->json())->first();
+    if ($notificationResponse->successful()) {
 
-$ngoName = $ngo['name']
-    ?? $ngo['ngo_name']
-    ?? 'Your NGO';
+        $notificationData = $notificationResponse->json();
+
+        if (is_array($notificationData)) {
+
+            /*
+            |--------------------------------------------------------------------------
+            | Keep:
+            | - NGO-wide notifications (user_id = NULL)
+            | - Personal notifications belonging to this account
+            |--------------------------------------------------------------------------
+            */
+
+            $notifications = collect($notificationData)
+                ->filter(function ($notification) use ($userId) {
+
+                    $notificationUserId = $notification['user_id'] ?? null;
+
+                    return (
+                        $notificationUserId === null
+                        || (int) $notificationUserId === (int) $userId
+                    );
+                })
+                ->values();
+        }
+
+    } else {
+
+        \Log::error(
+            'Dashboard NGO notification query failed',
+            [
+                'user_id' => $userId,
+                'user_role' => $userRole,
+                'ngo_id' => $ngoId,
+                'status' => $notificationResponse->status(),
+                'body' => $notificationResponse->body(),
+            ]
+        );
+    }
+
+} elseif ($userRole === 3) {
+
+    /*
+    |--------------------------------------------------------------------------
+    | PERSONAL USER NOTIFICATIONS
+    |--------------------------------------------------------------------------
+    */
+
+    $notificationResponse = Http::withHeaders($headers)
+        ->get(
+            $supabaseUrl . '/rest/v1/notifications',
+            [
+                'select' => '*',
+                'user_id' => 'eq.' . (int) $userId,
+                'order' => 'created_at.desc',
+            ]
+        );
+
+    \Log::info('NOTIFICATION DEBUG - PERSONAL', [
+        'user_id' => $userId,
+        'role' => $userRole,
+        'status' => $notificationResponse->status(),
+        'body' => $notificationResponse->body(),
+    ]);
+
+    if ($notificationResponse->successful()) {
+
+        $notificationData = $notificationResponse->json();
+
+        if (is_array($notificationData)) {
+            $notifications = collect($notificationData);
+        }
+
+    } else {
+
+        \Log::error(
+            'Dashboard personal notification query failed',
+            [
+                'user_id' => $userId,
+                'user_role' => $userRole,
+                'status' => $notificationResponse->status(),
+                'body' => $notificationResponse->body(),
+            ]
+        );
+    }
+}
 
 
 /*
 |--------------------------------------------------------------------------
-| LOGGED-IN USER
+| SORT NOTIFICATIONS
 |--------------------------------------------------------------------------
 */
 
-$userId = session('user_id');
+$notifications = $notifications
+    ->sortByDesc(function ($notification) {
+        return $notification['created_at'] ?? '';
+    })
+    ->values();
 
-$user = null;
 
-if ($userId) {
-    $userResponse = Http::withHeaders($headers)
-        ->get($supabaseUrl . '/rest/v1/accounts', [
-            'select' => 'first_name,last_name',
-            'id' => 'eq.' . $userId,
-        ]);
+/*
+|--------------------------------------------------------------------------
+| COUNT UNREAD
+|--------------------------------------------------------------------------
+*/
 
-    $user = collect($userResponse->json())->first();
-}
+$unreadNotifications = $notifications
+    ->filter(function ($notification) {
+        return (int) ($notification['is_read'] ?? 0) === 0;
+    })
+    ->count();
 
-$userName = trim(
-    ($user['first_name'] ?? '') . ' ' .
-    ($user['last_name'] ?? '')
-);
 
-if ($userName === '') {
-    $userName = session('user_name', 'NGO Head');
-}
+/*
+|--------------------------------------------------------------------------
+| LIMIT DISPLAY
+|--------------------------------------------------------------------------
+*/
 
+$notifications = $notifications
+    ->take(10)
+    ->values();
+
+
+\Log::info('FINAL NOTIFICATIONS TO BLADE', [
+    'count' => $notifications->count(),
+    'unread' => $unreadNotifications,
+    'data' => $notifications->toArray(),
+]);
         /*
         |--------------------------------------------------------------------------
         | DONATIONS
         |--------------------------------------------------------------------------
         */
 
-        $donationsResponse = Http::withHeaders($headers)
-            ->get($supabaseUrl . '/rest/v1/donations_table', [
-                'select' => '*',
-                'ngo_id' => 'eq.' . $ngoId,
-            ]);
+        $donations = collect();
 
-        $donations = collect($donationsResponse->json());
+        if (!empty($ngoId)) {
+
+            $donationsResponse = Http::withHeaders($headers)
+                ->get(
+                    $supabaseUrl . '/rest/v1/donations_table',
+                    [
+                        'select' => '*',
+                        'ngo_id' => 'eq.' . (int) $ngoId,
+                    ]
+                );
+
+            if ($donationsResponse->successful()) {
+
+                $donations =
+                    collect($donationsResponse->json());
+            }
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -94,11 +350,22 @@ if ($userName === '') {
         $currentYear = now()->year;
 
         $monthlyDonations = $donations
-            ->filter(function ($donation) use ($currentMonth, $currentYear) {
+            ->filter(function ($donation) use (
+                $currentMonth,
+                $currentYear
+            ) {
 
-                $type = strtoupper($donation['type'] ?? '');
+                $type = strtoupper(
+                    $donation['type'] ?? ''
+                );
 
-                if (!in_array($type, ['MONETARY', 'ONLINE_MONETARY'])) {
+                if (!in_array(
+                    $type,
+                    [
+                        'MONETARY',
+                        'ONLINE_MONETARY'
+                    ]
+                )) {
                     return false;
                 }
 
@@ -106,15 +373,28 @@ if ($userName === '') {
                     return false;
                 }
 
-                $date = Carbon::parse($donation['date']);
+                try {
 
-                return $date->month == $currentMonth
-                    && $date->year == $currentYear;
+                    $date = Carbon::parse(
+                        $donation['date']
+                    );
+
+                    return
+                        $date->month == $currentMonth
+                        &&
+                        $date->year == $currentYear;
+
+                } catch (\Exception $e) {
+
+                    return false;
+                }
             })
             ->sum(function ($donation) {
-                return (float) ($donation['amount'] ?? 0);
-            });
 
+                return (float) (
+                    $donation['amount'] ?? 0
+                );
+            });
 
         /*
         |--------------------------------------------------------------------------
@@ -122,23 +402,50 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $inventoryResponse = Http::withHeaders($headers)
-            ->get($supabaseUrl . '/rest/v1/inventory', [
-                'select' => '*',
-                'ngo_id' => 'eq.' . $ngoId,
-            ]);
+        $inventory = collect();
 
-        $inventory = collect($inventoryResponse->json());
+        if (!empty($ngoId)) {
 
-        $inventoryItems = $inventory->count();
+            $inventoryResponse = Http::withHeaders($headers)
+                ->get(
+                    $supabaseUrl . '/rest/v1/inventory',
+                    [
+                        'select' => '*',
+                        'ngo_id' => 'eq.' . (int) $ngoId,
+                    ]
+                );
 
-        $lowStockInventory = $inventory->filter(function ($item) {
-            return (float) ($item['current_quantity'] ?? 0)
-                <= (float) ($item['minimum_threshold'] ?? 0);
-        });
+            if ($inventoryResponse->successful()) {
 
-        $lowStockItems = $lowStockInventory->count();
+                $inventory =
+                    collect($inventoryResponse->json());
+            }
+        }
 
+        $inventoryItems =
+            $inventory->count();
+
+        /*
+        |--------------------------------------------------------------------------
+        | LOW STOCK INVENTORY
+        |--------------------------------------------------------------------------
+        */
+
+        $lowStockInventory = $inventory
+            ->filter(function ($item) {
+
+                return
+                    (float) (
+                        $item['current_quantity'] ?? 0
+                    )
+                    <=
+                    (float) (
+                        $item['minimum_threshold'] ?? 0
+                    );
+            });
+
+        $lowStockItems =
+            $lowStockInventory->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -146,13 +453,25 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $eventsResponse = Http::withHeaders($headers)
-            ->get($supabaseUrl . '/rest/v1/volunteer_events', [
-                'select' => '*',
-                'ngo_id' => 'eq.' . $ngoId,
-            ]);
+        $events = collect();
 
-        $events = collect($eventsResponse->json());
+        if (!empty($ngoId)) {
+
+            $eventsResponse = Http::withHeaders($headers)
+                ->get(
+                    $supabaseUrl . '/rest/v1/volunteer_events',
+                    [
+                        'select' => '*',
+                        'ngo_id' => 'eq.' . (int) $ngoId,
+                    ]
+                );
+
+            if ($eventsResponse->successful()) {
+
+                $events =
+                    collect($eventsResponse->json());
+            }
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -160,12 +479,21 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $applicationsResponse = Http::withHeaders($headers)
-            ->get($supabaseUrl . '/rest/v1/volunteer_applications', [
-                'select' => '*',
-            ]);
+        $applications = collect();
 
-        $applications = collect($applicationsResponse->json());
+        $applicationsResponse = Http::withHeaders($headers)
+            ->get(
+                $supabaseUrl . '/rest/v1/volunteer_applications',
+                [
+                    'select' => '*',
+                ]
+            );
+
+        if ($applicationsResponse->successful()) {
+
+            $applications =
+                collect($applicationsResponse->json());
+        }
 
         /*
         |--------------------------------------------------------------------------
@@ -175,17 +503,27 @@ if ($userName === '') {
 
         $ngoEventIds = $events
             ->pluck('id')
-            ->map(fn ($id) => (string) $id)
+            ->map(function ($id) {
+
+                return (string) $id;
+            })
             ->toArray();
 
-        $ngoApplications = $applications->filter(function ($application) use ($ngoEventIds) {
+        $ngoApplications =
+            $applications->filter(
+                function ($application) use (
+                    $ngoEventIds
+                ) {
 
-            return in_array(
-                (string) ($application['volunteer_event_id'] ?? ''),
-                $ngoEventIds
+                    return in_array(
+                        (string) (
+                            $application['volunteer_event_id']
+                            ?? ''
+                        ),
+                        $ngoEventIds
+                    );
+                }
             );
-        });
-
 
         /*
         |--------------------------------------------------------------------------
@@ -193,18 +531,20 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $pendingApplications = $ngoApplications
-            ->where('status', 0)
-            ->count();
+        $pendingApplications =
+            $ngoApplications
+                ->where('status', 0)
+                ->count();
 
-        $approvedApplications = $ngoApplications
-            ->where('status', 1)
-            ->count();
+        $approvedApplications =
+            $ngoApplications
+                ->where('status', 1)
+                ->count();
 
-        $rejectedApplications = $ngoApplications
-            ->where('status', 2)
-            ->count();
-
+        $rejectedApplications =
+            $ngoApplications
+                ->where('status', 2)
+                ->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -212,13 +552,13 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $activeVolunteers = $ngoApplications
-            ->where('status', 1)
-            ->pluck('account_id')
-            ->filter()
-            ->unique()
-            ->count();
-
+        $activeVolunteers =
+            $ngoApplications
+                ->where('status', 1)
+                ->pluck('account_id')
+                ->filter()
+                ->unique()
+                ->count();
 
         /*
         |--------------------------------------------------------------------------
@@ -226,37 +566,60 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $today = now()->startOfDay();
+        $today =
+            now()->startOfDay();
 
-        $upcomingEvents = $events
-            ->filter(function ($event) use ($today) {
+        $upcomingEvents =
+            $events
+                ->filter(function ($event) use ($today) {
 
-                if (($event['status'] ?? null) != 1) {
-                    return false;
-                }
+                    if (($event['status'] ?? null) != 1) {
+                        return false;
+                    }
 
-                if (empty($event['date'])) {
-                    return false;
-                }
+                    if (empty($event['date'])) {
+                        return false;
+                    }
 
-                return Carbon::parse($event['date'])->gte($today);
-            })
-            ->sortBy(function ($event) {
-                return $event['date'] ?? '';
-            })
-            ->take(3)
-            ->map(function ($event) {
+                    try {
 
-                return (object) [
-                    'id' => $event['id'] ?? null,
-                    'name' => $event['name'] ?? 'Unnamed Event',
-                    'date' => $event['date'] ?? null,
-                    'description' => $event['description'] ?? null,
-                    'status' => $event['status'] ?? null,
-                ];
-            })
-            ->values();
+                        return Carbon::parse(
+                            $event['date']
+                        )->gte($today);
 
+                    } catch (\Exception $e) {
+
+                        return false;
+                    }
+                })
+                ->sortBy(function ($event) {
+
+                    return $event['date'] ?? '';
+                })
+                ->take(3)
+                ->map(function ($event) {
+
+                    return (object) [
+
+                        'id' =>
+                            $event['id'] ?? null,
+
+                        'name' =>
+                            $event['name']
+                            ?? 'Unnamed Event',
+
+                        'date' =>
+                            $event['date'] ?? null,
+
+                        'description' =>
+                            $event['description']
+                            ?? null,
+
+                        'status' =>
+                            $event['status'] ?? null,
+                    ];
+                })
+                ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -264,27 +627,49 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $inventoryAlerts = $lowStockInventory
-            ->sortBy(function ($item) {
+        $inventoryAlerts =
+            $lowStockInventory
+                ->sortBy(function ($item) {
 
-                $current = (float) ($item['current_quantity'] ?? 0);
-                $minimum = (float) ($item['minimum_threshold'] ?? 0);
+                    $current =
+                        (float) (
+                            $item['current_quantity']
+                            ?? 0
+                        );
 
-                return $current - $minimum;
-            })
-            ->take(5)
-            ->map(function ($item) {
+                    $minimum =
+                        (float) (
+                            $item['minimum_threshold']
+                            ?? 0
+                        );
 
-                return (object) [
-                    'id' => $item['id'] ?? null,
-                    'name' => $item['name'] ?? 'Unnamed Item',
-                    'current_quantity' => $item['current_quantity'] ?? 0,
-                    'minimum_threshold' => $item['minimum_threshold'] ?? 0,
-                    'unit' => $item['unit'] ?? '',
-                ];
-            })
-            ->values();
+                    return $current - $minimum;
+                })
+                ->take(5)
+                ->map(function ($item) {
 
+                    return (object) [
+
+                        'id' =>
+                            $item['id'] ?? null,
+
+                        'name' =>
+                            $item['name']
+                            ?? 'Unnamed Item',
+
+                        'current_quantity' =>
+                            $item['current_quantity']
+                            ?? 0,
+
+                        'minimum_threshold' =>
+                            $item['minimum_threshold']
+                            ?? 0,
+
+                        'unit' =>
+                            $item['unit'] ?? '',
+                    ];
+                })
+                ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -292,17 +677,29 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
+        $accounts = collect();
+
         $accountsResponse = Http::withHeaders($headers)
-            ->get($supabaseUrl . '/rest/v1/accounts', [
-                'select' => '*',
-            ]);
+            ->get(
+                $supabaseUrl . '/rest/v1/accounts',
+                [
+                    'select' => '*',
+                ]
+            );
 
-        $accounts = collect($accountsResponse->json());
+        if ($accountsResponse->successful()) {
 
-        $accountMap = $accounts->keyBy(function ($account) {
-            return (string) ($account['id'] ?? '');
-        });
+            $accounts =
+                collect($accountsResponse->json());
+        }
 
+        $accountMap =
+            $accounts->keyBy(function ($account) {
+
+                return (string) (
+                    $account['id'] ?? ''
+                );
+            });
 
         /*
         |--------------------------------------------------------------------------
@@ -310,44 +707,74 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $eventMap = $events->keyBy(function ($event) {
-            return (string) ($event['id'] ?? '');
-        });
+        $eventMap =
+            $events->keyBy(function ($event) {
 
-        $recentApplications = $ngoApplications
-            ->sortByDesc(function ($application) {
-                return $application['application_date'] ?? '';
-            })
-            ->take(5)
-            ->map(function ($application) use ($accountMap, $eventMap) {
+                return (string) (
+                    $event['id'] ?? ''
+                );
+            });
 
-                $accountId = (string) ($application['account_id'] ?? '');
-                $eventId = (string) ($application['volunteer_event_id'] ?? '');
+        $recentApplications =
+            $ngoApplications
+                ->sortByDesc(function ($application) {
 
-                $account = $accountMap->get($accountId);
-                $event = $eventMap->get($eventId);
+                    return
+                        $application['application_date']
+                        ?? '';
+                })
+                ->take(5)
+                ->map(function ($application) use (
+                    $accountMap,
+                    $eventMap
+                ) {
 
-                return (object) [
-                    'id' => $application['id'] ?? null,
+                    $accountId =
+                        (string) (
+                            $application['account_id']
+                            ?? ''
+                        );
 
-                    'application_date' =>
-                        $application['application_date'] ?? null,
+                    $eventId =
+                        (string) (
+                            $application['volunteer_event_id']
+                            ?? ''
+                        );
 
-                    'status' =>
-                        $application['status'] ?? 0,
+                    $account =
+                        $accountMap->get($accountId);
 
-                    'first_name' =>
-                        $account['first_name'] ?? 'Unknown',
+                    $event =
+                        $eventMap->get($eventId);
 
-                    'last_name' =>
-                        $account['last_name'] ?? '',
+                    return (object) [
 
-                    'event_name' =>
-                        $event['name'] ?? 'Unknown Event',
-                ];
-            })
-            ->values();
+                        'id' =>
+                            $application['id']
+                            ?? null,
 
+                        'application_date' =>
+                            $application['application_date']
+                            ?? null,
+
+                        'status' =>
+                            $application['status']
+                            ?? 0,
+
+                        'first_name' =>
+                            $account['first_name']
+                            ?? 'Unknown',
+
+                        'last_name' =>
+                            $account['last_name']
+                            ?? '',
+
+                        'event_name' =>
+                            $event['name']
+                            ?? 'Unknown Event',
+                    ];
+                })
+                ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -355,25 +782,48 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-        $recentDonations = $donations
-            ->sortByDesc(function ($donation) {
-                return $donation['date'] ?? '';
-            })
-            ->take(5)
-            ->map(function ($donation) {
+        $recentDonations =
+            $donations
+                ->sortByDesc(function ($donation) {
 
-                return (object) [
-                    'id' => $donation['id'] ?? null,
-                    'source' => $donation['source'] ?? null,
-                    'amount' => $donation['amount'] ?? 0,
-                    'description' => $donation['description'] ?? null,
-                    'type' => $donation['type'] ?? null,
-                    'date' => $donation['date'] ?? null,
-                    'status' => $donation['status'] ?? null,
-                ];
-            })
-            ->values();
+                    return
+                        $donation['date'] ?? '';
+                })
+                ->take(5)
+                ->map(function ($donation) {
 
+                    return (object) [
+
+                        'id' =>
+                            $donation['id']
+                            ?? null,
+
+                        'source' =>
+                            $donation['source']
+                            ?? null,
+
+                        'amount' =>
+                            $donation['amount']
+                            ?? 0,
+
+                        'description' =>
+                            $donation['description']
+                            ?? null,
+
+                        'type' =>
+                            $donation['type']
+                            ?? null,
+
+                        'date' =>
+                            $donation['date']
+                            ?? null,
+
+                        'status' =>
+                            $donation['status']
+                            ?? null,
+                    ];
+                })
+                ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -383,54 +833,99 @@ if ($userName === '') {
 
         $recentActivities = collect();
 
+        /*
+        | Recent volunteer applications
+        */
+
         foreach ($recentApplications as $application) {
 
-            $statusText = match ((int) $application->status) {
+            $statusText = match (
+                (int) $application->status
+            ) {
+
                 0 => 'Pending',
+
                 1 => 'Approved',
+
                 2 => 'Rejected',
+
                 3 => 'Archived',
+
                 default => 'Unknown',
             };
 
-            $recentActivities->push((object) [
-                'type' => 'application',
-                'title' =>
-                    $application->first_name . ' ' .
-                    $application->last_name .
-                    ' applied for ' .
-                    $application->event_name,
+            $recentActivities->push(
+                (object) [
 
-                'description' => 'Application ' . strtolower($statusText),
+                    'type' =>
+                        'application',
 
-                'date' => $application->application_date,
-            ]);
+                    'title' =>
+                        $application->first_name
+                        . ' '
+                        . $application->last_name
+                        . ' applied for '
+                        . $application->event_name,
+
+                    'description' =>
+                        'Application '
+                        . strtolower($statusText),
+
+                    'date' =>
+                        $application->application_date,
+                ]
+            );
         }
+
+        /*
+        | Recent donations
+        */
 
         foreach ($recentDonations as $donation) {
 
-            $recentActivities->push((object) [
-                'type' => 'donation',
+            $recentActivities->push(
+                (object) [
 
-                'title' =>
-                    'Donation from ' .
-                    ($donation->source ?? 'Unknown Source'),
+                    'type' =>
+                        'donation',
 
-                'description' =>
-                    $donation->description ??
-                    ucfirst(strtolower($donation->type ?? 'Donation')),
+                    'title' =>
+                        'Donation from '
+                        . (
+                            $donation->source
+                            ?? 'Unknown Source'
+                        ),
 
-                'date' => $donation->date,
-            ]);
+                    'description' =>
+                        $donation->description
+                        ??
+                        ucfirst(
+                            strtolower(
+                                $donation->type
+                                ?? 'Donation'
+                            )
+                        ),
+
+                    'date' =>
+                        $donation->date,
+                ]
+            );
         }
 
-        $recentActivities = $recentActivities
-            ->sortByDesc(function ($activity) {
-                return $activity->date ?? '';
-            })
-            ->take(5)
-            ->values();
+        /*
+        |--------------------------------------------------------------------------
+        | SORT RECENT ACTIVITIES
+        |--------------------------------------------------------------------------
+        */
 
+        $recentActivities =
+            $recentActivities
+                ->sortByDesc(function ($activity) {
+
+                    return $activity->date ?? '';
+                })
+                ->take(5)
+                ->values();
 
         /*
         |--------------------------------------------------------------------------
@@ -438,7 +933,9 @@ if ($userName === '') {
         |--------------------------------------------------------------------------
         */
 
-       return view('dashboard', compact(
+        return view(
+    'dashboard',
+    compact(
         'monthlyDonations',
         'inventoryItems',
         'lowStockItems',
@@ -452,7 +949,10 @@ if ($userName === '') {
         'recentDonations',
         'recentActivities',
         'ngoName',
-        'userName'
-    ));
+        'userName',
+        'notifications',
+        'unreadNotifications'
+    )
+);
     }
 }

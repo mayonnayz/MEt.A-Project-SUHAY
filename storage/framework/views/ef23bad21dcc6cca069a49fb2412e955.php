@@ -530,19 +530,19 @@
         Select Donation Type
     </option>
 
-    <option value="monetary">
-        Monetary
-    </option>
+    <!-- <option value="MONETARY">
+    Monetary
+    </option> -->
 
-    <option value="online_monetary">
+    <option value="ONLINE_MONETARY">
         Online Monetary
     </option>
 
-    <option value="consumable">
+    <option value="CONSUMABLE">
         Consumable
     </option>
 
-    <option value="reusable">
+    <option value="REUSABLE">
         Reusable
     </option>
 

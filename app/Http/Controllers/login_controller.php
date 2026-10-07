@@ -157,12 +157,11 @@ class login_controller extends Controller
                 'ngo_logo' => $ngoLogoUrl,
             ]);
 
-            return match (strtolower($user['roles'])) {
-                '0' => redirect('/service-management'),
-                '1' => redirect('/service-management'),
-                '2' => redirect('/service-management'),
+            return match (strtolower((string) $user['roles'])) {
+                '0', '1', '2' => redirect()->route('sm.dashboard'),
                 '3' => redirect('/volunteer/dashboard'),
-                default => redirect('/user-dashboard'),
+                default => redirect()->route('login.page')
+                    ->with('error', 'Invalid account role.'),
             };
 
         } catch (\Exception $e) {

@@ -60,17 +60,12 @@ class donate_controller extends Controller
         }
         unset($ngo);
 
-
-        // =========================================
-        // RESOLVE NGO LOGOS
-        // =========================================
-        //
-        // 'logo' on ngo_profile is a foreign key into
-        // media_table, not a usable file path/URL. Look
-        // up all of them in a single batched request and
-        // attach the resolved public URL as 'logo_url'.
-
-        $logoIds = array_filter(array_column($ngos, 'logo'));
+            $logoIds = array_filter(
+                array_map(
+                    fn ($ngo) => $ngo['logo'] ?? null,
+                    $ngos
+                )
+            );
 
         $logoMap = [];
 
@@ -94,7 +89,11 @@ class donate_controller extends Controller
         }
 
         foreach ($ngos as &$ngo) {
-            $ngo['logo_url'] = $logoMap[$ngo['logo']] ?? null;
+            $logoId = $ngo['logo'] ?? null;
+
+            $ngo['logo_url'] = $logoId
+                ? ($logoMap[$logoId] ?? null)
+                : null;
         }
         unset($ngo);
 
@@ -254,7 +253,37 @@ class donate_controller extends Controller
 
     $donationId = $donations[0]['id'];
 
+$notificationData = [
+    'user_id' => null,
+    'title' => 'New Donation Received',
+    'message' =>
+        'A new ' .
+        strtolower($validated['type']) .
+        ' donation has been submitted: ' .
+        trim($validated['description']) .
+        '.',
+    'type' => 'Donation',
+    'reference_id' => $donationId,
+    'is_read' => 0,
+    'created_at' => now()->toDateTimeString(),
+    'updated_at' => now()->toDateTimeString(),
+    'related_id' => (int) $validated['ngo_id'],
+];
 
+$notificationResponse = $this->supabase()
+    ->withHeaders([
+        'Prefer' => 'return=representation',
+    ])
+    ->post('notifications', $notificationData);
+
+if (!$notificationResponse->successful()) {
+
+    dd([
+        'notification_data' => $notificationData,
+        'status' => $notificationResponse->status(),
+        'response' => $notificationResponse->body(),
+    ]);
+}
     /*
     |--------------------------------------------------------------------------
     | ONLINE MONETARY PROOF
