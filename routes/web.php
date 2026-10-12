@@ -1,4 +1,3 @@
-
 <?php
 
 use Illuminate\Support\Facades\Route;
@@ -20,17 +19,22 @@ use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
 use App\Http\Controllers\notification_controller;
+use App\Http\Controller\reports_controller;
+
 /*
 |--------------------------------------------------------------------------
 | LANDING & AUTHENTICATION / SIGNUP
 |--------------------------------------------------------------------------
 */
+Route::get(
+    '/notifications',
+    [notification_controller::class, 'getNotifications']
+)->name('notifications.index');
 
 Route::post(
     '/notifications/{notificationId}/read',
     [notification_controller::class, 'markAsRead']
 )->name('notifications.read');
-
 Route::get('/', function () {
     return view('landing');
 })->name('home');
@@ -56,6 +60,22 @@ Route::get(
 )->name('sm.dashboard');
 
 
+/*
+|--------------------------------------------------------------------------
+| NGO / STAFF REPORTS (role-based: 0 = NGO Head, 1 = Volunteer Manager, 2 = Donation Manager)
+|--------------------------------------------------------------------------
+*/
+
+Route::get(
+    '/sm-reports',
+    [reports_controller::class, 'index']
+)->name('sm.reports');
+
+Route::get(
+    '/sm-reports/download',
+    [reports_controller::class, 'download']
+)->name('sm.reports.download');
+
 
 Route::post('/login', [login_controller::class, 'login']);
 
@@ -69,6 +89,11 @@ Route::post('/register', [signup_controller::class, 'signup']);
 | DONATIONS
 |--------------------------------------------------------------------------
 */
+
+Route::post(
+    '/donations/{id}/status',
+    [donation_controller::class, 'updateStatus']
+)->name('donations.updateStatus');
 Route::get('/donations', [donation_controller::class, 'index']);
 
 Route::get('/impact', function () {
@@ -163,6 +188,10 @@ Route::patch(
 | VOLUNTEER APPLICATIONS
 |--------------------------------------------------------------------------
 */
+Route::post(
+    '/volunteer/quick-apply',
+    [volunteer_application_controller::class, 'quickApply']
+)->name('volunteer.quick-apply');
 
 // Application form
 Route::get(

@@ -253,20 +253,28 @@ class donate_controller extends Controller
 
     $donationId = $donations[0]['id'];
 
+
+/*
+|--------------------------------------------------------------------------
+| CREATE DONATION NOTIFICATION
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| CREATE DONATION NOTIFICATION
+|--------------------------------------------------------------------------
+*/
+
 $notificationData = [
-    'user_id' => null,
     'title' => 'New Donation Received',
-    'message' =>
-        'A new ' .
-        strtolower($validated['type']) .
-        ' donation has been submitted: ' .
-        trim($validated['description']) .
-        '.',
+    'message' => 'A new '
+        . strtolower($validated['type'])
+        . ' donation has been submitted: '
+        . trim($validated['description']) . '.',
     'type' => 'Donation',
     'reference_id' => $donationId,
-    'is_read' => 0,
-    'created_at' => now()->toDateTimeString(),
-    'updated_at' => now()->toDateTimeString(),
+    'created_at' => now('Asia/Manila')->toIso8601String(),
     'related_id' => (int) $validated['ngo_id'],
 ];
 
@@ -277,13 +285,33 @@ $notificationResponse = $this->supabase()
     ->post('notifications', $notificationData);
 
 if (!$notificationResponse->successful()) {
-
-    dd([
-        'notification_data' => $notificationData,
-        'status' => $notificationResponse->status(),
-        'response' => $notificationResponse->body(),
-    ]);
+    \Illuminate\Support\Facades\Log::error(
+        'Donation notification creation failed.',
+        [
+            'donation_id' => $donationId,
+            'status' => $notificationResponse->status(),
+            'response' => $notificationResponse->body(),
+        ]
+    );
 }
+
+// $notificationResponse = $this->supabase()
+//     ->withHeaders([
+//         'Prefer' => 'return=representation',
+//     ])
+//     ->post('notifications', $notificationData);
+
+// if (!$notificationResponse->successful()) {
+//     \Illuminate\Support\Facades\Log::error(
+//         'Donation notification creation failed.',
+//         [
+//             'donation_id' => $donationId,
+//             'status' => $notificationResponse->status(),
+//             'response' => $notificationResponse->body(),
+//         ]
+//     );
+// }
+
     /*
     |--------------------------------------------------------------------------
     | ONLINE MONETARY PROOF
@@ -445,8 +473,10 @@ if (!$notificationResponse->successful()) {
     |--------------------------------------------------------------------------
     */
 
-    return redirect('/donate')
-        ->with('success', 'Donation submitted successfully!');
+    return response()->json([
+    'success' => true,
+    'message' => 'Donation submitted successfully!',
+], 200);
 }
 
 }

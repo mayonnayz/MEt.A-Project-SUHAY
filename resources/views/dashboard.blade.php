@@ -29,6 +29,7 @@
 
     {{-- TAILWIND --}}
 
+
     <script src="https://cdn.tailwindcss.com"></script>
 
 
@@ -68,10 +69,8 @@
         {{-- ================================================= --}}
 
         @include('components.header', [
-            'title' => 'Dashboard',
-            'headerNotifications' => $notifications ?? collect(),
-            'headerUnreadNotifications' => $unreadNotifications ?? 0,
-        ])
+    'title' => 'Dashboard'
+])
 
 
         {{-- ================================================= --}}

@@ -3,15 +3,39 @@
         <h2 class="text-xl font-bold mb-4">Are you sure you want to logout?</h2>
 
         <div class="flex justify-center gap-4 mt-6">
-            <button onclick="closeLogoutModal()" 
+            <button type="button" onclick="closeLogoutModal()"
                 class="px-6 py-2 bg-gray-300 rounded-full font-semibold hover:bg-gray-400">
-                    No
+                No
             </button>
 
-            <a href="/sm-logout" 
+            <a href="/sm-logout"
                 class="px-6 py-2 bg-[#0e243a] text-yellow-400 rounded-full font-semibold hover:opacity-90">
-                    Yes
+                Yes
             </a>
         </div>
     </div>
 </div>
+
+<script>
+    function openLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        modal.classList.remove('hidden');
+        modal.classList.add('flex');
+    }
+
+    function closeLogoutModal() {
+        const modal = document.getElementById('logoutModal');
+        modal.classList.add('hidden');
+        modal.classList.remove('flex');
+    }
+
+    // Close when clicking the dark backdrop
+    document.getElementById('logoutModal').addEventListener('click', function (e) {
+        if (e.target === this) closeLogoutModal();
+    });
+
+    // Close with Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeLogoutModal();
+    });
+</script>

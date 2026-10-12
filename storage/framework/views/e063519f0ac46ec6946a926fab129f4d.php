@@ -29,6 +29,7 @@
 
     
 
+
     <script src="https://cdn.tailwindcss.com"></script>
 
 
@@ -68,10 +69,8 @@
         
 
         <?php echo $__env->make('components.header', [
-            'title' => 'Dashboard',
-            'headerNotifications' => $notifications ?? collect(),
-            'headerUnreadNotifications' => $unreadNotifications ?? 0,
-        ], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    'title' => 'Dashboard'
+], array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 
 
         
