@@ -264,45 +264,40 @@
                                 </button>
 
 
-                                {{-- APPLICATION STATUS --}}
-                                @php
-                                    $alreadyApplied = in_array(
-                                        (string)$event['id'],
-                                        $applications ?? []
-                                    );
-                                @endphp
+                                
+                                        {{-- APPLICATION STATUS --}}
+                                        @php
+                                            $alreadyApplied = in_array(
+                                                (string) $event['id'],
+                                                array_map('strval', $applications ?? [])
+                                            );
+                                        @endphp
 
+                                        @if($alreadyApplied)
 
-                                @if($alreadyApplied)
+                                            <button
+                                                type="button"
+                                                disabled
+                                                class="px-6 py-2.5 rounded-full bg-gray-300
+                                                    text-gray-500 font-semibold text-sm
+                                                    cursor-not-allowed whitespace-nowrap">
+                                                Already Applied
+                                            </button>
 
-                                    <button
-                                        type="button"
-                                        disabled
-                                        class="px-6 py-2.5 rounded-full
-                                               bg-gray-300 text-gray-500
-                                               font-semibold text-sm
-                                               cursor-not-allowed whitespace-nowrap">
+                                        @else
 
-                                        Already Applied
+                                            <button
+                                                type="button"
+                                                class="volunteer-now-btn px-6 py-2.5 rounded-full
+                                                    bg-[#d39a11] text-white font-semibold text-sm
+                                                    hover:bg-[#c2870d] transition text-center
+                                                    whitespace-nowrap"
+                                                data-event-id="{{ $event['id'] }}">
+                                                Volunteer Now
+                                            </button>
 
-                                    </button>
+                                        @endif
 
-                                @else
-
-                                    <a
-                                        href="/volunteer-application-form?event_id={{ $event['id'] }}"
-                                        class="px-6 py-2.5 rounded-full
-                                               bg-[#d39a11] text-white
-                                               font-semibold text-sm
-                                               hover:bg-[#c2870d]
-                                               transition text-center
-                                               whitespace-nowrap">
-
-                                        Volunteer Now
-
-                                    </a>
-
-                                @endif
 
                             </div>
 
@@ -601,6 +596,81 @@
 
 
 <script>
+    
+/* =========================================================
+   QUICK VOLUNTEER APPLICATION
+========================================================== */
+
+document.querySelectorAll('.volunteer-now-btn').forEach(button => {
+    button.addEventListener('click', async function () {
+        const eventId = this.dataset.eventId;
+        const originalText = this.textContent.trim();
+
+        if (!eventId || this.disabled) {
+            return;
+        }
+
+        this.disabled = true;
+        this.textContent = 'Submitting...';
+        this.classList.add('opacity-60', 'cursor-wait');
+
+        try {
+            const response = await fetch(
+                @json(route('volunteer.quick-apply')),
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json',
+                        'X-CSRF-TOKEN': @json(csrf_token())
+                    },
+                    body: JSON.stringify({
+                        event_id: eventId
+                    })
+                }
+            );
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(
+                    result.message || 'Unable to submit your application.'
+                );
+            }
+
+            // Update the button without reloading the page.
+            this.textContent = 'Already Applied';
+            this.classList.remove(
+                'bg-[#d39a11]',
+                'hover:bg-[#c2870d]',
+                'text-white',
+                'opacity-60',
+                'cursor-wait'
+            );
+
+            this.classList.add(
+                'bg-gray-300',
+                'text-gray-500',
+                'cursor-not-allowed'
+            );
+
+            // Keep the existing applied-state behavior.
+            this.disabled = true;
+
+            alert(result.message);
+
+        } catch (error) {
+            console.error('Quick application failed:', error);
+
+            alert(error.message || 'Something went wrong. Please try again.');
+
+            this.disabled = false;
+            this.textContent = originalText;
+            this.classList.remove('opacity-60', 'cursor-wait');
+        }
+    });
+});
+
 
     /* =========================================================
        ACTIVITIES MODAL

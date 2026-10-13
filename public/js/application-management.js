@@ -479,6 +479,53 @@ sendRequest(
 
 
 }
+function openLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
+
+function closeLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
+
+}
+
 
 function restoreApplication(id) {
 if (

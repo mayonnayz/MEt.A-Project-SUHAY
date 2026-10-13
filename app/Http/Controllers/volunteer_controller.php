@@ -174,13 +174,13 @@ class volunteer_controller extends Controller
             }
         }
     }
+foreach ($ngos as &$ngo) {
 
-    foreach ($ngos as &$ngo) {
+    $logoId = $ngo['logo'] ?? null;
 
-        $ngo['logo_url'] =
-            $logoMap[$ngo['logo']] ?? null;
-    }
-
+    $ngo['logo_url'] =
+        $logoId ? ($logoMap[$logoId] ?? null) : null;
+}
     unset($ngo);
 
 

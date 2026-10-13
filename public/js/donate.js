@@ -42,6 +42,55 @@ function closeResultModal() {
     }
 
 }
+
+
+function showDonationResult(success, message) {
+    closeModal();
+
+    // Remove any previous result modal.
+    closeResultModal();
+
+    const resultModal = document.createElement('div');
+    resultModal.id = 'resultModal';
+
+    resultModal.className =
+        'fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4';
+
+    resultModal.innerHTML = `
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full text-center shadow-xl">
+
+            <div class="text-5xl mb-4">
+                ${success ? '&#10003;' : '&#10007;'}
+            </div>
+
+            <h2 class="text-2xl font-bold mb-3 text-[#0e243a]">
+                ${success ? 'Donation Submitted!' : 'Submission Failed'}
+            </h2>
+
+            <p class="text-gray-600 mb-6">
+                ${message}
+            </p>
+
+            <button
+                type="button"
+                onclick="closeResultModal()"
+                class="px-8 py-3 rounded-full bg-[#f2c94c] text-[#0e243a] font-bold hover:bg-[#d39a11] transition"
+            >
+                ${success ? 'Done' : 'Close'}
+            </button>
+
+        </div>
+    `;
+
+    document.body.appendChild(resultModal);
+
+    resultModal.addEventListener('click', function (e) {
+        if (e.target === resultModal) {
+            closeResultModal();
+        }
+    });
+}
+
 function openModal(id) {
 
     const ngo = ngoData.find(n => n.id == id) || {};
@@ -332,9 +381,7 @@ function openModal(id) {
                                 Select Donation Type
                             </option>
 
-                            <option value="MONETARY">
-                                Monetary
-                            </option>
+                          
 
                             <option value="ONLINE_MONETARY">
                                 Online Monetary
@@ -506,7 +553,84 @@ function openModal(id) {
     content.classList.remove('modal-exit');
     content.classList.add('modal-enter');
 
+   
+    // ========================================
+    // HANDLE DONATION FORM SUBMISSION
+    // ========================================
+
+    const donationForm = document.getElementById('donationForm');
+
+    if (donationForm) {
+        donationForm.addEventListener('submit', async function (e) {
+            e.preventDefault(); // Prevent navigation to donate.blade.php
+
+            const submitButton = donationForm.querySelector(
+                'button[type="submit"]'
+            );
+
+            const originalText = submitButton.textContent;
+
+            try {
+                submitButton.disabled = true;
+                submitButton.textContent = 'Submitting...';
+
+                const response = await fetch(donationForm.action, {
+                    method: 'POST',
+                    body: new FormData(donationForm),
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                // Laravel validation errors may return status 422.
+                if (!response.ok) {
+                    let message = 'Failed to submit donation. Please check your information.';
+
+                    try {
+                        const result = await response.json();
+
+                        if (result.message) {
+                            message = result.message;
+                        }
+
+                        if (result.errors) {
+                            message = Object.values(result.errors)
+                                .flat()
+                                .join('\n');
+                        }
+                    } catch (_) {
+                        // Keep the default error message if the response
+                        // is not JSON.
+                    }
+
+                    throw new Error(message);
+                }
+
+               const result = await response.json();
+
+                if (!result.success) {
+                    throw new Error(
+                        result.message || 'Failed to submit donation.'
+                    );
+                }
+
+                showDonationResult(
+                    true,
+                    result.message || 'Your donation has been submitted successfully and is pending review.'
+                );
+
+            } catch (error) {
+                alert(error.message || 'Something went wrong. Please try again.');
+            } finally {
+                submitButton.disabled = false;
+                submitButton.textContent = originalText;
+            }
+        });
+    }
+
     document.body.style.overflow = 'hidden';
+
 }
 
 
@@ -634,6 +758,52 @@ function closeModal() {
         document.body.style.overflow = 'auto';
 
     }, 250);
+}
+function openLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.remove(
+        'hidden'
+    );
+
+    modal.classList.add(
+        'flex'
+    );
+
+}
+
+
+function closeLogoutModal() {
+
+    const modal =
+        document.getElementById(
+            'logoutModal'
+        );
+
+
+    if (!modal) {
+        return;
+    }
+
+
+    modal.classList.add(
+        'hidden'
+    );
+
+    modal.classList.remove(
+        'flex'
+    );
+
 }
 
 

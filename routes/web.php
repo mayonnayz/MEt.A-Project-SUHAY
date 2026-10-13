@@ -18,14 +18,23 @@ use App\Http\Controllers\donation_history_controller;
 use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
-use App\Http\Controllers\reports_controller;
+use App\Http\Controllers\notification_controller;
+use App\Http\Controller\reports_controller;
 
 /*
 |--------------------------------------------------------------------------
 | LANDING & AUTHENTICATION / SIGNUP
 |--------------------------------------------------------------------------
 */
+Route::get(
+    '/notifications',
+    [notification_controller::class, 'getNotifications']
+)->name('notifications.index');
 
+Route::post(
+    '/notifications/{notificationId}/read',
+    [notification_controller::class, 'markAsRead']
+)->name('notifications.read');
 Route::get('/', function () {
     return view('landing');
 })->name('home');
@@ -80,6 +89,11 @@ Route::post('/register', [signup_controller::class, 'signup']);
 | DONATIONS
 |--------------------------------------------------------------------------
 */
+
+Route::post(
+    '/donations/{id}/status',
+    [donation_controller::class, 'updateStatus']
+)->name('donations.updateStatus');
 Route::get('/donations', [donation_controller::class, 'index']);
 
 Route::get('/impact', function () {
@@ -174,6 +188,10 @@ Route::patch(
 | VOLUNTEER APPLICATIONS
 |--------------------------------------------------------------------------
 */
+Route::post(
+    '/volunteer/quick-apply',
+    [volunteer_application_controller::class, 'quickApply']
+)->name('volunteer.quick-apply');
 
 // Application form
 Route::get(

@@ -60,17 +60,12 @@ class donate_controller extends Controller
         }
         unset($ngo);
 
-
-        // =========================================
-        // RESOLVE NGO LOGOS
-        // =========================================
-        //
-        // 'logo' on ngo_profile is a foreign key into
-        // media_table, not a usable file path/URL. Look
-        // up all of them in a single batched request and
-        // attach the resolved public URL as 'logo_url'.
-
-        $logoIds = array_filter(array_column($ngos, 'logo'));
+            $logoIds = array_filter(
+                array_map(
+                    fn ($ngo) => $ngo['logo'] ?? null,
+                    $ngos
+                )
+            );
 
         $logoMap = [];
 
@@ -94,7 +89,11 @@ class donate_controller extends Controller
         }
 
         foreach ($ngos as &$ngo) {
-            $ngo['logo_url'] = $logoMap[$ngo['logo']] ?? null;
+            $logoId = $ngo['logo'] ?? null;
+
+            $ngo['logo_url'] = $logoId
+                ? ($logoMap[$logoId] ?? null)
+                : null;
         }
         unset($ngo);
 
@@ -254,6 +253,64 @@ class donate_controller extends Controller
 
     $donationId = $donations[0]['id'];
 
+
+/*
+|--------------------------------------------------------------------------
+| CREATE DONATION NOTIFICATION
+|--------------------------------------------------------------------------
+*/
+
+/*
+|--------------------------------------------------------------------------
+| CREATE DONATION NOTIFICATION
+|--------------------------------------------------------------------------
+*/
+
+$notificationData = [
+    'title' => 'New Donation Received',
+    'message' => 'A new '
+        . strtolower($validated['type'])
+        . ' donation has been submitted: '
+        . trim($validated['description']) . '.',
+    'type' => 'Donation',
+    'reference_id' => $donationId,
+    'created_at' => now('Asia/Manila')->toIso8601String(),
+    'related_id' => (int) $validated['ngo_id'],
+];
+
+$notificationResponse = $this->supabase()
+    ->withHeaders([
+        'Prefer' => 'return=representation',
+    ])
+    ->post('notifications', $notificationData);
+
+if (!$notificationResponse->successful()) {
+    \Illuminate\Support\Facades\Log::error(
+        'Donation notification creation failed.',
+        [
+            'donation_id' => $donationId,
+            'status' => $notificationResponse->status(),
+            'response' => $notificationResponse->body(),
+        ]
+    );
+}
+
+// $notificationResponse = $this->supabase()
+//     ->withHeaders([
+//         'Prefer' => 'return=representation',
+//     ])
+//     ->post('notifications', $notificationData);
+
+// if (!$notificationResponse->successful()) {
+//     \Illuminate\Support\Facades\Log::error(
+//         'Donation notification creation failed.',
+//         [
+//             'donation_id' => $donationId,
+//             'status' => $notificationResponse->status(),
+//             'response' => $notificationResponse->body(),
+//         ]
+//     );
+// }
 
     /*
     |--------------------------------------------------------------------------
@@ -416,8 +473,10 @@ class donate_controller extends Controller
     |--------------------------------------------------------------------------
     */
 
-    return redirect('/donate')
-        ->with('success', 'Donation submitted successfully!');
+    return response()->json([
+    'success' => true,
+    'message' => 'Donation submitted successfully!',
+], 200);
 }
 
 }
