@@ -76,98 +76,131 @@ class login_controller extends Controller
         }
     }
 
-    public function login(Request $request)
-    {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required'
-        ]);
+    
+public function login(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'password' => 'required'
+    ]);
 
-        try {
-            $headers = [
-                'apikey' => env('SUPABASE_SERVICE_KEY'),
-                'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-                'Content-Type' => 'application/json'
-            ];
+    try {
+        $headers = [
+            'apikey' => env('SUPABASE_SERVICE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            'Content-Type' => 'application/json'
+        ];
 
-            $response = Http::withHeaders($headers)
-                ->get(env('SUPABASE_URL') . '/rest/v1/accounts', [
-                'email' => 'eq.' . $request->email
-            ]);
+        $baseUrl = env('SUPABASE_URL') . '/rest/v1/';
 
-            $users = $response->json();
-            $user = $users[0] ?? null;
+        // GET ACCOUNT
+        $response = Http::withHeaders($headers)->get(
+            $baseUrl . 'accounts',
+            [
+                'select' => '*',
+                'email' => 'eq.' . $request->email,
+                'limit' => 1
+            ]
+        );
 
-            if (!$user) {
-                return back()->with('error', 'Wrong credentials. Please try again.');
-            }
+        if (!$response->successful()) {
+            return back()->with('error', 'Unable to connect to the server. Please try again.');
+        }
 
-            if ($request->password !== $user['password']) {
-                return back()->with('error', 'Wrong credentials. Please try again.');
-            }
+        $users = $response->json();
+        $user = $users[0] ?? null;
 
-            if ($user['status'] != 1) {
-                return back()->with('error', 'Your account is inactive. Please contact admin.');
-            }
+        if (!$user || $request->password !== $user['password']) {
+            return back()->with('error', 'Wrong credentials. Please try again.');
+        }
 
-            $ngoId = $user['ngo_id'] ?? null;
+        if ((int) $user['status'] !== 1) {
+            return back()->with('error', 'Your account is inactive. Please contact admin.');
+        }
 
+        $accountId = $user['id'];
+        $ngoId = $user['ngo_id'] ?? null;
 
-            /*
-            |--------------------------------------------------------------------------
-            | GET NGO LOGO (IF THIS ACCOUNT BELONGS TO AN NGO)
-            |--------------------------------------------------------------------------
-            */
+        // GET PERSONAL PROFILE PICTURE
+        $profilePicture = null;
 
-            $ngoLogoUrl = null;
+        $profileResponse = Http::withHeaders($headers)->get(
+            $baseUrl . 'media_table',
+            [
+                'select' => 'path',
+                'key_id' => 'eq.' . $accountId,
+                'type' => 'eq.PROFILE_PICTURE',
+                'limit' => 1
+            ]
+        );
 
-            if ($ngoId) {
+        if ($profileResponse->successful()) {
+            $profileMedia = $profileResponse->json();
+            $profilePicture = $profileMedia[0]['path'] ?? null;
+        }
 
-                $ngoResponse = Http::withHeaders($headers)
-                    ->get(env('SUPABASE_URL') . '/rest/v1/ngo_profile', [
-                        'select' => 'logo',
-                        'id' => 'eq.' . $ngoId
-                    ]);
+        // GET NGO LOGO
+        $ngoLogoUrl = null;
 
+        if ($ngoId !== null) {
+            $ngoResponse = Http::withHeaders($headers)->get(
+                $baseUrl . 'ngo_profile',
+                [
+                    'select' => 'logo',
+                    'id' => 'eq.' . $ngoId,
+                    'limit' => 1
+                ]
+            );
+
+            if ($ngoResponse->successful()) {
                 $ngoData = $ngoResponse->json();
                 $logoId = $ngoData[0]['logo'] ?? null;
 
-                if ($logoId) {
-
-                    $mediaResponse = Http::withHeaders($headers)
-                        ->get(env('SUPABASE_URL') . '/rest/v1/media_table', [
+                if ($logoId !== null) {
+                    $mediaResponse = Http::withHeaders($headers)->get(
+                        $baseUrl . 'media_table',
+                        [
                             'select' => 'path',
                             'id' => 'eq.' . $logoId,
-                            'type' => 'eq.NGO_LOGO'
-                        ]);
+                            'type' => 'eq.NGO_LOGO',
+                            'limit' => 1
+                        ]
+                    );
 
-                    $mediaData = $mediaResponse->json();
-                    $ngoLogoUrl = $mediaData[0]['path'] ?? null;
+                    if ($mediaResponse->successful()) {
+                        $mediaData = $mediaResponse->json();
+                        $ngoLogoUrl = $mediaData[0]['path'] ?? null;
+                    }
                 }
             }
-
-
-            // ✅ FIX: STORE NGO ID HERE
-            session([
-                'user_id' => $user['id'],
-                'user_name' => $user['first_name'] . ' ' . $user['last_name'],
-                'user_email' => $user['email'],
-                'role' => $user['roles'],
-                'ngo_id' => $ngoId,
-                'ngo_logo' => $ngoLogoUrl,
-            ]);
-
-            return match (strtolower((string) $user['roles'])) {
-                '0', '1', '2' => redirect()->route('sm.dashboard'),
-                '3' => redirect('/volunteer/dashboard'),
-                default => redirect()->route('login.page')
-                    ->with('error', 'Invalid account role.'),
-            };
-
-        } catch (\Exception $e) {
-            return back()->with('error', 'Something went wrong. Please try again.');
         }
+
+        // STORE SESSION
+        session([
+            'user_id' => $accountId,
+            'user_name' => $user['first_name'] . ' ' . $user['last_name'],
+            'user_email' => $user['email'],
+            'role' => $user['roles'],
+            'ngo_id' => $ngoId,
+            'ngo_logo' => $ngoLogoUrl,
+            'profile_picture' => $profilePicture,
+        ]);
+
+        return match ((int) $user['roles']) {
+            0, 1, 2 => redirect()->route('sm.dashboard'),
+            3 => redirect('/volunteer/dashboard'),
+            default => redirect()->route('login.page')
+                ->with('error', 'Invalid account role.'),
+        };
+
+    } catch (\Exception $e) {
+        \Illuminate\Support\Facades\Log::error(
+            'Login error: ' . $e->getMessage()
+        );
+
+        return back()->with('error', 'Something went wrong. Please try again.');
     }
+}
 
     public function logout()
     {

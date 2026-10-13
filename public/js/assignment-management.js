@@ -490,242 +490,155 @@ function assignVolunteer(activityId) {
 // RENDER VOLUNTEERS
 // =====================================================
 
+
 function renderVolunteers(data) {
-
-    let html = '';
-
+    let html = "";
 
     if (!data || data.length === 0) {
-
         html = `
             <p class="text-gray-500">
                 No volunteers applied for this event.
             </p>
         `;
-
     } else {
-
         data.forEach(vol => {
-
             html += `
-
-                <div
-                    class="border p-3 rounded-lg flex justify-between items-center"
-                >
-
+                <div class="border p-3 rounded-lg flex justify-between items-center">
                     <div>
-
-                        <p class="font-semibold">
-                            ${vol.name}
-                        </p>
-
-                        <p class="text-sm text-gray-500">
-                            ${vol.email}
-                        </p>
-
+                        <p class="font-semibold">${escapeHTML(vol.name)}</p>
+                        <p class="text-sm text-gray-500">${escapeHTML(vol.email)}</p>
                     </div>
-
 
                     <button
                         type="button"
                         class="assign-btn bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600"
-                        data-id="${vol.id}"
+                        data-id="${escapeHTML(String(vol.id))}"
                     >
                         Select
                     </button>
-
                 </div>
-
             `;
         });
     }
 
+    document.getElementById("volunteerList").innerHTML = html;
 
-    document.getElementById('volunteerList').innerHTML =
-        html;
+    document.querySelectorAll(".assign-btn").forEach(btn => {
+        btn.addEventListener("click", function (e) {
+            e.stopPropagation();
 
+            const volunteerId = this.dataset.id;
 
-    // =================================================
-    // SELECT VOLUNTEER BUTTONS
-    // =================================================
-
-    document
-        .querySelectorAll('.assign-btn')
-        .forEach(btn => {
-
-            btn.addEventListener(
-                'click',
-                function(e) {
-
-                    e.stopPropagation();
-
-
-                    const volunteerId =
-                        this.getAttribute(
-                            'data-id'
-                        );
-
-
-                    confirmAssign(
-                        volunteerId
-                    );
-                }
+            const volunteer = data.find(
+                vol => String(vol.id) === String(volunteerId)
             );
+
+            if (!volunteer) return;
+
+            showConfirmModal({
+                title: "Confirm Volunteer Assignment",
+                message: `Are you sure you want to assign ${volunteer.name} to this activity?`,
+                confirmText: "Confirm Assignment",
+                cancelText: "Cancel",
+                onConfirm: () => confirmAssign(volunteerId)
+            });
         });
+    });
+}
+
+// Escape values before placing them inside HTML.
+function escapeHTML(value) {
+    return String(value ?? "").replace(/[&<>"']/g, char => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#39;"
+    })[char]);
 }
 
 
 // =====================================================
 // ASSIGN VOLUNTEER
-// =====================================================
+
 
 async function confirmAssign(volunteerId) {
-
-    // Extra protection
     if (currentEventStatus === "done") {
-
-        alert(
-            "Volunteers cannot be assigned to completed events."
-        );
-
-        return;
+        return {
+            success: false,
+            title: "Assignment Not Allowed",
+            message: "Volunteers cannot be assigned to completed events."
+        };
     }
 
-
-    console.log("SELECT CLICKED");
-    console.log(
-        "Volunteer:",
-        volunteerId
-    );
-    console.log(
-        "Activity:",
-        selectedActivityId
-    );
-    console.log(
-        "Event:",
-        currentEventId
-    );
-
+    console.log("Volunteer:", volunteerId);
+    console.log("Activity:", selectedActivityId);
+    console.log("Event:", currentEventId);
 
     try {
+        const res = await fetch("/assign-volunteer", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": document
+                    .querySelector('meta[name="csrf-token"]')
+                    .getAttribute("content"),
+                "Accept": "application/json"
+            },
+            body: JSON.stringify({
+                activity_id: selectedActivityId,
+                account_id: volunteerId,
+                event_id: currentEventId,
+                status: 0
+            })
+        });
 
-        const res =
-            await fetch(
-                `/assign-volunteer`,
-                {
+        const data = await res.json().catch(() => ({}));
 
-                    method: 'POST',
-
-                    headers: {
-
-                        'Content-Type':
-                            'application/json',
-
-                        'X-CSRF-TOKEN':
-                            document
-                                .querySelector(
-                                    'meta[name="csrf-token"]'
-                                )
-                                .getAttribute(
-                                    'content'
-                                ),
-
-                        'Accept':
-                            'application/json'
-                    },
-
-
-                    body: JSON.stringify({
-
-                        activity_id:
-                            selectedActivityId,
-
-                        account_id:
-                            volunteerId,
-
-                        event_id:
-                            currentEventId,
-
-                        status: 0
-
-                    })
-                }
-            );
-
-
-        const data =
-            await res.json().catch(
-                () => ({})
-            );
-
-
-        // Already assigned
         if (res.status === 409) {
-
-            alert(
-                data.message ||
-                "This volunteer is already assigned to this activity."
-            );
-
-            return;
+            return {
+                success: false,
+                title: "Already Assigned",
+                message: data.message ||
+                    "This volunteer is already assigned to this activity."
+            };
         }
 
-
-        // Other errors
         if (!res.ok) {
-
-            alert(
-                data.message ||
-                "Assign failed."
-            );
-
-            return;
+            return {
+                success: false,
+                title: "Assignment Failed",
+                message: data.message ||
+                    "The assignment could not be completed. Please try again."
+            };
         }
 
-
-        alert(
-            "Assigned successfully!"
-        );
-
-
-        // Close volunteer modal
+        // Close volunteer selection modal after successful assignment.
         closeVolunteerModal();
 
+        // Clear cached volunteers for this event.
+        delete cachedVolunteers[currentEventId];
 
-        // Clear cache for this event
-        delete cachedVolunteers[
-            currentEventId
-        ];
-
-
-        // Refresh activities
+        // Refresh activity list and assigned count.
         await refreshActivities();
+        await refreshEventAssignmentCount(currentEventId);
 
+        return {
+            success: true,
+            title: "Assignment Successful",
+            message: "The volunteer has been assigned successfully."
+        };
 
-        // Refresh assigned count
-        await refreshEventAssignmentCount(
-            currentEventId
-        );
+    } catch (err) {
+        console.error("Assignment request failed:", err);
 
-    }
-
-    catch (err) {
-
-        console.error(
-            "FETCH FAILED:",
-            err
-        );
-
-        alert(
-            "Request failed."
-        );
+        return {
+            success: false,
+            title: "Request Failed",
+            message: "Unable to complete the request. Please check your connection and try again."
+        };
     }
 }
-
-
-// =====================================================
-// REFRESH ASSIGNED VOLUNTEER COUNT
-// =====================================================
 
 async function refreshEventAssignmentCount(
     eventId

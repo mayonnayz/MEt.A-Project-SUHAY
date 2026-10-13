@@ -255,6 +255,8 @@
 </div>
 @include('components.activity-modal')
 @include('components.logout-modal')
+    @include('components.confirm-modal')
+     
 <script>
     const eventDates = @json($events->pluck('date')->filter()->values());
 </script>

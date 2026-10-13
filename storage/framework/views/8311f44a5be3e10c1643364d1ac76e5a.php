@@ -263,6 +263,8 @@
 </div>
 <?php echo $__env->make('components.activity-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+    <?php echo $__env->make('components.confirm-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+     
 <script>
     const eventDates = <?php echo json_encode($events->pluck('date')->filter()->values(), 15, 512) ?>;
 </script>
