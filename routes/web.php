@@ -19,7 +19,7 @@ use App\Http\Controllers\inventory_movement_controller;
 use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
 use App\Http\Controllers\notification_controller;
-use App\Http\Controller\reports_controller;
+use App\Http\Controllers\reports_controller;
 
 /*
 |--------------------------------------------------------------------------
@@ -71,10 +71,17 @@ Route::get(
     [reports_controller::class, 'index']
 )->name('sm.reports');
 
+// Download one report card as PDF
 Route::get(
     '/sm-reports/download',
     [reports_controller::class, 'download']
 )->name('sm.reports.download');
+
+// Download one report card as Excel (.xlsx)
+Route::get(
+    '/sm-reports/download-excel',
+    [reports_controller::class, 'downloadExcel']
+)->name('sm.reports.download-excel');
 
 
 Route::post('/login', [login_controller::class, 'login']);

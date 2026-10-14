@@ -203,19 +203,20 @@
                             class="w-7 h-7 ml-3 cursor-pointer opacity-60">
                     </div>
 
-                    <button type="submit" class="bg-[#0e243a] text-yellow-400 py-4 rounded-full font-bold text-lg w-[350px] hover:opacity-90 transition">
-                        LOGIN
-                    </button>
+                    <div class="flex gap-4 w-[550px] max-w-full">
+                        <button type="submit"
+                            class="flex-1 bg-[#0e243a] text-yellow-400 py-4 rounded-full font-bold text-lg hover:opacity-90 transition">
+                            LOGIN
+                        </button>
+
+                        <button id="showSignup"
+                            type="button"
+                            class="flex-1 bg-[#f2c94c] text-[#0e243a] py-4 rounded-full font-bold text-lg hover:opacity-90 transition">
+                            SIGN UP
+                        </button>
+                    </div>
 
                 </form>
-
-                <br>
-
-                <button id="showSignup"
-                    type="button"
-                    class="bg-[#f2c94c] text-[#0e243a] py-4 rounded-full font-bold text-lg w-[300px] hover:opacity-90 transition">
-                    SIGN IN
-                </button>
 
             </div>
 
@@ -321,17 +322,20 @@
                     </div>
 
 
-                    <button type="submit" class="bg-[#0e243a] text-yellow-400 py-4 rounded-full font-bold text-lg w-[350px] hover:opacity-90 transition">
-                        SIGN IN
-                    </button>
+                    <div class="flex gap-4 w-[650px] max-w-full mb-3">
+                        <button type="submit"
+                            class="flex-1 bg-[#0e243a] text-yellow-400 py-4 rounded-full font-bold text-lg hover:opacity-90 transition">
+                            SIGN UP
+                        </button>
 
-                </form>
+                        <button id="showLogin"
+                            type="button"
+                            class="flex-1 bg-[#f2c94c] text-[#0e243a] py-4 rounded-full font-bold text-lg hover:opacity-90 transition">
+                            LOGIN
+                        </button>
+                    </div>
 
-                <br>
-
-                <button id="showLogin" type="button" class="bg-[#f2c94c] text-[#0e243a] py-4 rounded-full font-bold text-lg w-[300px] hover:opacity-90 transition">
-                    LOGIN
-                </button>
+                    </form>
 
             </div>
         </div>

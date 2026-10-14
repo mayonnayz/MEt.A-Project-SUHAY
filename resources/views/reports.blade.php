@@ -494,13 +494,26 @@
                             @endif
                         </div>
 
-                        <a
-                            href="{{ url('/sm-reports/download') . '?' . http_build_query($dateQuery + ['section' => $section['key']]) }}"
-                            class="download-btn flex-shrink-0 px-5 py-2 bg-[#d39a11] text-white
-                                   rounded-full text-sm font-semibold hover:opacity-90"
-                        >
-                            Download PDF
-                        </a>
+                        {{-- DOWNLOAD BUTTONS (PDF + Excel) --}}
+                        <div class="flex flex-shrink-0 flex-wrap justify-end gap-2">
+                            <a
+                                href="{{ url('/sm-reports/download') . '?' . http_build_query($dateQuery + ['section' => $section['key']]) }}"
+                                data-label="PDF"
+                                class="download-btn px-5 py-2 bg-[#d39a11] text-white
+                                       rounded-full text-sm font-semibold hover:opacity-90"
+                            >
+                                Download PDF
+                            </a>
+
+                            <a
+                                href="{{ url('/sm-reports/download-excel') . '?' . http_build_query($dateQuery + ['section' => $section['key']]) }}"
+                                data-label="Excel"
+                                class="download-btn px-5 py-2 bg-green-700 text-white
+                                       rounded-full text-sm font-semibold hover:opacity-90"
+                            >
+                                Download Excel
+                            </a>
+                        </div>
                     </div>
 
                     {{-- MINI STATS --}}
@@ -586,6 +599,7 @@
 
 {{-- ================================================= --}}
 {{-- DOWNLOADING MODAL (same size as loading modal)    --}}
+{{-- Title changes to "Downloading PDF..." / "Downloading Excel..." --}}
 {{-- ================================================= --}}
 <div id="downloadModal"
      class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
@@ -604,7 +618,7 @@
             </svg>
         </div>
 
-        <h2 class="text-2xl font-bold text-[#0e243a]">Downloading PDF...</h2>
+        <h2 id="downloadTitle" class="text-2xl font-bold text-[#0e243a]">Downloading PDF...</h2>
         <p class="text-base text-gray-500 mt-3">Preparing your report, please wait.</p>
 
         <div class="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-6">
@@ -741,7 +755,7 @@
         }
 
         /* ---------------------------------------------- */
-        /* DOWNLOAD PDF (with downloading modal)          */
+        /* DOWNLOAD PDF / EXCEL (with downloading modal)  */
         /* Works for every card, even after Apply/Reset   */
         /* ---------------------------------------------- */
         let downloading = false;
@@ -754,6 +768,10 @@
             if (downloading) return;
             downloading = true;
 
+            const label   = btn.dataset.label || 'PDF';   // "PDF" or "Excel"
+            const isExcel = label === 'Excel';
+
+            document.getElementById('downloadTitle').textContent = 'Downloading ' + label + '...';
             show(downloadModal);
 
             try {
@@ -763,17 +781,18 @@
                 ]);
 
                 const type = res.headers.get('Content-Type') || '';
+                const typeOk = isExcel ? type.includes('spreadsheetml') : type.includes('pdf');
 
-                // Server error or not a PDF (e.g. redirected to login)
-                if (!res.ok || !type.includes('pdf')) {
+                // Server error or wrong file type (e.g. redirected to login)
+                if (!res.ok || !typeOk) {
                     const body = await res.text();
-                    console.error('PDF download failed:', res.status, body.slice(0, 1500));
+                    console.error(label + ' download failed:', res.status, body.slice(0, 1500));
                     throw new Error('Server responded with status ' + res.status + ' (' + type + ')');
                 }
 
                 const blob = await res.blob();
 
-                let fileName = 'SUHAY-report.pdf';
+                let fileName = isExcel ? 'SUHAY-report.xlsx' : 'SUHAY-report.pdf';
                 const disposition = res.headers.get('Content-Disposition') || '';
                 const match = disposition.match(/filename="?([^";]+)"?/i);
                 if (match) {
@@ -789,7 +808,7 @@
                 link.remove();
                 setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
             } catch (err) {
-                alert('Could not download the PDF.\n\n' + err.message);
+                alert('Could not download the ' + label + ' file.\n\n' + err.message);
             } finally {
                 hide(downloadModal);
                 downloading = false;

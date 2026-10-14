@@ -2,13 +2,6 @@
 // AOS
 // ========================================
 
-// AOS.init({
-//     duration: 800,
-//     once: false,
-//     offset: 100,
-//     easing: 'ease-out-cubic'
-// });
-
 if (typeof AOS !== 'undefined') {
     AOS.init({
         duration: 800,
@@ -28,8 +21,23 @@ const assets = window.suhayAssets || {};
 
 
 // ========================================
-// OPEN NGO MODAL
+// HELPERS
 // ========================================
+
+function escapeHtml(value) {
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+
+// ========================================
+// RESULT MODAL (Donation Submitted!)
+// ========================================
+
 function closeResultModal() {
 
     const modal =
@@ -90,6 +98,273 @@ function showDonationResult(success, message) {
         }
     });
 }
+
+
+// ========================================
+// ACKNOWLEDGMENT LETTER
+// ========================================
+
+function closeLetterModal() {
+
+    const modal =
+        document.getElementById('letterModal');
+
+    if (modal) {
+
+        modal.remove();
+
+    }
+
+}
+
+
+function buildDonorName(details) {
+
+    if (details.anonymous) {
+        return 'Generous Friend';
+    }
+
+    // "From Juan Dela Cruz" -> "Juan Dela Cruz"
+    const cleaned = (details.source || '')
+        .trim()
+        .replace(/^from\s+/i, '')
+        .trim();
+
+    return cleaned !== '' ? cleaned : 'Generous Friend';
+}
+
+
+function buildDonationPhrase(details) {
+
+    const isMonetary =
+        details.type === 'MONETARY' ||
+        details.type === 'ONLINE_MONETARY';
+
+    const description =
+        escapeHtml(details.description);
+
+    if (isMonetary) {
+
+        const amount = Number(details.amount || 0).toLocaleString(
+            'en-PH',
+            { minimumFractionDigits: 2, maximumFractionDigits: 2 }
+        );
+
+        return `your generous monetary gift of
+            <strong>&#8369;${amount}</strong>
+            (<strong>${description}</strong>)`;
+    }
+
+    const quantity = escapeHtml(details.amount);
+    const unit = escapeHtml(details.unit || '');
+
+    return `your kind donation of
+        <strong>${quantity} ${unit}</strong>
+        of <strong>${description}</strong>`;
+}
+
+
+function showAcknowledgmentLetter(details, onContinue) {
+
+    // Remove any previous letter.
+    closeLetterModal();
+
+    const donorName = escapeHtml(buildDonorName(details));
+    const ngoName = escapeHtml(details.ngoName || 'our partner NGO');
+    const donationPhrase = buildDonationPhrase(details);
+
+    const dateText = new Date().toLocaleDateString('en-PH', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        timeZone: 'Asia/Manila'
+    });
+
+    const modal = document.createElement('div');
+    modal.id = 'letterModal';
+
+    modal.className =
+        'fixed inset-0 z-[110] flex items-center justify-center bg-black/60 p-4';
+
+    modal.innerHTML = `
+        <div class="modal-enter bg-gray-100 w-full max-w-2xl max-h-[92vh] overflow-y-auto rounded-2xl shadow-2xl">
+
+            <!-- ================= LETTER ================= -->
+
+            <div
+                id="donationLetter"
+                class="bg-white"
+                style="font-family: 'Poppins', sans-serif; border-top: 8px solid #f2c94c; padding: 40px 48px;"
+            >
+
+                <!-- LOGO -->
+
+                <div style="text-align:center; margin-bottom: 8px;">
+
+                    <img
+                        src="${assets.logo}"
+                        alt="Project SUHAY Logo"
+                        style="height: 90px; margin: 0 auto; object-fit: contain;"
+                        crossorigin="anonymous"
+                    >
+
+                    <div style="font-family: 'Poppins', sans-serif; font-weight: 800; letter-spacing: 4px; color: #0e243a; font-size: 18px; margin-top: 8px;">
+                        PROJECT SUHAY
+                    </div>
+
+                    <div style="width: 70px; height: 3px; background: #f2c94c; margin: 12px auto 0;"></div>
+
+                </div>
+
+
+                <!-- DATE -->
+
+                <p style="text-align:right; color:#6b7280; font-size: 14px; margin: 24px 0;">
+                    ${dateText}
+                </p>
+
+
+                <!-- SALUTATION -->
+
+                <p style="font-size: 18px; color:#0e243a; margin-bottom: 18px;">
+                    Dear <strong>${donorName}</strong>,
+                </p>
+
+
+                <!-- BODY -->
+
+                <p style="font-size: 15px; line-height: 1.8; color:#1f2937; margin-bottom: 14px; text-align: justify;">
+                    From the bottom of our hearts, thank you for ${donationPhrase}
+                    to <strong>${ngoName}</strong>. Your generosity reached us at
+                    exactly the right moment, and it will go a long way in
+                    helping families and communities who need it most.
+                </p>
+
+                <p style="font-size: 15px; line-height: 1.8; color:#1f2937; margin-bottom: 14px; text-align: justify;">
+                    Behind every gift is a person who chose to care, and that
+                    is what makes the difference. Because of you, someone will
+                    feel less alone, someone will have something to hope for,
+                    and someone will be reminded that kindness is still alive.
+                    You are not just giving; you are walking beside those we serve.
+                </p>
+
+                <p style="font-size: 15px; line-height: 1.8; color:#1f2937; margin-bottom: 14px; text-align: justify;">
+                    Your donation is currently <strong>pending review</strong>
+                    and will be confirmed by our team shortly. Please keep this
+                    letter as a token of our sincere gratitude.
+                </p>
+
+                <p style="font-size: 15px; line-height: 1.8; color:#1f2937; margin-bottom: 28px; text-align: justify;">
+                    Maraming, maraming salamat po. Together, we move
+                    <em>Suhay</em>, side by side, toward a brighter tomorrow.
+                </p>
+
+
+                <!-- SIGN-OFF -->
+
+                <p style="font-size: 15px; color:#1f2937; margin-bottom: 4px;">
+                    With heartfelt gratitude,
+                </p>
+
+                <p style="font-size: 20px; font-weight: bold; color:#0e243a; margin-bottom: 2px;">
+                    Project SUHAY
+                </p>
+
+                <p style="font-size: 13px; color:#6b7280;">
+                    on behalf of ${ngoName}
+                </p>
+
+            </div>
+
+
+            <!-- ================= BUTTONS ================= -->
+
+            <div class="flex flex-col sm:flex-row justify-end gap-3 p-5 bg-gray-100">
+
+                <button
+                    type="button"
+                    id="downloadLetterBtn"
+                    class="px-6 py-3 rounded-full bg-[#0e243a] text-white font-semibold hover:bg-[#1b3b5a] transition"
+                >
+                    &#11015; Download Letter (PDF)
+                </button>
+
+                <button
+                    type="button"
+                    id="continueLetterBtn"
+                    class="px-8 py-3 rounded-full bg-[#f2c94c] text-[#0e243a] font-bold hover:bg-[#d39a11] transition"
+                >
+                    Continue
+                </button>
+
+            </div>
+
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+
+
+    // ---------- DOWNLOAD ----------
+
+    document
+        .getElementById('downloadLetterBtn')
+        .addEventListener('click', function () {
+
+            const button = this;
+            const letter = document.getElementById('donationLetter');
+
+            if (typeof html2pdf === 'undefined') {
+                alert('PDF generator failed to load. Please refresh the page and try again.');
+                return;
+            }
+
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = 'Preparing PDF...';
+
+            const safeName = buildDonorName(details)
+                .replace(/[^a-z0-9]+/gi, '-')
+                .toLowerCase();
+
+            html2pdf()
+                .set({
+                    margin: 0,
+                    filename: `SUHAY-Acknowledgment-Letter-${safeName}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2, useCORS: true },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                })
+                .from(letter)
+                .save()
+                .catch(() => {
+                    alert('Failed to generate the PDF. Please try again.');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                });
+        });
+
+
+    // ---------- CONTINUE -> "Donation Submitted!" ----------
+
+    document
+        .getElementById('continueLetterBtn')
+        .addEventListener('click', function () {
+
+            closeLetterModal();
+
+            if (typeof onContinue === 'function') {
+                onContinue();
+            }
+        });
+}
+
+
+// ========================================
+// OPEN NGO MODAL
+// ========================================
 
 function openModal(id) {
 
@@ -570,6 +845,18 @@ function openModal(id) {
 
             const originalText = submitButton.textContent;
 
+            // Capture what the donor entered BEFORE sending,
+            // so the acknowledgment letter can use it.
+            const letterDetails = {
+                ngoName: ngo.name || '',
+                anonymous: document.getElementById('anonymousDonation').checked,
+                source: document.getElementById('source').value,
+                type: document.getElementById('donationType').value,
+                description: document.getElementById('description').value.trim(),
+                amount: document.getElementById('amount').value,
+                unit: document.getElementById('unit').value.trim()
+            };
+
             try {
                 submitButton.disabled = true;
                 submitButton.textContent = 'Submitting...';
@@ -607,7 +894,7 @@ function openModal(id) {
                     throw new Error(message);
                 }
 
-               const result = await response.json();
+                const result = await response.json();
 
                 if (!result.success) {
                     throw new Error(
@@ -615,10 +902,14 @@ function openModal(id) {
                     );
                 }
 
-                showDonationResult(
-                    true,
-                    result.message || 'Your donation has been submitted successfully and is pending review.'
-                );
+                // 1) Show the acknowledgment letter first.
+                // 2) After "Continue", show the "Donation Submitted!" modal.
+                showAcknowledgmentLetter(letterDetails, function () {
+                    showDonationResult(
+                        true,
+                        result.message || 'Your donation has been submitted successfully and is pending review.'
+                    );
+                });
 
             } catch (error) {
                 alert(error.message || 'Something went wrong. Please try again.');
