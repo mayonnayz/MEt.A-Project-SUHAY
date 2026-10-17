@@ -57,7 +57,11 @@
             button.textContent = 'Processing...';
 
             try {
-                await callback();
+                const result = await callback();
+
+                    if (result === true) {
+                        closeConfirmModal();
+                    }
             } finally {
                 confirmBusy = false;
                 button.disabled = false;

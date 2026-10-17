@@ -30001,3 +30001,5 @@ Did you mean one of these?
 #52 {main}
 "} 
 [2026-10-13 00:29:21] local.ERROR: Failed to delete notification statuses. {"notification_id":40,"body":"{\"code\":\"21000\",\"details\":null,\"hint\":null,\"message\":\"DELETE requires a WHERE clause\"}"} 
+[2026-10-13 22:07:06] local.INFO: Application notification created successfully. {"application_id":"14","account_id":1,"notification_id":46,"decision":2} 
+[2026-10-13 22:54:16] local.INFO: Application notification created successfully. {"application_id":"14","account_id":1,"notification_id":47,"decision":1} 
