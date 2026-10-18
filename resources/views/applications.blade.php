@@ -338,6 +338,8 @@
 
     @include('components.application-modal')
     @include('components.logout-modal')
+    @include('components.confirm-modal')
+    @include('components.confirm-modal-script')   
 
     <script src="{{ asset('js/application-management.js') }}"></script>
 

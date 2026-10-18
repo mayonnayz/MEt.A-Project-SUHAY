@@ -40,8 +40,6 @@
                         d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
                     />
                 </svg>
-
-                {{-- UNREAD BADGE: CREATED BY JAVASCRIPT --}}
             </button>
 
             {{-- NOTIFICATION DROPDOWN --}}
@@ -72,7 +70,7 @@
                     </div>
                 </div>
 
-                {{-- NOTIFICATION LIST: POPULATED BY JAVASCRIPT --}}
+                {{-- NOTIFICATION LIST --}}
                 <div
                     id="notificationList"
                     class="max-h-[400px] overflow-y-auto"
@@ -93,20 +91,12 @@
         ================================================== --}}
         <div class="flex items-center gap-3">
 
-            @if(session('ngo_logo'))
-                <img
-                    src="{{ session('ngo_logo') }}"
-                    alt="{{ session('user_name', 'Guest') }}"
-                    class="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200"
-                    onerror="this.onerror=null; this.src='{{ asset('images/suhayLogo.png') }}';"
-                >
-            @else
-                <img
-                    src="{{ asset('images/suhayLogo.png') }}"
-                    alt="{{ session('user_name', 'Guest') }}"
-                    class="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200"
-                >
-            @endif
+            <img
+                src="{{ session('profile_picture') ?: asset('images/LoginIcons/user.png') }}"
+                alt="{{ session('user_name', 'Guest') }}"
+                class="w-10 h-10 rounded-full object-cover bg-gray-100 border border-gray-200"
+                onerror="this.onerror=null; this.src='{{ asset('images/LoginIcons/user.png') }}';"
+            >
 
             <p class="text-[#0e243a] font-medium">
                 {{ session('user_name', 'Guest') }}
@@ -116,11 +106,8 @@
 
     </div>
 </div>
+@include('components.confirm-modal')
 
-
-{{-- =========================================================
-     NOTIFICATION JAVASCRIPT
-========================================================= --}}
 
 <script>
 (function () {
@@ -300,9 +287,107 @@
                     row.appendChild(dot);
                 }
 
-                item.appendChild(row);
+                    item.appendChild(row);
 
-                item.addEventListener('click', () => markAsRead(item));
+                    // Manual deletion button.
+                    const deleteButton = document.createElement('button');
+
+                    deleteButton.type = 'button';
+                    deleteButton.textContent = 'Delete';
+                    deleteButton.className =
+                        'mt-2 text-xs font-semibold text-red-500 hover:text-red-700 ' +
+                        'hover:underline focus:outline-none';
+
+                    deleteButton.setAttribute(
+                        'aria-label',
+                        'Delete notification: ' + (notification.title || 'Notification')
+                    );
+
+deleteButton.addEventListener('click', event => {
+    event.stopPropagation();
+
+    showConfirmModal({
+        title: 'Delete Notification',
+        message: 'Are you sure you want to delete this notification? This action cannot be undone.',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        onConfirm: async () => {
+            try {
+                const csrf = document.querySelector(
+                    'meta[name="csrf-token"]'
+                );
+
+                if (!csrf) {
+                    throw new Error('CSRF token is missing.');
+                }
+
+                const response = await fetch(
+                    '/notifications/' +
+                        encodeURIComponent(notification.id),
+                    {
+                        method: 'DELETE',
+                        credentials: 'same-origin',
+                        headers: {
+                            'X-CSRF-TOKEN': csrf.content,
+                            'Accept': 'application/json'
+                        }
+                    }
+                );
+
+                const data = await response.json();
+
+                if (!response.ok || !data.success) {
+                    throw new Error(
+                        data.message || 'Unable to delete notification.'
+                    );
+                }
+
+                // Remove only the deleted notification from the current account's list.
+                notifications = notifications.filter(
+                    n => String(n.id) !== String(notification.id)
+                );
+
+                renderNotifications(notifications);
+
+                updateBadge(
+                    notifications.filter(isUnread).length
+                );
+
+                // Tells the confirmation modal to close.
+                return true;
+
+            } catch (error) {
+                console.error(
+                    'Failed to delete notification:',
+                    error
+                );
+
+                window.alert(
+                    error.message || 'Unable to delete notification.'
+                );
+
+                // Keep the confirmation modal open if deletion fails.
+                return false;
+            }
+        }
+    });
+});
+
+                    item.appendChild(deleteButton);
+
+                    // Clicking elsewhere on the notification still marks it as read.
+                    item.addEventListener('click', () => markAsRead(item));
+
+                    item.addEventListener('keydown', event => {
+                        if (
+                            event.target === item &&
+                            (event.key === 'Enter' || event.key === ' ')
+                        ) {
+                            event.preventDefault();
+                            markAsRead(item);
+                        }
+                    });
+
                 item.addEventListener('keydown', event => {
                     if (event.key === 'Enter' || event.key === ' ') {
                         event.preventDefault();
