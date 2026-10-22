@@ -38,11 +38,7 @@ class reports_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ROUTE ACTIONS
-    |--------------------------------------------------------------------------
-    */
+
 
     public function index(Request $request)
     {
@@ -53,7 +49,7 @@ class reports_controller extends Controller
         return view('reports', $this->buildReport($request) + ['isPdf' => false]);
     }
 
-    // Downloads ONE card (?section=key) as PDF, respecting the date range
+
     public function download(Request $request)
     {
         if (!session('ngo_id')) {
@@ -73,25 +69,20 @@ class reports_controller extends Controller
             . now('Asia/Manila')->format('Ymd-His') . '.pdf';
 
         try {
-            // First try: with the SUHAY logo
+           
             return Pdf::loadView('reports', $data + ['useLogo' => true])
                 ->setPaper('a4', 'portrait')
                 ->download($fileName);
         } catch (\Throwable $e) {
-            report($e); // logged in storage/logs/laravel.log
+            report($e); 
 
-            // Fallback: same PDF without the logo
+          
             return Pdf::loadView('reports', $data + ['useLogo' => false])
                 ->setPaper('a4', 'portrait')
                 ->download($fileName);
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUILD REPORT (PICKS CARDS BY ROLE)
-    |--------------------------------------------------------------------------
-    */
 
     private function buildReport(Request $request, ?string $onlySection = null): array
     {
@@ -144,11 +135,6 @@ class reports_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ROLE 0: NGO HEAD  ->  Current Inventory
-    |--------------------------------------------------------------------------
-    */
 
     private function ngoHeadReport(array $c): array
     {
@@ -188,11 +174,6 @@ class reports_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ROLE 1: VOLUNTEER MANAGER  ->  Events, Volunteers, Applications
-    |--------------------------------------------------------------------------
-    */
 
     private function volunteerManagerReport(array $c): array
     {
@@ -203,7 +184,7 @@ class reports_controller extends Controller
         $accounts = $this->accountMap($allApps);
         $eventMap = $events->keyBy(fn ($e) => (string) ($e['id'] ?? ''));
 
-        /* ---------- EVENTS ---------- */
+        
 
         $eventsInRange = $events
             ->filter(fn ($e) => $this->inRange($e['date'] ?? null, $c['from'], $c['to']))
@@ -226,7 +207,7 @@ class reports_controller extends Controller
 
         $activeEvents = $eventsInRange->filter(fn ($e) => ($e['status'] ?? null) == 1)->count();
 
-        /* ---------- VOLUNTEERS ---------- */
+       
 
         $volRows = $apps
             ->filter(fn ($a) => !empty($a['account_id']))
@@ -247,7 +228,7 @@ class reports_controller extends Controller
             $this->fmtDate($v['last']),
         ])->all();
 
-        /* ---------- APPLICATIONS ---------- */
+        
 
         $appRows = $apps
             ->sortByDesc(fn ($a) => $a['application_date'] ?? '')
@@ -306,12 +287,6 @@ class reports_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ROLE 2: DONATION MANAGER  ->  By Type, Top Donors, Donation Log
-    |--------------------------------------------------------------------------
-    */
-
     private function donationManagerReport(array $c): array
     {
         $donations    = $this->donations($c);
@@ -319,7 +294,6 @@ class reports_controller extends Controller
         $totalRecords = $donations->count();
         $totalMoney   = $monetary->sum(fn ($d) => $this->amount($d));
 
-        /* ---------- BY TYPE ---------- */
 
         $typeRows = $donations
             ->groupBy(fn ($d) => $this->pretty($d['type'] ?? null))
@@ -339,7 +313,6 @@ class reports_controller extends Controller
             $totalRecords > 0 ? round($t['count'] / $totalRecords * 100, 1) . '%' : '0%',
         ])->all();
 
-        /* ---------- TOP DONORS ---------- */
 
         $donorRows = $monetary
             ->groupBy(fn ($d) => trim((string) ($d['source'] ?? '')) ?: 'Anonymous')
@@ -363,7 +336,6 @@ class reports_controller extends Controller
             ])
             ->all();
 
-        /* ---------- DONATION LOG ---------- */
 
         $logTable = $donations
             ->sortByDesc(fn ($d) => $d['date'] ?? '')
@@ -420,12 +392,6 @@ class reports_controller extends Controller
             ],
         ];
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | DATA LOADERS
-    |--------------------------------------------------------------------------
-    */
 
     private function fetch(string $table, array $query = []): Collection
     {
@@ -518,12 +484,6 @@ class reports_controller extends Controller
 
         return $name !== '' ? $name : session('user_name', 'NGO User');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | HELPERS
-    |--------------------------------------------------------------------------
-    */
 
     private function section(
         string $key,

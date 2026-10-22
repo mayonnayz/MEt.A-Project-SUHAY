@@ -107,7 +107,7 @@ public function profile()
         abort(403, 'No NGO associated with this account.');
     }
 
-    // 1. Get NGO profile
+
     $response = Http::withHeaders($headers)
         ->get(
             env('SUPABASE_URL') .
@@ -122,7 +122,7 @@ public function profile()
 
     if ($ngo) {
 
-        // 2. NGO Logo
+
         $ngo->logo_url = null;
         $ngo->email = session('user_email');
 
@@ -141,7 +141,7 @@ public function profile()
         }
 
 
-        // 3. Get ALL bank accounts
+
         $bankResponse = Http::withHeaders($headers)->get(
             env('SUPABASE_URL') .
             '/rest/v1/bank_accounts?select=*&ngo_id=eq.' . $ngo->id
@@ -152,7 +152,6 @@ public function profile()
         $ngo->bank_accounts = [];
 
 
-        // 4. Get QR codes for bank accounts
         $accountIds = array_column($bankData, 'id');
 
         if (!empty($accountIds)) {
@@ -169,8 +168,6 @@ public function profile()
 
             $mediaData = $mediaResponse->json();
 
-            // Map:
-            // bank_account_id => QR code path
             $qrCodes = [];
 
             foreach ($mediaData as $media) {
@@ -178,7 +175,6 @@ public function profile()
             }
 
 
-            // 5. Combine account + QR code
             foreach ($bankData as $account) {
 
                 $account['qr_code'] =
@@ -207,7 +203,7 @@ public function update(Request $request)
         abort(403, 'No NGO associated with this account.');
     }
 
-    // Validate organization details
+
     $validated = $request->validate([
         'name' => 'required|string|max:255',
         'description' => 'required|string',
@@ -215,7 +211,7 @@ public function update(Request $request)
         'address' => 'required|string|max:500',
     ]);
 
-    // Update NGO profile
+
     $response = Http::withHeaders($headers)->patch(
         env('SUPABASE_URL') .
         '/rest/v1/ngo_profile?id=eq.' . $ngoId,
@@ -256,12 +252,6 @@ public function addAccount(Request $request)
         abort(403, 'No NGO associated with this account.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 1. VALIDATE INPUT
-    |--------------------------------------------------------------------------
-    */
-
     $validated = $request->validate([
         'type' => 'required|string|max:50',
         'account_name' => 'required|string|max:255',
@@ -271,11 +261,6 @@ public function addAccount(Request $request)
 
     $type = strtoupper($validated['type']);
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2. ADD BANK ACCOUNT
-    |--------------------------------------------------------------------------
-    */
 
     $accountResponse = Http::withHeaders($headers)->post(
         $supabaseUrl . '/rest/v1/bank_accounts',
@@ -300,11 +285,6 @@ public function addAccount(Request $request)
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 3. GET NEW BANK ACCOUNT ID
-    |--------------------------------------------------------------------------
-    */
 
     $accountData = $accountResponse->json();
 
@@ -322,18 +302,14 @@ public function addAccount(Request $request)
 
     $bankAccountId = $accountData[0]['id'];
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4. UPLOAD QR IMAGE TO SUPABASE STORAGE
-    |--------------------------------------------------------------------------
-    */
+
 
     $file = $request->file('qr_code');
 
-    // Create unique filename
+
     $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
 
-    // Storage path inside qrcodes bucket
+
     $storagePath = 'bank_accounts/' . $ngoId . '/' . $fileName;
 
     $uploadResponse = Http::withHeaders([
@@ -360,21 +336,12 @@ public function addAccount(Request $request)
         );
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 5. CREATE PUBLIC QR IMAGE URL
-    |--------------------------------------------------------------------------
-    */
+
 
     $qrPath = $supabaseUrl .
         '/storage/v1/object/public/qrcodes/' .
         $storagePath;
 
-    /*
-    |--------------------------------------------------------------------------
-    | 6. SAVE QR PATH TO MEDIA TABLE
-    |--------------------------------------------------------------------------
-    */
 
     $mediaResponse = Http::withHeaders($headers)->post(
         $supabaseUrl . '/rest/v1/media_table',
@@ -399,12 +366,6 @@ public function addAccount(Request $request)
             'Bank account was created but QR information failed to save.'
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | 7. SUCCESS
-    |--------------------------------------------------------------------------
-    */
 
     return back()->with(
         'success',

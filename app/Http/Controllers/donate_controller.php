@@ -16,14 +16,8 @@ class donate_controller extends Controller
         ])->baseUrl(env('SUPABASE_URL') . '/rest/v1/');
     }
 
-
-    // =========================================
-    // DONATION PAGE
-    // =========================================
-
     public function index()
     {
-        // Get NGO profiles
         $ngoResponse = $this->supabase()
             ->get('ngo_profile?select=*');
 
@@ -34,7 +28,6 @@ class donate_controller extends Controller
         $ngos = $ngoResponse->json();
 
 
-        // Get all bank accounts
         $accountResponse = $this->supabase()
             ->get('bank_accounts?select=*');
 
@@ -44,8 +37,6 @@ class donate_controller extends Controller
 
         $bankAccounts = $accountResponse->json();
 
-
-        // Attach bank accounts to their respective NGO
         foreach ($ngos as &$ngo) {
 
             $ngo['bank_accounts'] = array_values(
@@ -102,10 +93,6 @@ class donate_controller extends Controller
     }
 
 
-    // =========================================
-    // SUBMIT DONATION
-    // =========================================
-
   public function submitDonation(Request $request)
 {
     $validated = $request->validate([
@@ -119,11 +106,6 @@ class donate_controller extends Controller
         'proof_of_payment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
     ]);
 
-    /*
-    |--------------------------------------------------------------------------
-    | DONOR INFORMATION
-    |--------------------------------------------------------------------------
-    */
 
     $isAnonymous = $request->boolean('anonymous');
 
@@ -136,15 +118,6 @@ class donate_controller extends Controller
         : ($validated['source'] ?? null);
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | UNIT
-    |--------------------------------------------------------------------------
-    |
-    | Monetary donations do not need a unit.
-    |
-    */
-
     if (
         $validated['type'] === 'MONETARY' ||
         $validated['type'] === 'ONLINE_MONETARY'
@@ -156,15 +129,6 @@ class donate_controller extends Controller
             : null;
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | PROOF OF PAYMENT
-    |--------------------------------------------------------------------------
-    |
-    | Only ONLINE_MONETARY requires proof.
-    |
-    */
 
     if ($validated['type'] === 'ONLINE_MONETARY') {
 
@@ -180,12 +144,6 @@ class donate_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DONATION DATA
-    |--------------------------------------------------------------------------
-    */
-
     $donationData = [
         'ngo_id' => (int) $validated['ngo_id'],
         'account_id' => $accountId,
@@ -199,24 +157,12 @@ class donate_controller extends Controller
     ];
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INSERT DONATION
-    |--------------------------------------------------------------------------
-    */
-
     $response = $this->supabase()
         ->withHeaders([
             'Prefer' => 'return=representation',
         ])
         ->post('donations_table', $donationData);
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | DONATION INSERT FAILED
-    |--------------------------------------------------------------------------
-    */
 
     if (!$response->successful()) {
 
@@ -228,13 +174,6 @@ class donate_controller extends Controller
             ])
             ->withInput();
     }
-
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET DONATION ID
-    |--------------------------------------------------------------------------
-    */
 
     $donations = $response->json();
 
@@ -253,18 +192,6 @@ class donate_controller extends Controller
 
     $donationId = $donations[0]['id'];
 
-
-/*
-|--------------------------------------------------------------------------
-| CREATE DONATION NOTIFICATION
-|--------------------------------------------------------------------------
-*/
-
-/*
-|--------------------------------------------------------------------------
-| CREATE DONATION NOTIFICATION
-|--------------------------------------------------------------------------
-*/
 
 $notificationData = [
     'title' => 'New Donation Received',
@@ -295,28 +222,7 @@ if (!$notificationResponse->successful()) {
     );
 }
 
-// $notificationResponse = $this->supabase()
-//     ->withHeaders([
-//         'Prefer' => 'return=representation',
-//     ])
-//     ->post('notifications', $notificationData);
 
-// if (!$notificationResponse->successful()) {
-//     \Illuminate\Support\Facades\Log::error(
-//         'Donation notification creation failed.',
-//         [
-//             'donation_id' => $donationId,
-//             'status' => $notificationResponse->status(),
-//             'response' => $notificationResponse->body(),
-//         ]
-//     );
-// }
-
-    /*
-    |--------------------------------------------------------------------------
-    | ONLINE MONETARY PROOF
-    |--------------------------------------------------------------------------
-    */
 
     if ($validated['type'] === 'ONLINE_MONETARY') {
 
@@ -336,19 +242,10 @@ if (!$notificationResponse->successful()) {
             . '.'
             . $extension;
 
-        /*
-        | Bucket = proof
-        | File = filename
-        */
+
 
         $storagePath = $fileName;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | UPLOAD FILE TO SUPABASE STORAGE
-        |--------------------------------------------------------------------------
-        */
 
         $uploadResponse = Http::withHeaders([
             'apikey' =>
@@ -373,12 +270,6 @@ if (!$notificationResponse->successful()) {
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | UPLOAD FAILED
-        |--------------------------------------------------------------------------
-        */
-
         if (!$uploadResponse->successful()) {
 
             $this->supabase()
@@ -397,23 +288,11 @@ if (!$notificationResponse->successful()) {
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | PUBLIC PROOF URL
-        |--------------------------------------------------------------------------
-        */
-
         $publicPath =
             env('SUPABASE_URL')
             . '/storage/v1/object/public/proof/'
             . $storagePath;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SAVE PROOF TO MEDIA TABLE
-        |--------------------------------------------------------------------------
-        */
 
         $mediaData = [
             'key_id' => $donationId,
@@ -427,12 +306,6 @@ if (!$notificationResponse->successful()) {
                 $mediaData
             );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | MEDIA INSERT FAILED
-        |--------------------------------------------------------------------------
-        */
 
         if (!$mediaResponse->successful()) {
 
@@ -466,12 +339,6 @@ if (!$notificationResponse->successful()) {
         }
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | SUCCESS
-    |--------------------------------------------------------------------------
-    */
 
     return response()->json([
     'success' => true,

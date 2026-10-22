@@ -192,31 +192,17 @@
                 <!-- ADD ITEM -->
 
                 <button
-                    type="button"
-                    class="inline-flex
-                           items-center
-                           justify-center
-                           gap-2
-                           bg-[#f2c94c]
-                           hover:bg-[#e5bb35]
-                           text-[#0e243a]
-                           px-5
-                           py-2.5
-                           rounded-full
-                           font-semibold
-                           text-sm
-                           shadow-sm
-                           transition
-                           duration-200
-                           hover:shadow-md">
+    type="button"
+    onclick="openAddItemModal()"
+    class="inline-flex items-center justify-center gap-2
+           bg-[#f2c94c] hover:bg-[#e5bb35]
+           text-[#0e243a] px-5 py-2.5 rounded-full
+           font-semibold text-sm shadow-sm transition
+           duration-200 hover:shadow-md">
 
-                    <span class="text-lg leading-none">
-                        +
-                    </span>
-
-                    Add Item
-
-                </button>
+    <span class="text-lg leading-none">+</span>
+    Add Item
+</button>
 
             </div>
 

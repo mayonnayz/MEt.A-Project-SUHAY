@@ -50,12 +50,11 @@ class event_controller extends Controller
             'order' => 'date.desc',
         ];
 
-        // ONLY filter by NGO if logged in / session exists
+
         if ($ngoId) {
             $query['ngo_id'] = "eq.$ngoId";
         }
 
-        // status filtering (keep this for both guest + admin)
         if ($request->filter === 'active') {
             $query['status'] = 'eq.1';
         } elseif ($request->filter === 'archived') {
@@ -66,7 +65,7 @@ class event_controller extends Controller
             ->get(env('SUPABASE_URL') . '/rest/v1/volunteer_events', $query);
 
         if ($response->failed()) {
-            dd($response->body()); // better debugging than dumping service key
+            dd($response->body()); 
         }
 
         $events = collect($response->json());
@@ -76,7 +75,7 @@ class event_controller extends Controller
 
         $activities = collect($activitiesResponse->json());
 
-        // attach activities to each event
+       
         $events = $events->map(function ($event) use ($activities) {
 
             $event['activities'] = $activities
@@ -114,12 +113,12 @@ class event_controller extends Controller
             'activities.*.remarks' => 'required',
         ]);
 
-        // BLOCK PAST DATES. pls don't remove this comment.
+       
         if (Carbon::parse($request->date)->isPast()) {
             return back()->with('error', 'Event date cannot be in the past.');
         }
 
-        // 1. CREATE EVENT
+       
         $eventResponse = $this->supabase()->post(
             env('SUPABASE_URL') . '/rest/v1/volunteer_events',
             [
@@ -131,7 +130,7 @@ class event_controller extends Controller
             ]
         );
 
-        // get created event
+        
         $event = $eventResponse->json()[0] ?? null;
 
         if (!$event) {
@@ -140,7 +139,7 @@ class event_controller extends Controller
 
         $eventId = $event['id'];
 
-        // 2. INSERT ACTIVITIES
+       
         foreach ($request->activities as $activity) {
             $this->supabase()->post(
                 env('SUPABASE_URL') . '/rest/v1/volunteer_activities',
@@ -168,7 +167,7 @@ class event_controller extends Controller
             return back()->with('error', 'At least one activity is required.');
         }
 
-        // 1. Update event
+
         $this->supabase()->patch(
             env('SUPABASE_URL') . "/rest/v1/volunteer_events?id=eq.$id",
             [
@@ -178,7 +177,7 @@ class event_controller extends Controller
             ]
         );
 
-        // 2. DELETE removed activities
+
         if ($request->activities_delete) {
             foreach ($request->activities_delete as $activityId) {
                 $this->supabase()->delete(
@@ -187,12 +186,12 @@ class event_controller extends Controller
             }
         }
 
-        // 3. UPDATE + INSERT activities
+      
         if ($request->activities) {
 
             foreach ($request->activities as $activity) {
 
-                // existing activity → update
+               
                 if (!empty($activity['id'])) {
                     $this->supabase()->patch(
                         env('SUPABASE_URL') . "/rest/v1/volunteer_activities?id=eq." . $activity['id'],
@@ -203,7 +202,7 @@ class event_controller extends Controller
                     );
 
                 }
-                // new activity → insert
+                
                 else {
                     $this->supabase()->post(
                         env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
@@ -276,7 +275,7 @@ class event_controller extends Controller
     {
         $ngoId = $this->getNgoIdOrNull();
 
-        // 1. Get events
+       
         $eventsResponse = $this->supabase()->get(
             env('SUPABASE_URL') . '/rest/v1/volunteer_events',
             [
@@ -296,7 +295,7 @@ class event_controller extends Controller
 
         $events = collect($eventsResponse->json());
 
-        // 2. Get assignments
+        
         $assignmentsResponse = $this->supabase()->get(
             env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
             [
@@ -314,7 +313,7 @@ class event_controller extends Controller
 
         $assignments = collect($assignmentsResponse->json());
 
-        // 3. Get activities
+        
         $activitiesResponse = $this->supabase()->get(
             env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
             [
@@ -332,10 +331,10 @@ class event_controller extends Controller
 
         $activities = collect($activitiesResponse->json());
 
-        // 4. Count volunteers per event
+        
         $events = $events->map(function ($event) use ($assignments, $activities) {
 
-            // Make sure event is an array
+            
             if (!is_array($event)) {
                 return $event;
             }
@@ -347,7 +346,7 @@ class event_controller extends Controller
                 return $event;
             }
 
-            // Get activity IDs belonging to this event
+            
             $eventActivityIds = $activities
                 ->filter(function ($activity) use ($eventId) {
                     return is_array($activity)
@@ -357,7 +356,7 @@ class event_controller extends Controller
                 })
                 ->pluck('id');
 
-            // Count unique volunteers assigned to those activities
+          
             $uniqueCount = $assignments
                 ->filter(function ($assignment) use ($eventActivityIds) {
                     return is_array($assignment)
@@ -380,7 +379,7 @@ class event_controller extends Controller
 
     public function getActivities($eventId)
     {
-        // 1. Get activities (ONLY for this event)
+       
         $activities = collect(
             $this->supabase()->get(
                 env('SUPABASE_URL') . "/rest/v1/volunteer_activities",
@@ -391,7 +390,6 @@ class event_controller extends Controller
             )->json()
         );
 
-        // 2. Get assignments WITH ID (FIX IS HERE)
         $assignments = collect(
             $this->supabase()->get(
                 env('SUPABASE_URL') . "/rest/v1/volunteer_assignments",
@@ -401,7 +399,7 @@ class event_controller extends Controller
             )->json()
         );
 
-        // 3. Attach assignments to activities
+
         $activities = $activities->map(function ($act) use ($assignments) {
 
             $act['volunteer_assignments'] = $assignments

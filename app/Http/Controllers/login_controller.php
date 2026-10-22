@@ -20,7 +20,7 @@ class login_controller extends Controller
 
         try {
 
-            // Check if email already exists
+            
             $existingUser = Http::withHeaders([
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -41,7 +41,7 @@ class login_controller extends Controller
                     ->with('error', 'This email is already registered. Please use a different email.');
             }
 
-            // Create account
+            
             $response = Http::withHeaders([
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
                 'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -93,7 +93,7 @@ public function login(Request $request)
 
         $baseUrl = env('SUPABASE_URL') . '/rest/v1/';
 
-        // GET ACCOUNT
+       
         $response = Http::withHeaders($headers)->get(
             $baseUrl . 'accounts',
             [
@@ -139,7 +139,7 @@ public function login(Request $request)
             $profilePicture = $profileMedia[0]['path'] ?? null;
         }
 
-        // GET NGO LOGO
+      
         $ngoLogoUrl = null;
 
         if ($ngoId !== null) {
@@ -175,7 +175,7 @@ public function login(Request $request)
             }
         }
 
-        // STORE SESSION
+      
         session([
             'user_id' => $accountId,
             'user_name' => $user['first_name'] . ' ' . $user['last_name'],

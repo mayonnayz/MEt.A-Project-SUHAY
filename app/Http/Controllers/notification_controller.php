@@ -8,12 +8,6 @@ use Illuminate\Support\Facades\Log;
 
 class notification_controller extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | SUPABASE CONNECTION
-    |--------------------------------------------------------------------------
-    */
-
     private function supabase()
     {
         return Http::withHeaders([
@@ -24,12 +18,6 @@ class notification_controller extends Controller
             rtrim(env('SUPABASE_URL'), '/') . '/rest/v1/'
         );
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | GET LOGGED-IN ACCOUNT
-    |--------------------------------------------------------------------------
-    */
 
     private function getLoggedInAccount()
     {
@@ -84,19 +72,9 @@ class notification_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | GET NOTIFICATIONS
-    |--------------------------------------------------------------------------
-    |
-    | is_read = 0 : Unread
-    | is_read = 1 : Read
-    | is_read = 2 : Deleted/hidden for this account
-    |
-    | Deletion is account-specific.
-    | Shared notifications are never deleted by this method.
-    |
-    */
+    //is_read = 0 : Unread
+    //is_read = 1 : Read
+    //is_read = 2 : Deleted for this account
 
     public function getNotifications()
     {
@@ -111,7 +89,7 @@ class notification_controller extends Controller
             $role = (int) $accountData['role'];
             $ngoId = $accountData['ngo_id'];
 
-            // 1. Fetch this account's notification statuses.
+            
             $statusResponse = $this->supabase()->get(
                 'notification_status',
                 [
@@ -158,7 +136,6 @@ class notification_controller extends Controller
 
             $notifications = [];
 
-            // 2. Fetch NGO-wide notifications based on role.
             if (in_array($role, [0, 1, 2], true) && $ngoId !== null) {
                 $ngoFilters = [
                     'select' => 'id,title,message,type,reference_id,created_at,related_id',
@@ -167,17 +144,16 @@ class notification_controller extends Controller
                     'limit' => 100,
                 ];
 
-                // NGO Head: all notifications for the NGO.
                 if ($role === 0) {
-                    // No additional type filter.
+            
                 }
 
-                // Volunteer Manager.
+               
                 elseif ($role === 1) {
                     $ngoFilters['type'] = 'eq.Volunteer Application';
                 }
 
-                // Donation Manager.
+               
                 elseif ($role === 2) {
                     $ngoFilters['type'] = 'eq.Donation';
                 }
@@ -205,8 +181,7 @@ class notification_controller extends Controller
                 $notifications = $ngoResponse->json() ?? [];
             }
 
-            // 3. Fetch personal notifications.
-            // Only notifications with related_id = NULL qualify.
+
             $personalNotificationIds = array_values(
                 array_unique($personalNotificationIds)
             );
@@ -244,7 +219,7 @@ class notification_controller extends Controller
                 );
             }
 
-            // 4. Remove duplicates and hide deleted notifications.
+     
             $uniqueNotifications = [];
 
             foreach ($notifications as $notification) {
@@ -266,7 +241,7 @@ class notification_controller extends Controller
 
             $notifications = array_values($uniqueNotifications);
 
-            // 5. Sort newest first.
+     
             usort($notifications, function ($a, $b) {
                 $dateA = strtotime($a['created_at'] ?? '') ?: 0;
                 $dateB = strtotime($b['created_at'] ?? '') ?: 0;
@@ -278,7 +253,7 @@ class notification_controller extends Controller
                 return $dateB <=> $dateA;
             });
 
-            // 6. Calculate unread count.
+
             $unreadCount = count(array_filter(
                 $notifications,
                 fn ($notification) => !$notification['is_read']
@@ -304,15 +279,6 @@ class notification_controller extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MARK NOTIFICATION AS READ
-    |--------------------------------------------------------------------------
-    |
-    | Updates only the logged-in account's status.
-    | Does not restart the read countdown when already read.
-    |
-    */
 
     public function markAsRead($notificationId)
     {
@@ -339,7 +305,7 @@ class notification_controller extends Controller
 
             $notificationId = (int) $notificationId;
 
-            // Retrieve notification.
+          
             $notificationResponse = $this->supabase()->get(
                 'notifications',
                 [
@@ -370,7 +336,7 @@ class notification_controller extends Controller
                 ], 404);
             }
 
-            // Verify access.
+   
             if ($notification['related_id'] === null) {
                 $ownershipResponse = $this->supabase()->get(
                     'notification_status',
@@ -408,7 +374,7 @@ class notification_controller extends Controller
                 }
             }
 
-            // Retrieve this account's status.
+  
             $statusLookup = $this->supabase()->get(
                 'notification_status',
                 [
@@ -428,7 +394,7 @@ class notification_controller extends Controller
 
             $existingStatus = $statusLookup->json()[0] ?? null;
 
-            // Do not restore a manually deleted notification.
+
             if (
                 $existingStatus &&
                 (int) $existingStatus['is_read'] === 2
@@ -439,7 +405,7 @@ class notification_controller extends Controller
                 ], 410);
             }
 
-            // Preserve the original read timestamp if already read.
+
             if (
                 $existingStatus &&
                 (int) $existingStatus['is_read'] === 1
@@ -506,19 +472,6 @@ class notification_controller extends Controller
         }
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | MANUALLY DELETE NOTIFICATION
-    |--------------------------------------------------------------------------
-    |
-    | is_read = 2 means hidden for the current account.
-    |
-    | Does not physically delete the shared notification.
-    | Does not delete another account's notification_status row.
-    | Sets updated_at to start the 30-day deletion countdown.
-    |
-    */
-
     public function deleteNotification($notificationId)
     {
         try {
@@ -544,7 +497,7 @@ class notification_controller extends Controller
 
             $notificationId = (int) $notificationId;
 
-            // 1. Retrieve notification.
+    
             $notificationResponse = $this->supabase()->get(
                 'notifications',
                 [
@@ -575,9 +528,9 @@ class notification_controller extends Controller
                 ], 404);
             }
 
-            // 2. Verify permission.
+
             if ($notification['related_id'] === null) {
-                // Personal notification: require this account's status row.
+                
                 $ownershipResponse = $this->supabase()->get(
                     'notification_status',
                     [
@@ -602,7 +555,7 @@ class notification_controller extends Controller
                     ], 403);
                 }
             } else {
-                // NGO-wide notification: require same NGO and staff role.
+               
                 if (
                     !in_array($role, [0, 1, 2], true) ||
                     $ngoId === null ||
@@ -615,7 +568,7 @@ class notification_controller extends Controller
                 }
             }
 
-            // 3. Retrieve only this account's status.
+         
             $statusLookup = $this->supabase()->get(
                 'notification_status',
                 [
@@ -635,7 +588,6 @@ class notification_controller extends Controller
 
             $existingStatus = $statusLookup->json()[0] ?? null;
 
-            // Repeated deletion should not restart the countdown.
             if (
                 $existingStatus &&
                 (int) $existingStatus['is_read'] === 2
@@ -649,7 +601,7 @@ class notification_controller extends Controller
 
             $now = now('UTC')->toIso8601String();
 
-            // 4. Mark deleted for this account only.
+      
             if ($existingStatus) {
                 $statusResponse = $this->supabase()->patch(
                     'notification_status?id=eq.' .
@@ -660,7 +612,7 @@ class notification_controller extends Controller
                     ]
                 );
             } else {
-                // Create a deletion marker for this account.
+
                 $statusResponse = $this->supabase()->post(
                     'notification_status',
                     [[

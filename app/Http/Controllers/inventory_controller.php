@@ -13,9 +13,6 @@ class inventory_controller extends Controller
         $supabaseUrl = env('SUPABASE_URL');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-        // =========================================================
-        // 1. GET INVENTORY
-        // =========================================================
 
         $inventoryResponse = Http::withHeaders([
             'apikey' => $supabaseKey,
@@ -26,11 +23,6 @@ class inventory_controller extends Controller
 
         $inventory = collect($inventoryResponse->json());
 
-
-        // =========================================================
-        // 2. GET MOVEMENT DATA
-        // =========================================================
-
         $movementResponse = Http::withHeaders([
             'apikey' => $supabaseKey,
             'Authorization' => 'Bearer ' . $supabaseKey,
@@ -39,11 +31,6 @@ class inventory_controller extends Controller
         ]);
 
         $movements = collect($movementResponse->json());
-
-
-        // =========================================================
-        // 3. COMPUTE LAST MOVEMENT DATE PER ITEM
-        // =========================================================
 
         $lastMovementMap = [];
 
@@ -65,26 +52,13 @@ class inventory_controller extends Controller
             }
         }
 
-
-        // =========================================================
-        // 4. ATTACH COMPUTED FIELDS
-        // =========================================================
-
         $inventory = $inventory->map(function ($item) use ($lastMovementMap) {
 
             $item = (object) $item;
 
-            // -----------------------------------------------------
-            // Last movement date
-            // -----------------------------------------------------
-
             $item->last_movement_date =
                 $lastMovementMap[$item->id] ?? null;
 
-
-            // -----------------------------------------------------
-            // Stock status
-            // -----------------------------------------------------
 
             if ($item->current_quantity == 0) {
 
@@ -106,20 +80,9 @@ class inventory_controller extends Controller
         });
 
 
-        // =========================================================
-        // 5. SORT INVENTORY
-        // =========================================================
-        //
-        // Priority:
-        //
         // 0 = No Stock
         // 1 = Low Stock
         // 2 = In Stock
-        //
-        // Items with the same stock status are sorted
-        // alphabetically by item name.
-        // =========================================================
-
         $inventory = $inventory
             ->sortBy([
                 function ($item) {
@@ -146,10 +109,6 @@ class inventory_controller extends Controller
             ->values();
 
 
-        // =========================================================
-        // 6. GET UNIQUE CATEGORIES
-        // =========================================================
-
         $categories = $inventory
             ->pluck('category')
             ->filter()
@@ -157,10 +116,6 @@ class inventory_controller extends Controller
             ->sort()
             ->values();
 
-
-        // =========================================================
-        // 7. MANUAL PAGINATION
-        // =========================================================
 
         $currentPage = LengthAwarePaginator::resolveCurrentPage();
 
@@ -185,9 +140,6 @@ class inventory_controller extends Controller
         );
 
 
-        // =========================================================
-        // 8. RETURN VIEW
-        // =========================================================
 
         return view('inventory-master-list', [
             'inventory' => $inventoryPaginated,
@@ -196,21 +148,12 @@ class inventory_controller extends Controller
     }
 
 
-    // =============================================================
-    // UPDATE INVENTORY ITEM
-    // =============================================================
-
     public function update(Request $request, $id)
     {
         $supabaseUrl = env('SUPABASE_URL');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
         $data = $request->json()->all();
-
-
-        // =========================================================
-        // UPDATE ITEM IN SUPABASE
-        // =========================================================
 
         $response = Http::withHeaders([
             'apikey' => $supabaseKey,
@@ -227,10 +170,6 @@ class inventory_controller extends Controller
             ]
         );
 
-
-        // =========================================================
-        // RETURN RESPONSE
-        // =========================================================
 
         return response()->json([
             'message' => 'Inventory updated successfully',
