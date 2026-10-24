@@ -6,11 +6,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const filterType = document.getElementById("filterType");
     const cards = document.querySelectorAll(".donation-card");
 
-
-    // =========================================================
-    // SEARCH + FILTER
-    // =========================================================
-
     function filterDonations() {
 
         const search = searchInput.value.toLowerCase().trim();
@@ -30,16 +25,12 @@ document.addEventListener("DOMContentLoaded", function () {
             const type =
                 card.dataset.type || "";
 
-
-            // SEARCH
             const matchSearch =
                 name.includes(search) ||
                 description.includes(search) ||
                 source.includes(search) ||
                 type.includes(search);
 
-
-            // FILTER
             let matchFilter = true;
 
             if (filter !== "") {
@@ -49,8 +40,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
 
-
-            // DISPLAY
             if (matchSearch && matchFilter) {
 
                 card.classList.remove("hidden");
@@ -76,11 +65,6 @@ document.addEventListener("DOMContentLoaded", function () {
         filterDonations
     );
 
-
-    // =========================================================
-    // VIEW DONATION
-    // =========================================================
-
     document.querySelectorAll(".viewBtn").forEach(button => {
 
         button.addEventListener("click", function (e) {
@@ -91,19 +75,9 @@ document.addEventListener("DOMContentLoaded", function () {
             const type =
                 (this.dataset.type || "").toUpperCase();
 
-
-            // -------------------------------------------------
-            // NGO
-            // -------------------------------------------------
-
             document.getElementById("modalNgo")
                 .textContent =
                 this.dataset.ngo || "N/A";
-
-
-            // -------------------------------------------------
-            // TYPE
-            // -------------------------------------------------
 
             let displayType = this.dataset.type || "N/A";
 
@@ -128,32 +102,15 @@ document.addEventListener("DOMContentLoaded", function () {
             document.getElementById("modalType")
                 .textContent = displayType;
 
-
-            // -------------------------------------------------
-            // DESCRIPTION
-            // -------------------------------------------------
-
             document.getElementById("modalDescription")
                 .textContent =
                 this.dataset.description || "N/A";
-
-
-            // -------------------------------------------------
-            // AMOUNT
-            // -------------------------------------------------
 
             const amountRow =
                 document.getElementById("amountRow");
 
             const modalAmount =
                 document.getElementById("modalAmount");
-
-
-            /*
-             * MONEY TYPES:
-             * MONETARY
-             * ONLINE_MONETARY
-             */
 
             if (
                 type === "MONETARY" ||
@@ -187,11 +144,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
 
-
-            // -------------------------------------------------
-            // UNIT
-            // -------------------------------------------------
-
             const unitRow =
                 document.getElementById("unitRow");
 
@@ -213,28 +165,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
             }
 
-
-            // -------------------------------------------------
-            // SOURCE
-            // -------------------------------------------------
-
             document.getElementById("modalSource")
                 .textContent =
                 this.dataset.source || "N/A";
 
-
-            // -------------------------------------------------
-            // REFERENCE NUMBER
-            // -------------------------------------------------
-
             document.getElementById("modalReference")
                 .textContent =
                 this.dataset.reference || "N/A";
-
-
-            // -------------------------------------------------
-            // DATE
-            // -------------------------------------------------
 
             let date = this.dataset.date || "";
 
@@ -263,11 +200,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 .textContent =
                 date || "N/A";
 
-
-            // -------------------------------------------------
-            // STATUS
-            // -------------------------------------------------
-
             let status =
                 (this.dataset.status || "N/A")
                     .toUpperCase()
@@ -276,11 +208,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             document.getElementById("modalStatus")
                 .textContent = status;
-
-
-            // -------------------------------------------------
-            // SHOW MODAL
-            // -------------------------------------------------
 
             document.getElementById("viewModal")
                 .style.display = "flex";
@@ -291,22 +218,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-
-// =========================================================
-// CLOSE DONATION MODAL
-// =========================================================
-
 function closeModal() {
 
     document.getElementById("viewModal")
         .style.display = "none";
 
 }
-
-
-// =========================================================
-// LOGOUT MODAL
-// =========================================================
 
 function openLogoutModal() {
 
@@ -317,7 +234,6 @@ function openLogoutModal() {
         .classList.add("flex");
 
 }
-
 
 function closeLogoutModal() {
 

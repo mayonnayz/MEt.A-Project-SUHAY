@@ -1,6 +1,3 @@
-// =============================
-// LIVE SEARCH + SKILL FILTER
-// =============================
 const eventHistoryButton =
     document.getElementById('eventHistoryButton');
 
@@ -45,19 +42,9 @@ function filterVolunteers() {
         });
 }
 
-
-// =============================
-// LIVE SEARCH
-// =============================
-
 searchInput.addEventListener('input', function () {
     filterVolunteers();
 });
-
-
-// =============================
-// SKILL FILTER
-// =============================
 
 skillFilter.addEventListener('change', function () {
     filterVolunteers();

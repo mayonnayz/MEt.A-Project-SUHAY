@@ -1,7 +1,3 @@
-// ========================================
-// DATA FROM BLADE
-// ========================================
-
 const ngoData = window.ngoData || [];
 const assets = window.suhayAssets || {};
 function openLogoutModal() {
@@ -51,25 +47,11 @@ function closeLogoutModal() {
 
 }
 
-// ========================================
-// OPEN NGO MODAL
-// ========================================
-
 function openModal(id) {
 
     const ngo = ngoData.find(n => n.id == id) || {};
 
-
-    // ========================================
-    // NGO LOGO
-    // ========================================
-
     const logoUrl = ngo.logo_url || assets.logo;
-
-
-    // ========================================
-    // MODAL CONTENT
-    // ========================================
 
     document.getElementById('modalContent').innerHTML = `
 
@@ -175,11 +157,6 @@ function openModal(id) {
 
     `;
 
-
-    // ========================================
-    // SHOW MODAL
-    // ========================================
-
     const modal = document.getElementById('ngoModal');
     const content = document.getElementById('modalContent');
 
@@ -191,11 +168,6 @@ function openModal(id) {
 
     document.body.style.overflow = 'hidden';
 }
-
-
-// ========================================
-// CLOSE MODAL
-// ========================================
 
 function closeModal() {
 
@@ -220,11 +192,6 @@ function closeModal() {
 
     }, 250);
 }
-
-
-// ========================================
-// CLICK OUTSIDE MODAL
-// ========================================
 
 const ngoModal =
     document.getElementById('ngoModal');

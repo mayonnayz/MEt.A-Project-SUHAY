@@ -8,8 +8,6 @@
         class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-2xl shadow-xl"
     >
 
-        <!-- JavaScript will insert the modal content here -->
-
     </div>
 
 </div>

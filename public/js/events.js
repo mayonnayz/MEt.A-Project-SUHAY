@@ -1,19 +1,10 @@
 document.addEventListener("DOMContentLoaded", function () {
-
-    // =========================================================
-    // BLOCK PAST DATE. pls don't remove this comment
-    // =========================================================
     const dateInput = document.getElementById("eventDate");
 
     if (dateInput) {
         const today = new Date().toISOString().split("T")[0];
         dateInput.setAttribute("min", today);
     }
-
-
-    // =========================================================
-    // TOAST MESSAGE
-    // =========================================================
     setTimeout(() => {
 
         const err = document.getElementById("toastError");
@@ -24,10 +15,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }, 3000);
 
-
-    // =========================================================
-    // ADD EVENT FORM VALIDATION
-    // =========================================================
     const addForm = document.getElementById("addEventForm");
 
     if (addForm) {
@@ -69,30 +56,13 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 
-
-// =========================================================
-// ACTIVITY INDEX
-// =========================================================
-
 let activityIndex = 1;
 let editActivityIndex = 1000;
-
-
-// =========================================================
-// EDIT ORIGINAL VALUES
-// =========================================================
-
 let originalName = "";
 let originalDescription = "";
 let originalDate = "";
 let originalActivities = [];
-
 let currentId = null;
-
-
-// =========================================================
-// LOGOUT MODAL
-// =========================================================
 
 function openLogoutModal() {
 
@@ -114,11 +84,6 @@ function closeLogoutModal() {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
 }
-
-
-// =========================================================
-// EDIT EVENT MODAL
-// =========================================================
 
 function openEditModal(row) {
 
@@ -148,11 +113,6 @@ function openEditModal(row) {
 
     currentId = id;
 
-
-    // =========================================================
-    // SAVE ORIGINAL VALUES
-    // =========================================================
-
     originalName = name;
     originalDescription = description;
     originalDate = date;
@@ -160,11 +120,6 @@ function openEditModal(row) {
     originalActivities = JSON.parse(
         JSON.stringify(activities)
     );
-
-
-    // =========================================================
-    // EVENT DETAILS
-    // =========================================================
 
     const editId =
         document.getElementById("editId");
@@ -201,7 +156,6 @@ function openEditModal(row) {
 
         editDate.value = date;
 
-        // BLOCK PAST DATES. pls do not remove this comment
         const today =
             new Date().toISOString().split("T")[0];
 
@@ -213,21 +167,11 @@ function openEditModal(row) {
         editForm.action = `/events/${id}`;
     }
 
-
-    // =========================================================
-    // CLEAR OLD DELETE FLAGS
-    // =========================================================
-
     document
         .querySelectorAll(
             '#editForm input[name="activities_delete[]"]'
         )
         .forEach(input => input.remove());
-
-
-    // =========================================================
-    // CLEAR OLD ACTIVITIES
-    // =========================================================
 
     const container =
         document.getElementById(
@@ -237,11 +181,6 @@ function openEditModal(row) {
     if (!container) return;
 
     container.innerHTML = "";
-
-
-    // =========================================================
-    // LOAD ACTIVITIES
-    // =========================================================
 
     if (activities.length === 0) {
 
@@ -308,11 +247,6 @@ function openEditModal(row) {
         });
     }
 
-
-    // =========================================================
-    // SHOW EDIT MODAL
-    // =========================================================
-
     const modal =
         document.getElementById("editModal");
 
@@ -323,22 +257,12 @@ function openEditModal(row) {
     }
 }
 
-
-// =========================================================
-// CLOSE EDIT MODAL
-// =========================================================
-
 function closeEditModal() {
 
     const modal =
         document.getElementById("editModal");
 
     if (!modal) return;
-
-
-    // =========================================================
-    // CURRENT EVENT DETAILS
-    // =========================================================
 
     const nameElement =
         document.getElementById("editName");
@@ -365,34 +289,18 @@ function closeEditModal() {
             ? dateElement.value
             : "";
 
-
-    // =========================================================
-    // CHECK DETAILS
-    // =========================================================
-
     const detailsChanged =
         currentName !== originalName.trim() ||
         currentDescription !== originalDescription.trim() ||
         currentDate !== originalDate;
-
-
-    // =========================================================
-    // CHECK DELETE FLAGS
-    // =========================================================
 
     const deleteInputs =
         document.querySelectorAll(
             '#editForm input[name="activities_delete[]"]'
         );
 
-
     const activitiesDeleted =
         deleteInputs.length > 0;
-
-
-    // =========================================================
-    // CHECK ACTIVITY CHANGES
-    // =========================================================
 
     let activitiesChanged = false;
 
@@ -401,10 +309,7 @@ function closeEditModal() {
             "#edit-activities-container .activity-item"
         );
 
-
-    // Number of visible/current activities
     const currentActivities = [];
-
 
     activityItems.forEach(item => {
 
@@ -447,11 +352,6 @@ function closeEditModal() {
                 : ""
         });
     });
-
-
-    // =========================================================
-    // COMPARE ACTIVITIES
-    // =========================================================
 
     if (
         currentActivities.length !==
@@ -499,20 +399,10 @@ function closeEditModal() {
         }
     }
 
-
-    // =========================================================
-    // FINAL CHANGE CHECK
-    // =========================================================
-
     const hasChanges =
         detailsChanged ||
         activitiesChanged ||
         activitiesDeleted;
-
-
-    // =========================================================
-    // CLOSE IF NOTHING CHANGED
-    // =========================================================
 
     if (!hasChanges) {
 
@@ -521,11 +411,6 @@ function closeEditModal() {
 
         return;
     }
-
-
-    // =========================================================
-    // CONFIRM UNSAVED CHANGES
-    // =========================================================
 
     if (
         confirm(
@@ -537,11 +422,6 @@ function closeEditModal() {
         modal.classList.remove("flex");
     }
 }
-
-
-// =========================================================
-// ADD EVENT MODAL
-// =========================================================
 
 function openAddModal() {
 
@@ -565,11 +445,6 @@ function closeAddModal() {
     modal.classList.add("hidden");
     modal.classList.remove("flex");
 }
-
-
-// =========================================================
-// ADD ACTIVITY
-// =========================================================
 
 function addActivity() {
 
@@ -623,11 +498,6 @@ function addActivity() {
     activityIndex++;
 }
 
-
-// =========================================================
-// ADD EDIT ACTIVITY
-// =========================================================
-
 function addEditActivity() {
 
     const container =
@@ -637,8 +507,6 @@ function addEditActivity() {
 
     if (!container) return;
 
-
-    // Remove "No activities loaded yet."
     const emptyMessage =
         container.querySelector("p");
 
@@ -689,11 +557,6 @@ function addEditActivity() {
     editActivityIndex++;
 }
 
-
-// =========================================================
-// DELETE / MARK ACTIVITY FOR DELETION
-// =========================================================
-
 function markDeleteActivity(button) {
 
     const item =
@@ -707,8 +570,6 @@ function markDeleteActivity(button) {
             "#edit-activities-container .activity-item"
         );
 
-
-    // Prevent deleting last activity
     const visibleItems =
         Array.from(allItems).filter(
             activity =>
@@ -731,11 +592,6 @@ function markDeleteActivity(button) {
             'input[type="hidden"]'
         );
 
-
-    // =========================================================
-    // EXISTING ACTIVITY
-    // =========================================================
-
     if (
         idInput &&
         idInput.value !== ""
@@ -747,8 +603,6 @@ function markDeleteActivity(button) {
             "marked-delete"
         );
 
-
-        // Prevent duplicate delete inputs
         const existingDelete =
             document.querySelector(
                 `#editForm input[name="activities_delete[]"][value="${CSS.escape(idInput.value)}"]`
@@ -785,19 +639,9 @@ function markDeleteActivity(button) {
 
 
     } else {
-
-        // =====================================================
-        // NEW UNSAVED ACTIVITY
-        // =====================================================
-
         item.remove();
     }
 }
-
-
-// =========================================================
-// HTML ESCAPE
-// =========================================================
 
 function escapeHtml(value) {
 
@@ -809,11 +653,6 @@ function escapeHtml(value) {
 
     return div.innerHTML;
 }
-
-
-// =========================================================
-// EVENT DETAILS MODAL
-// =========================================================
 
 function openEventModal(row) {
 
@@ -855,11 +694,6 @@ function openEventModal(row) {
         activities = [];
     }
 
-
-    // =========================================================
-    // EVENT INFORMATION
-    // =========================================================
-
     const nameElement =
         document.getElementById(
             "eventModalName"
@@ -891,11 +725,6 @@ function openEventModal(row) {
             description;
     }
 
-
-    // =========================================================
-    // STATUS
-    // =========================================================
-
     const statusElement =
         document.getElementById(
             "eventModalStatus"
@@ -921,11 +750,6 @@ function openEventModal(row) {
                 "bg-white text-gray-500 p-3 rounded-md mt-1 font-bold";
         }
     }
-
-
-    // =========================================================
-    // ACTIVITIES
-    // =========================================================
 
     const activitiesContainer =
         document.getElementById(
@@ -982,11 +806,6 @@ function openEventModal(row) {
         }
     }
 
-
-    // =========================================================
-    // ACTION FORMS
-    // =========================================================
-
     const archiveForm =
         document.getElementById(
             "eventArchiveForm"
@@ -997,19 +816,7 @@ function openEventModal(row) {
             "eventReactivateForm"
         );
 
-
-    // IMPORTANT:
-    // Do NOT look for eventArchiveButton or
-    // eventReactivateButton because those IDs
-    // are not in your Blade.
-
-
     if (status == "1") {
-
-        // =====================================================
-        // ACTIVE EVENT
-        // =====================================================
-
         if (archiveForm) {
 
             archiveForm.action =
@@ -1029,11 +836,6 @@ function openEventModal(row) {
         }
 
     } else {
-
-        // =====================================================
-        // ARCHIVED EVENT
-        // =====================================================
-
         if (reactivateForm) {
 
             reactivateForm.action =
@@ -1053,11 +855,6 @@ function openEventModal(row) {
         }
     }
 
-
-    // =========================================================
-    // EDIT BUTTON
-    // =========================================================
-
     const editButton =
         document.getElementById(
             "eventEditButton"
@@ -1073,12 +870,6 @@ function openEventModal(row) {
             openEditModal(row);
         };
     }
-
-
-    // =========================================================
-    // SHOW MODAL
-    // =========================================================
-
     const modal =
         document.getElementById(
             "eventModal"
@@ -1096,11 +887,6 @@ function openEventModal(row) {
         );
     }
 }
-
-
-// =========================================================
-// CLOSE EVENT MODAL
-// =========================================================
 
 function closeEventModal() {
 

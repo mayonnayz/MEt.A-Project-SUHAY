@@ -1,9 +1,4 @@
 document.addEventListener("DOMContentLoaded", function () {
-
-    // =========================================================
-    // ELEMENTS
-    // =========================================================
-
     const modal = document.getElementById("logActivityModal");
     const form = document.getElementById("logActivityForm");
 
@@ -21,54 +16,23 @@ document.addEventListener("DOMContentLoaded", function () {
     const eventFilter = document.getElementById("activityFilter");
     const searchInput = document.getElementById("searchInput");
 
-    // Event field in the modal
     const eventInput = document.getElementById("activityEvent");
 
-
-    // =========================================================
-    // OPEN MODAL - ADD MODE
-    // =========================================================
-
     window.openLogActivityModal = function () {
-
-        // Reset form first
         form.reset();
-
-        // Make sure assignment ID is empty
         assignmentId.value = "";
-
-        // Change title
         modalTitle.textContent = "Log Volunteer Activity";
-
-        // Change button
         submitButton.textContent = "Save";
-
-        // Store mode
         form.dataset.mode = "add";
-
-        // Store action
         form.action = "/track-activity/store";
-
-        // -----------------------------------------------------
-        // Hide Remove Assignment button in ADD mode
-        // -----------------------------------------------------
 
         if (removeButton) {
             removeButton.classList.add("hidden");
         }
 
-        // -----------------------------------------------------
-        // Clear Event field
-        // -----------------------------------------------------
-
         if (eventInput) {
             eventInput.value = "";
         }
-
-        // -----------------------------------------------------
-        // Time In / Time Out are disabled initially.
-        // We don't know the event date yet.
-        // -----------------------------------------------------
 
         timeInInput.disabled = true;
         timeOutInput.disabled = true;
@@ -83,23 +47,11 @@ document.addEventListener("DOMContentLoaded", function () {
             message.textContent =
                 "Time In and Time Out will be available on the event date.";
         }
-
-        // Open modal
         modal.classList.remove("hidden");
         modal.classList.add("flex");
     };
 
-
-    // =========================================================
-    // OPEN MODAL - EDIT MODE
-    // =========================================================
-
     window.openEditActivityModal = function (row) {
-
-        // -----------------------------------------------------
-        // Get data from table row
-        // -----------------------------------------------------
-
         const rowAssignmentId =
             row.dataset.assignmentId;
 
@@ -124,11 +76,6 @@ document.addEventListener("DOMContentLoaded", function () {
         const rowStatus =
             row.dataset.status;
 
-
-        // -----------------------------------------------------
-        // Put row data into modal
-        // -----------------------------------------------------
-
         assignmentId.value =
             rowAssignmentId || "";
 
@@ -138,13 +85,10 @@ document.addEventListener("DOMContentLoaded", function () {
         activitySelect.value =
             rowActivityId || "";
 
-        // Event
         if (eventInput) {
             eventInput.value = rowEvent || "";
         }
 
-
-        // PostgreSQL TIME fields
         timeInInput.value =
             formatTimeForInput(rowTimeIn);
 
@@ -155,17 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
         statusSelect.value =
             rowStatus || "0";
 
-
-        // -----------------------------------------------------
-        // Enable/disable time inputs based on EVENT DATE
-        // -----------------------------------------------------
-
         updateTimeInputs(rowEventDate);
-
-
-        // -----------------------------------------------------
-        // Change modal to EDIT mode
-        // -----------------------------------------------------
 
         modalTitle.textContent =
             "Edit Volunteer Activity";
@@ -179,16 +113,7 @@ document.addEventListener("DOMContentLoaded", function () {
         form.action =
             "/track-activity/update";
 
-
-        // -----------------------------------------------------
-        // SHOW REMOVE ASSIGNMENT BUTTON
-        // -----------------------------------------------------
-
         if (removeButton) {
-
-            // Show Remove Assignment only when assignment exists
-            // and the activity is not completed.
-
             if (rowAssignmentId && rowStatus !== "1") {
 
                 removeButton.classList.remove("hidden");
@@ -200,30 +125,15 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
 
-
-        // -----------------------------------------------------
-        // Open modal
-        // -----------------------------------------------------
-
         modal.classList.remove("hidden");
         modal.classList.add("flex");
     };
-
-
-    // =========================================================
-    // CLOSE MODAL
-    // =========================================================
 
     window.closeLogActivityModal = function () {
 
         modal.classList.add("hidden");
         modal.classList.remove("flex");
     };
-
-
-    // =========================================================
-    // CLICK TABLE ROW
-    // =========================================================
 
     document.querySelectorAll(".activity-row").forEach(function (row) {
 
@@ -235,18 +145,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-
-    // =========================================================
-    // FORMAT TIME FOR <input type="time">
-    // =========================================================
-    /*
-     * Database:
-     * 15:50:22
-     *
-     * HTML input:
-     * 15:50
-     */
-
     function formatTimeForInput(value) {
 
         if (!value) {
@@ -256,21 +154,10 @@ document.addEventListener("DOMContentLoaded", function () {
         return value.substring(0, 5);
     }
 
-
-    // =========================================================
-    // ENABLE / DISABLE TIME INPUTS
-    // BASED ON EVENT DATE
-    // =========================================================
-
     function updateTimeInputs(eventDate) {
 
         const message =
             document.getElementById("timeDisabledMessage");
-
-
-        // -----------------------------------------------------
-        // No event date
-        // -----------------------------------------------------
 
         if (!eventDate) {
 
@@ -285,22 +172,12 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-
-        // -----------------------------------------------------
-        // Get today's local date
-        // -----------------------------------------------------
-
         const today = new Date();
 
         const todayString =
             today.getFullYear() + "-" +
             String(today.getMonth() + 1).padStart(2, "0") + "-" +
             String(today.getDate()).padStart(2, "0");
-
-
-        // -----------------------------------------------------
-        // Event date is today or already passed
-        // -----------------------------------------------------
 
         if (eventDate <= todayString) {
 
@@ -313,11 +190,6 @@ document.addEventListener("DOMContentLoaded", function () {
             }
 
         }
-
-
-        // -----------------------------------------------------
-        // Event date is in the future
-        // -----------------------------------------------------
 
         else {
 
@@ -335,11 +207,6 @@ document.addEventListener("DOMContentLoaded", function () {
         }
 
     }
-
-
-    // =========================================================
-    // FILTER TABLE
-    // =========================================================
 
     function filterTable() {
 
@@ -395,25 +262,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
     }
 
-
-    // =========================================================
-    // REMOVE ASSIGNMENT
-    // =========================================================
-
     async function removeAssignment(assignmentIdValue, event) {
-
-        // -----------------------------------------------------
-        // Prevent the table row click from triggering
-        // -----------------------------------------------------
-
         if (event) {
             event.stopPropagation();
         }
-
-
-        // -----------------------------------------------------
-        // Make sure an assignment ID exists
-        // -----------------------------------------------------
 
         if (!assignmentIdValue) {
 
@@ -421,11 +273,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
             return;
         }
-
-
-        // -----------------------------------------------------
-        // Confirmation
-        // -----------------------------------------------------
 
         if (!confirm(
             "Remove this volunteer from this activity?"
@@ -472,17 +319,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 "Assignment removed successfully."
             );
 
-
-            // -------------------------------------------------
-            // Close modal
-            // -------------------------------------------------
-
             closeLogActivityModal();
-
-
-            // -------------------------------------------------
-            // Refresh page
-            // -------------------------------------------------
 
             location.reload();
 
@@ -501,18 +338,11 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     }
 
-
-    // =========================================================
-    // REMOVE BUTTON CLICK
-    // =========================================================
-
     if (removeButton) {
 
         removeButton.addEventListener(
             "click",
             function (event) {
-
-                // Get assignment ID currently in modal
                 const currentAssignmentId =
                     assignmentId.value;
 
@@ -525,11 +355,6 @@ document.addEventListener("DOMContentLoaded", function () {
         );
 
     }
-
-
-    // =========================================================
-    // LOGOUT MODAL
-    // =========================================================
 
     window.openLogoutModal = function () {
 

@@ -102,14 +102,11 @@
             try {
                 const result = await callback();
 
-                // Simple confirmation, such as Done or Understood.
                 if (result === true) {
                     closeConfirmModal();
                     return;
                 }
 
-                // Successful assignment:
-                // close the current modal first, then show success.
                 if (result && result.success === true) {
                     closeConfirmModal();
 
@@ -125,8 +122,6 @@
                     return;
                 }
 
-                // If the action failed, keep the current modal open
-                // only if it is still the same modal operation.
                 yesButton.disabled = false;
 
             } catch (error) {

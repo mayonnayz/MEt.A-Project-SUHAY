@@ -1,21 +1,6 @@
-/* =========================================================
-   NGO DATA
-========================================================= */
-
-// NGO data should be provided by the Blade page.
-// Example:
-// <script>
-//     window.ngoData = @json($ngos);
-// </script>
-
 const ngoData = window.ngoData || [];
 
 let selectedNgoId = null;
-
-
-/* =========================================================
-   MODAL RESET
-========================================================= */
 
 function resetAllModals() {
 
@@ -43,11 +28,6 @@ function resetAllModals() {
     document.body.style.overflow = 'auto';
 
 }
-
-
-/* =========================================================
-   LIVE SEARCH
-========================================================= */
 
 const searchInput =
     document.getElementById('searchInput');
@@ -120,11 +100,6 @@ if (searchInput) {
 
 }
 
-
-/* =========================================================
-   OPEN NGO DETAILS
-========================================================= */
-
 function openModal(id) {
 
     selectedNgoId = id;
@@ -139,12 +114,6 @@ function openModal(id) {
     if (!modalContent) {
         return;
     }
-
-
-    /*
-     * Image paths are supplied by the Blade page
-     * through window.suhayAssets.
-     */
 
     const assets =
         window.suhayAssets || {};
@@ -678,11 +647,6 @@ function openModal(id) {
 
 }
 
-
-/* =========================================================
-   ADD ITEM
-========================================================= */
-
 function addItem() {
 
     const container =
@@ -786,11 +750,6 @@ function addItem() {
     container.appendChild(item);
 }
 
-
-/* =========================================================
-   REMOVE ITEM
-========================================================= */
-
 function removeItem(btn) {
 
     if (!btn) {
@@ -823,11 +782,6 @@ function removeItem(btn) {
 
 }
 
-
-/* =========================================================
-   BACK TO NGO MODAL
-========================================================= */
-
 function goBackToNgoModal() {
 
     const donationModal =
@@ -853,11 +807,6 @@ function goBackToNgoModal() {
     document.body.style.overflow = 'hidden';
 
 }
-
-
-/* =========================================================
-   CLOSE NGO MODAL
-========================================================= */
 
 function closeModal() {
 
@@ -889,11 +838,6 @@ function closeModal() {
     }, 250);
 
 }
-
-
-/* =========================================================
-   CLICK OUTSIDE MODALS
-========================================================= */
 
 const ngoModal =
     document.getElementById('ngoModal');
@@ -958,11 +902,6 @@ if (successModal) {
 
 }
 
-
-/* =========================================================
-   OPEN DONATION MODAL
-========================================================= */
-
 function openDonationModal() {
 
     const ngoModal =
@@ -998,9 +937,6 @@ function openDonationModal() {
 
     document.body.style.overflow = 'hidden';
 
-
-    /* RESET FORM */
-
     const donationType =
         document.getElementById('donationType');
 
@@ -1024,8 +960,6 @@ function openDonationModal() {
 
     }
 
-
-    // Reset monetary amount
     const donationAmount =
         document.getElementById('donationAmount');
 
@@ -1035,8 +969,6 @@ function openDonationModal() {
 
     }
 
-
-    // Reset reference number
     const referenceNumber =
         document.getElementById('referenceNumber');
 
@@ -1057,11 +989,6 @@ function openDonationModal() {
     toggleDonationType();
 
 }
-
-
-/* =========================================================
-   CLOSE DONATION MODAL
-========================================================= */
 
 function closeDonationModal() {
 
@@ -1094,11 +1021,6 @@ function closeDonationModal() {
 
 }
 
-
-/* =========================================================
-   OPEN CONFIRMATION
-========================================================= */
-
 function openConfirmModal() {
 
     const donationType =
@@ -1112,11 +1034,6 @@ function openConfirmModal() {
     const type =
         donationType.value;
 
-
-    // =====================================================
-    // CHECK DONATION TYPE
-    // =====================================================
-
     if (!type) {
 
         alert(
@@ -1125,11 +1042,6 @@ function openConfirmModal() {
 
         return;
     }
-
-
-    /* =====================================================
-       VALIDATE CONSUMABLE / REUSABLE
-    ====================================================== */
 
     if (
         type === 'consumable' ||
@@ -1193,11 +1105,6 @@ function openConfirmModal() {
 
     }
 
-
-    /* =====================================================
-       VALIDATE MONETARY
-    ====================================================== */
-
     if (type === 'monetary') {
 
         const amountInput =
@@ -1221,11 +1128,6 @@ function openConfirmModal() {
         }
 
     }
-
-
-    /* =====================================================
-       VALIDATE ONLINE MONETARY
-    ====================================================== */
 
     if (type === 'online_monetary') {
 
@@ -1301,11 +1203,6 @@ function openConfirmModal() {
 
 }
 
-
-/* =========================================================
-   CLOSE CONFIRMATION
-========================================================= */
-
 function closeConfirmModal() {
 
     const modal =
@@ -1338,11 +1235,6 @@ function closeConfirmModal() {
 
 }
 
-
-/* =========================================================
-   START PROCESSING
-========================================================= */
-
 function startProcessing() {
 
     const donationType =
@@ -1357,11 +1249,6 @@ function startProcessing() {
     const type =
         donationType.value;
 
-
-    // =====================================================
-    // CHECK TYPE
-    // =====================================================
-
     if (!type) {
 
         alert(
@@ -1371,20 +1258,6 @@ function startProcessing() {
         return;
 
     }
-
-
-    /*
-     * IMPORTANT:
-     *
-     * We now send the ACTUAL donation type.
-     *
-     * monetary
-     * online_monetary
-     * consumable
-     * reusable
-     *
-     * We DO NOT send "non-monetary".
-     */
 
     let data = {
 
@@ -1413,11 +1286,6 @@ function startProcessing() {
 
     };
 
-
-    /* =====================================================
-       MONETARY
-    ====================================================== */
-
     if (type === 'monetary') {
 
         const amountInput =
@@ -1436,11 +1304,6 @@ function startProcessing() {
                 : null;
 
     }
-
-
-    /* =====================================================
-       ONLINE MONETARY
-    ====================================================== */
 
     else if (type === 'online_monetary') {
 
@@ -1479,11 +1342,6 @@ function startProcessing() {
 
     }
 
-
-    /* =====================================================
-       CONSUMABLE / REUSABLE
-    ====================================================== */
-
     else if (
         type === 'consumable' ||
         type === 'reusable'
@@ -1494,20 +1352,6 @@ function startProcessing() {
                 '#itemsContainer > div'
             );
 
-
-        /*
-         * The donations_table structure stores:
-         *
-         * description
-         * amount
-         * unit
-         *
-         * as one donation record.
-         *
-         * Therefore, each item is submitted
-         * separately.
-         */
-
         if (rows.length === 0) {
 
             alert(
@@ -1517,10 +1361,6 @@ function startProcessing() {
             return;
 
         }
-
-
-        // We will process the first valid item here.
-        // Additional items are handled below.
 
         let validRows = [];
 
@@ -1581,30 +1421,14 @@ function startProcessing() {
 
         }
 
-
-        /*
-         * Store the items temporarily.
-         * The actual sending happens below.
-         */
-
         data.items = validRows;
 
     }
-
-
-    // =====================================================
-    // LOG FINAL DATA
-    // =====================================================
 
     console.log(
         'FINAL DONATION DATA:',
         data
     );
-
-
-    // =====================================================
-    // CLOSE CONFIRMATION
-    // =====================================================
 
     const confirmModal =
         document.getElementById(
@@ -1641,11 +1465,6 @@ function startProcessing() {
             'flex'
         );
 
-
-        // =================================================
-        // SHOW LOADING
-        // =================================================
-
         const loadingModal =
             document.getElementById(
                 'loadingModal'
@@ -1664,20 +1483,10 @@ function startProcessing() {
 
         }
 
-
-        // =================================================
-        // CSRF TOKEN
-        // =================================================
-
         const csrfToken =
             document.querySelector(
                 'meta[name="csrf-token"]'
             )?.getAttribute('content');
-
-
-        // =================================================
-        // SUBMIT FUNCTION
-        // =================================================
 
         function submitDonation(donationData) {
 
@@ -1720,19 +1529,7 @@ function startProcessing() {
 
         }
 
-
-        // =================================================
-        // SUBMIT DONATION
-        // =================================================
-
         let requests = [];
-
-
-        /*
-         * For Consumable / Reusable:
-         *
-         * Send every item as its own database row.
-         */
 
         if (
             type === 'consumable' ||
@@ -1777,13 +1574,6 @@ function startProcessing() {
 
         }
 
-
-        /*
-         * Monetary / Online Monetary:
-         *
-         * Send one donation record.
-         */
-
         else {
 
             const donationData = {
@@ -1819,11 +1609,6 @@ function startProcessing() {
             );
 
         }
-
-
-        // =================================================
-        // WAIT FOR ALL REQUESTS
-        // =================================================
 
         Promise.all(requests)
 
@@ -1861,11 +1646,6 @@ function startProcessing() {
 
                     }
 
-
-                    // =================================================
-                    // SUCCESS
-                    // =================================================
-
                     openSuccessModal();
 
                 }, 1500);
@@ -1896,11 +1676,6 @@ function startProcessing() {
     }, 250);
 
 }
-
-
-/* =========================================================
-   CLOSE LOADING
-========================================================= */
 
 function closeLoadingModal() {
 
@@ -1947,11 +1722,6 @@ function closeLoadingModal() {
     }, 250);
 
 }
-
-
-/* =========================================================
-   SUCCESS
-========================================================= */
 
 function openSuccessModal() {
 
@@ -2026,11 +1796,6 @@ function closeSuccessModal() {
 
 }
 
-
-/* =========================================================
-   TOGGLE DONATION TYPE
-========================================================= */
-
 function toggleDonationType() {
 
     const donationType =
@@ -2063,11 +1828,6 @@ function toggleDonationType() {
             'onlineMonetaryForm'
         );
 
-
-    // =====================================================
-    // HIDE EVERYTHING
-    // =====================================================
-
     if (nonMonetaryForm) {
 
         nonMonetaryForm.classList.add(
@@ -2094,12 +1854,6 @@ function toggleDonationType() {
 
     }
 
-
-    // =====================================================
-    // MONETARY
-    // Physical cash
-    // =====================================================
-
     if (type === 'monetary') {
 
         if (monetaryForm) {
@@ -2111,12 +1865,6 @@ function toggleDonationType() {
         }
 
     }
-
-
-    // =====================================================
-    // ONLINE MONETARY
-    // GCash / Bank + reference
-    // =====================================================
 
     else if (
         type === 'online_monetary'
@@ -2131,11 +1879,6 @@ function toggleDonationType() {
         }
 
     }
-
-
-    // =====================================================
-    // CONSUMABLE / REUSABLE
-    // =====================================================
 
     else if (
         type === 'consumable' ||
@@ -2156,13 +1899,6 @@ function toggleDonationType() {
                 'itemsContainer'
             );
 
-
-        /*
-         * Automatically add one item row
-         * when the user chooses Consumable
-         * or Reusable.
-         */
-
         if (
             itemsContainer &&
             itemsContainer.children.length === 0
@@ -2175,11 +1911,6 @@ function toggleDonationType() {
     }
 
 }
-
-
-/* =========================================================
-   LOGOUT MODAL
-========================================================= */
 
 function openLogoutModal() {
 
@@ -2227,11 +1958,6 @@ function closeLogoutModal() {
     );
 
 }
-
-
-/* =========================================================
-   ESC KEY
-========================================================= */
 
 document.addEventListener(
     'keydown',

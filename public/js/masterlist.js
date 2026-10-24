@@ -1,13 +1,4 @@
-// =====================================================
-// INVENTORY JAVASCRIPT
-// =====================================================
-
 let selectedItem = null;
-
-
-// =====================================================
-// TOAST
-// =====================================================
 
 function showToast(message) {
 
@@ -26,11 +17,6 @@ function showToast(message) {
     }, 2000);
 }
 
-
-// =====================================================
-// SEARCH + CATEGORY FILTER
-// =====================================================
-
 document.addEventListener('DOMContentLoaded', function () {
 
     const searchInput =
@@ -45,8 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const inventoryCount =
         document.getElementById('inventoryCount');
 
-
-    // If elements don't exist, stop
     if (!searchInput || !categoryFilter) {
         return;
     }
@@ -79,16 +63,11 @@ document.addEventListener('DOMContentLoaded', function () {
             const unit =
                 row.dataset.unit || '';
 
-
-            // Search matches item name,
-            // category, or unit
             const matchesSearch =
                 name.includes(searchValue) ||
                 category.includes(searchValue) ||
                 unit.includes(searchValue);
 
-
-            // Category filter
             const matchesCategory =
                 categoryValue === '' ||
                 category === categoryValue;
@@ -111,8 +90,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         });
 
-
-        // Update count
         if (inventoryCount) {
 
             inventoryCount.innerHTML = `
@@ -126,26 +103,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
     }
 
-
-    // Search while typing
     searchInput.addEventListener(
         'input',
         filterInventory
     );
 
-
-    // Filter when category changes
     categoryFilter.addEventListener(
         'change',
         filterInventory
     );
 
 });
-
-
-// =====================================================
-// OPEN MODAL
-// =====================================================
 
 function openModal(item) {
 
@@ -171,9 +139,6 @@ function openModal(item) {
 
     modal.classList.add('flex');
 
-
-    // Item name
-
     const itemName =
         document.getElementById('item_name');
 
@@ -183,10 +148,7 @@ function openModal(item) {
             item.name ?? '';
 
     }
-
-
-    // Quantity
-
+    
     const quantity =
         document.getElementById('quantity');
 
@@ -196,9 +158,6 @@ function openModal(item) {
             item.current_quantity ?? '';
 
     }
-
-
-    // Unit
 
     const unit =
         document.getElementById('unit');
@@ -210,9 +169,6 @@ function openModal(item) {
 
     }
 
-
-    // Threshold
-
     const threshold =
         document.getElementById('threshold');
 
@@ -222,9 +178,6 @@ function openModal(item) {
             item.minimum_threshold ?? '';
 
     }
-
-
-    // Category
 
     loadCategories(
         item.category
@@ -237,10 +190,6 @@ function openModal(item) {
 
 }
 
-// =====================================================
-// OPEN ADD ITEM MODAL
-// =====================================================
-
 function openAddItemModal() {
     const modal = document.getElementById('inventoryModal');
 
@@ -249,34 +198,24 @@ function openAddItemModal() {
         return;
     }
 
-    // Clear the selected item because this is a new item
     selectedItem = null;
 
-    // Reset the form fields
     document.getElementById('item_name').value = '';
     document.getElementById('quantity').value = '';
     document.getElementById('unit').value = '';
     document.getElementById('threshold').value = '';
 
-    // Load the available categories
     loadCategories('');
 
-    // Show the modal
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-    // Update modal title
     modal.querySelector('h2').innerText = 'Add Inventory Item';
 
-    // Show the Save button
     document.getElementById('saveBtn').classList.remove('hidden');
 
-    // Change Close button to Cancel
     document.getElementById('closeBtn').innerText = 'Cancel';
 }
-// =====================================================
-// CLOSE MODAL
-// =====================================================
 
 function closeModal() {
 
@@ -294,11 +233,6 @@ function closeModal() {
     modal.classList.remove('flex');
 
 }
-
-
-// =====================================================
-// LOAD CATEGORIES
-// =====================================================
 
 function loadCategories(selected) {
 
@@ -336,11 +270,6 @@ function loadCategories(selected) {
 
 }
 
-
-// =====================================================
-// RESET BUTTONS
-// =====================================================
-
 function resetButtons() {
 
     const saveBtn =
@@ -365,11 +294,6 @@ function resetButtons() {
     }
 
 }
-
-
-// =====================================================
-// DETECT CHANGES
-// =====================================================
 
 document.addEventListener(
     'DOMContentLoaded',
@@ -421,11 +345,6 @@ document.addEventListener(
     }
 );
 
-
-// =====================================================
-// ENABLE SAVE
-// =====================================================
-
 function enableSaveButton() {
 
     const saveBtn =
@@ -452,11 +371,6 @@ function enableSaveButton() {
     }
 
 }
-
-
-// =====================================================
-// CONFIRM SAVE
-// =====================================================
 
 function confirmSave() {
 
@@ -489,11 +403,6 @@ function confirmSave() {
     });
 
 }
-
-
-// =====================================================
-// SAVE TO BACKEND
-// =====================================================
 
 function saveToBackend() {
 
@@ -681,11 +590,6 @@ function saveToBackend() {
 
 }
 
-
-// =====================================================
-// UPDATE TABLE ROW
-// =====================================================
-
 function updateTableRow() {
 
     if (!selectedItem?.id) {
@@ -736,11 +640,6 @@ function updateTableRow() {
 
 }
 
-
-// =====================================================
-// LOGOUT MODAL
-// =====================================================
-
 function openLogoutModal() {
 
     const modal =
@@ -763,11 +662,6 @@ function openLogoutModal() {
     );
 
 }
-
-
-// =====================================================
-// CLOSE LOGOUT MODAL
-// =====================================================
 
 function closeLogoutModal() {
 

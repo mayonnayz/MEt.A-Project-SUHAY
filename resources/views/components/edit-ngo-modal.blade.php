@@ -5,7 +5,6 @@
     <div id="ngoModalBox"
          class="bg-white w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl transform scale-95 transition duration-200">
 
-        <!-- HEADER -->
         <div class="sticky top-0 bg-white border-b px-8 py-6 flex items-center justify-between">
 
             <div>
@@ -28,16 +27,12 @@
 
         </div>
 
-
-        <!-- FORM -->
         <form action="{{ url('/sm-ngos/update') }}" method="POST">
 
             @csrf
             @method('PATCH')
 
             <div class="p-8 space-y-6">
-
-                <!-- ORGANIZATION NAME -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Organization Name
@@ -54,8 +49,6 @@
                     >
                 </div>
 
-
-                <!-- DESCRIPTION -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Organization Description
@@ -71,8 +64,6 @@
                     >{{ $ngo->description ?? '' }}</textarea>
                 </div>
 
-
-                <!-- CONTACT NUMBER -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Contact Number
@@ -89,8 +80,6 @@
                     >
                 </div>
 
-
-                <!-- ADDRESS -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Complete Address
@@ -108,8 +97,6 @@
 
             </div>
 
-
-            <!-- FOOTER -->
             <div class="border-t px-8 py-5 flex justify-end gap-3">
 
                 <button
