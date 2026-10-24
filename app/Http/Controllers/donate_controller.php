@@ -32,8 +32,6 @@ class donate_controller extends Controller
     // DONATION PAGE
     // =========================================
 
-=======
->>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
     public function index()
     {
         $ngoResponse = $this->supabase()
