@@ -26,6 +26,13 @@ use App\Http\Controllers\reports_controller;
 | LANDING & AUTHENTICATION / SIGNUP
 |--------------------------------------------------------------------------
 */
+
+
+Route::delete(
+    '/notifications/{notificationId}',
+    [notification_controller::class, 'deleteNotification']
+)->name('notifications.delete');
+
 Route::get(
     '/notifications',
     [notification_controller::class, 'getNotifications']

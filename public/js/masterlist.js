@@ -237,7 +237,43 @@ function openModal(item) {
 
 }
 
+// =====================================================
+// OPEN ADD ITEM MODAL
+// =====================================================
 
+function openAddItemModal() {
+    const modal = document.getElementById('inventoryModal');
+
+    if (!modal) {
+        console.error('inventoryModal was not found.');
+        return;
+    }
+
+    // Clear the selected item because this is a new item
+    selectedItem = null;
+
+    // Reset the form fields
+    document.getElementById('item_name').value = '';
+    document.getElementById('quantity').value = '';
+    document.getElementById('unit').value = '';
+    document.getElementById('threshold').value = '';
+
+    // Load the available categories
+    loadCategories('');
+
+    // Show the modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    // Update modal title
+    modal.querySelector('h2').innerText = 'Add Inventory Item';
+
+    // Show the Save button
+    document.getElementById('saveBtn').classList.remove('hidden');
+
+    // Change Close button to Cancel
+    document.getElementById('closeBtn').innerText = 'Cancel';
+}
 // =====================================================
 // CLOSE MODAL
 // =====================================================

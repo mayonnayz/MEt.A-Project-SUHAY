@@ -9,21 +9,13 @@ class donation_history_controller extends Controller
 {
     public function index(Request $request)
     {
-        // =========================================================
-        // SUPABASE HEADERS
-        // =========================================================
-
+       
         $headers = [
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
         ];
 
         $baseUrl = env('SUPABASE_URL');
-
-
-        // =========================================================
-        // GET LOGGED-IN ACCOUNT ID
-        // =========================================================
 
         $accountId = session('user_id');
 
@@ -37,28 +29,16 @@ class donation_history_controller extends Controller
         }
 
 
-        // =========================================================
-        // GET ONLY DONATIONS MADE BY LOGGED-IN USER
-        // =========================================================
-
         $donationResponse = Http::withHeaders($headers)
             ->get($baseUrl . '/rest/v1/donations_table', [
 
                 'select' => '*',
 
-                // IMPORTANT:
-                // Only get donations belonging to
-                // the currently logged-in account.
+             
                 'account_id' => 'eq.' . $accountId,
 
-                // Newest donations first
                 'order' => 'date.desc'
             ]);
-
-
-        // =========================================================
-        // CHECK DONATION REQUEST
-        // =========================================================
 
         if (!$donationResponse->successful()) {
 
@@ -68,21 +48,11 @@ class donation_history_controller extends Controller
             ]);
         }
 
-
-        // =========================================================
-        // CONVERT RESPONSE TO ARRAY
-        // =========================================================
-
         $donations = $donationResponse->json();
 
         if (!is_array($donations)) {
             $donations = [];
         }
-
-
-        // =========================================================
-        // GET NGO INFORMATION
-        // =========================================================
 
         $ngoResponse = Http::withHeaders($headers)
             ->get($baseUrl . '/rest/v1/ngo_profile', [
@@ -91,10 +61,6 @@ class donation_history_controller extends Controller
 
         $ngoMap = [];
 
-
-        // =========================================================
-        // CREATE NGO ID => NGO NAME MAP
-        // =========================================================
 
         if ($ngoResponse->successful()) {
 
@@ -111,7 +77,7 @@ class donation_history_controller extends Controller
                     }
 
 
-                    // Try possible NGO name columns
+                 
                     $ngoName =
                         $ngo['ngo_name']
                         ?? $ngo['name']
@@ -126,25 +92,12 @@ class donation_history_controller extends Controller
         }
 
 
-        // =========================================================
-        // PREPARE DONATION DATA
-        // =========================================================
-
         foreach ($donations as &$donation) {
-
-            // -----------------------------------------------------
-            // NGO NAME
-            // -----------------------------------------------------
 
             $ngoId = $donation['ngo_id'] ?? null;
 
             $donation['ngo_name'] =
                 $ngoMap[$ngoId] ?? 'Unknown NGO';
-
-
-            // -----------------------------------------------------
-            // TYPE
-            // -----------------------------------------------------
 
             $donation['type'] =
                 strtoupper(
@@ -154,57 +107,27 @@ class donation_history_controller extends Controller
                 );
 
 
-            // -----------------------------------------------------
-            // DESCRIPTION
-            // -----------------------------------------------------
-
             $donation['description'] =
                 $donation['description'] ?? 'N/A';
 
-
-            // -----------------------------------------------------
-            // AMOUNT
-            // -----------------------------------------------------
 
             $donation['amount'] =
                 $donation['amount'] ?? null;
 
 
-            // -----------------------------------------------------
-            // UNIT
-            // -----------------------------------------------------
-
             $donation['unit'] =
                 $donation['unit'] ?? null;
 
-
-            // -----------------------------------------------------
-            // REFERENCE NUMBER
-            // -----------------------------------------------------
 
             $donation['reference_no'] =
                 $donation['reference_no'] ?? null;
 
 
-            // -----------------------------------------------------
-            // SOURCE
-            // -----------------------------------------------------
-
             $donation['source'] =
                 $donation['source'] ?? 'N/A';
 
-
-            // -----------------------------------------------------
-            // DATE
-            // -----------------------------------------------------
-
             $donation['date'] =
                 $donation['date'] ?? null;
-
-
-            // -----------------------------------------------------
-            // STATUS
-            // -----------------------------------------------------
 
             $donation['status'] =
                 strtoupper(
@@ -215,11 +138,6 @@ class donation_history_controller extends Controller
         }
 
         unset($donation);
-
-
-        // =========================================================
-        // RETURN DONATION HISTORY VIEW
-        // =========================================================
 
         return view('Volunteers.donation_history', [
             'donations' => $donations,

@@ -8,12 +8,6 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 class inventory_movement_controller extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | SUPABASE HELPER
-    |--------------------------------------------------------------------------
-    */
-
     private function supabase()
     {
         return Http::withHeaders([
@@ -23,12 +17,6 @@ class inventory_movement_controller extends Controller
         ]);
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | MOVEMENT TYPE LABEL
-    |--------------------------------------------------------------------------
-    */
 
     private function movementLabel($type)
     {
@@ -49,22 +37,10 @@ class inventory_movement_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | INVENTORY MOVEMENT LIST
-    |--------------------------------------------------------------------------
-    */
 
     public function index(Request $request)
     {
         $supabaseUrl = env('SUPABASE_URL');
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET MOVEMENTS
-        |--------------------------------------------------------------------------
-        */
 
         $movementResponse = $this->supabase()->get(
             $supabaseUrl . '/rest/v1/inventory_movement',
@@ -87,12 +63,6 @@ class inventory_movement_controller extends Controller
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET MOVEMENT ITEMS
-        |--------------------------------------------------------------------------
-        */
-
         $movementItemsResponse = $this->supabase()->get(
             $supabaseUrl . '/rest/v1/inventory_movement_items',
             [
@@ -112,12 +82,6 @@ class inventory_movement_controller extends Controller
             $movementItemsResponse->json()
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET INVENTORY
-        |--------------------------------------------------------------------------
-        */
 
         $inventoryResponse = $this->supabase()->get(
             $supabaseUrl . '/rest/v1/inventory',
@@ -139,18 +103,6 @@ class inventory_movement_controller extends Controller
             $inventoryResponse->json()
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE INVENTORY LOOKUP
-        |--------------------------------------------------------------------------
-        |
-        | inventory.id
-        |      ↓
-        | inventory record
-        |
-        */
-
         $inventoryLookup = [];
 
         foreach ($inventory as $inventoryItem) {
@@ -160,19 +112,6 @@ class inventory_movement_controller extends Controller
             ] = $inventoryItem;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET ACCOUNTS
-        |--------------------------------------------------------------------------
-        |
-        | inventory_movement.account_at
-        |              ↓
-        | accounts.id
-        |              ↓
-        | first_name + last_name
-        |
-        */
 
         $accountResponse = $this->supabase()->get(
             $supabaseUrl . '/rest/v1/accounts',
@@ -195,11 +134,6 @@ class inventory_movement_controller extends Controller
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | CREATE ACCOUNT LOOKUP
-        |--------------------------------------------------------------------------
-        */
 
         $accountLookup = [];
 
@@ -211,24 +145,14 @@ class inventory_movement_controller extends Controller
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | ATTACH ITEMS + ACCOUNT
-        |--------------------------------------------------------------------------
-        */
-
         $movements = $movements->map(
             function ($movement) use (
                 $movementItems,
                 $inventoryLookup,
                 $accountLookup
-            ) {
+            ) 
+            {
 
-                /*
-                |--------------------------------------------------------------------------
-                | GET ITEMS FOR THIS MOVEMENT
-                |--------------------------------------------------------------------------
-                */
 
                 $items = $movementItems
                     ->where(
@@ -289,11 +213,6 @@ class inventory_movement_controller extends Controller
                     ->values();
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | ATTACH ITEMS
-                |--------------------------------------------------------------------------
-                */
 
                 $movement['items'] =
                     $items;
@@ -305,23 +224,12 @@ class inventory_movement_controller extends Controller
                     $items->sum('quantity');
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | MOVEMENT TYPE
-                |--------------------------------------------------------------------------
-                */
 
                 $movement['movement_label'] =
                     $this->movementLabel(
                         $movement['movement_type']
                     );
 
-
-                /*
-                |--------------------------------------------------------------------------
-                | ATTACH ACCOUNT
-                |--------------------------------------------------------------------------
-                */
 
                 $accountId =
                     (string) (
@@ -395,22 +303,12 @@ class inventory_movement_controller extends Controller
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | RETURN AS OBJECT
-                |--------------------------------------------------------------------------
-                */
 
                 return (object) $movement;
             }
         );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | PAGINATION
-        |--------------------------------------------------------------------------
-        */
 
         $currentPage =
             LengthAwarePaginator::resolveCurrentPage();
@@ -441,12 +339,6 @@ class inventory_movement_controller extends Controller
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACTIVE INVENTORY ITEMS
-        |--------------------------------------------------------------------------
-        */
-
         $inventoryItems =
             $inventory
                 ->where(
@@ -459,11 +351,6 @@ class inventory_movement_controller extends Controller
                 ->values();
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | RETURN VIEW
-        |--------------------------------------------------------------------------
-        */
 
         return view(
             'inventory_movement',
@@ -478,19 +365,10 @@ class inventory_movement_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | STORE NEW MOVEMENT
-    |--------------------------------------------------------------------------
-    */
 
     public function store(Request $request)
     {
-        /*
-        |--------------------------------------------------------------------------
-        | VALIDATION
-        |--------------------------------------------------------------------------
-        */
+    
 
         $validated =
             $request->validate([
@@ -536,11 +414,6 @@ class inventory_movement_controller extends Controller
             env('SUPABASE_URL');
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACCOUNT
-        |--------------------------------------------------------------------------
-        */
 
         $accountId =
             session('user_id');
@@ -553,13 +426,6 @@ class inventory_movement_controller extends Controller
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | NGO
-        |--------------------------------------------------------------------------
-        */
-
         $ngoId =
             session('ngo_id');
 
@@ -570,13 +436,6 @@ class inventory_movement_controller extends Controller
                 'NGO information could not be found.'
             );
         }
-
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET SELECTED INVENTORY ITEMS
-        |--------------------------------------------------------------------------
-        */
 
         $inventoryIds =
             collect(
@@ -628,12 +487,6 @@ class inventory_movement_controller extends Controller
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | CHECK ITEMS
-        |--------------------------------------------------------------------------
-        */
-
         foreach (
             $validated['items']
             as $item
@@ -655,12 +508,6 @@ class inventory_movement_controller extends Controller
             }
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | CHECK STATUS
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 (int)
                 $inventoryItem['status']
@@ -675,12 +522,6 @@ class inventory_movement_controller extends Controller
             }
 
 
-            /*
-            |--------------------------------------------------------------------------
-            | CHECK NGO
-            |--------------------------------------------------------------------------
-            */
-
             if (
                 isset($inventoryItem['ngo_id']) &&
                 (int) $inventoryItem['ngo_id']
@@ -693,13 +534,6 @@ class inventory_movement_controller extends Controller
                     ' does not belong to your NGO.'
                 );
             }
-
-
-            /*
-            |--------------------------------------------------------------------------
-            | OUTBOUND STOCK CHECK
-            |--------------------------------------------------------------------------
-            */
 
             if (
                 (int)
@@ -722,12 +556,6 @@ class inventory_movement_controller extends Controller
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | INSERT MOVEMENT HEADER
-        |--------------------------------------------------------------------------
-        */
 
         $movementData = [
 
@@ -794,11 +622,6 @@ class inventory_movement_controller extends Controller
             $movementResult[0]['id'];
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | INSERT MOVEMENT ITEMS
-        |--------------------------------------------------------------------------
-        */
 
         foreach (
             $validated['items']
@@ -838,17 +661,9 @@ class inventory_movement_controller extends Controller
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | UPDATE INVENTORY QUANTITY
-        |--------------------------------------------------------------------------
-        |
-        | 0 = Inbound  → ADD
-        | 1 = Outbound → SUBTRACT
-        | 2 = Pending  → NO CHANGE
-        |
-        */
-
+        //0 = Inbound  → ADD
+        //1 = Outbound → SUBTRACT
+        //2 = Pending  → NO CHANGE
         if (
             (int)
             $validated['movement_type']
@@ -919,13 +734,6 @@ class inventory_movement_controller extends Controller
             }
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUCCESS
-        |--------------------------------------------------------------------------
-        */
-
         return redirect()
             ->route(
                 'inventory.movement'
@@ -936,22 +744,10 @@ class inventory_movement_controller extends Controller
             );
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | SHOW MOVEMENT DETAILS
-    |--------------------------------------------------------------------------
-    */
-
   public function show($id)
 {
     $supabaseUrl = env('SUPABASE_URL');
 
-    /*
-    |--------------------------------------------------------------------------
-    | 1. GET MOVEMENT
-    |--------------------------------------------------------------------------
-    */
 
     $movementResponse = $this->supabase()->get(
         $supabaseUrl . '/rest/v1/inventory_movement',
@@ -972,12 +768,6 @@ class inventory_movement_controller extends Controller
 
     $movement = $movementResponse->json()[0];
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | 2. GET ACCOUNT
-    |--------------------------------------------------------------------------
-    */
 
     $accountResponse = $this->supabase()->get(
         $supabaseUrl . '/rest/v1/accounts',
@@ -1008,12 +798,6 @@ class inventory_movement_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 3. GET MOVEMENT ITEMS
-    |--------------------------------------------------------------------------
-    */
-
     $itemsResponse = $this->supabase()->get(
         $supabaseUrl . '/rest/v1/inventory_movement_items',
         [
@@ -1032,20 +816,6 @@ class inventory_movement_controller extends Controller
     $movementItems = $itemsResponse->json();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4. GET INVENTORY
-    |--------------------------------------------------------------------------
-    |
-    | inventory.id is the PRIMARY KEY.
-    |
-    | Example:
-    |
-    | inventory.id = 1
-    | inventory.name = Rice
-    |
-    */
-
     $inventoryResponse = $this->supabase()->get(
         $supabaseUrl . '/rest/v1/inventory',
         [
@@ -1063,23 +833,6 @@ class inventory_movement_controller extends Controller
     $inventory = $inventoryResponse->json();
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 5. BUILD INVENTORY LOOKUP
-    |--------------------------------------------------------------------------
-    |
-    | IMPORTANT:
-    |
-    | The KEY is inventory.id.
-    |
-    | Example:
-    |
-    | $inventoryLookup[1] = Rice
-    | $inventoryLookup[2] = Canned Goods
-    | $inventoryLookup[3] = Clothes
-    |
-    */
-
     $inventoryLookup = [];
 
     foreach ($inventory as $inventoryItem) {
@@ -1090,17 +843,6 @@ class inventory_movement_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 6. CONNECT MOVEMENT ITEM TO INVENTORY
-    |--------------------------------------------------------------------------
-    |
-    | inventory_movement_items.inventory_item_id
-    |                         ↓
-    |                  inventory.id
-    |
-    */
-
     $items = [];
 
     foreach ($movementItems as $movementItem) {
@@ -1109,22 +851,10 @@ class inventory_movement_controller extends Controller
             (int) ($movementItem['inventory_item_id'] ?? 0);
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | FIND INVENTORY RECORD
-        |--------------------------------------------------------------------------
-        */
-
         $inventoryItem =
             $inventoryLookup[$inventoryItemId]
             ?? null;
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DEBUG FALLBACK
-        |--------------------------------------------------------------------------
-        */
 
         if (!$inventoryItem) {
 
@@ -1151,13 +881,6 @@ class inventory_movement_controller extends Controller
             continue;
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | ADD CORRECT INVENTORY INFORMATION
-        |--------------------------------------------------------------------------
-        */
-
         $items[] = [
 
             'id' =>
@@ -1180,13 +903,6 @@ class inventory_movement_controller extends Controller
         ];
     }
 
-
-    /*
-    |--------------------------------------------------------------------------
-    | 7. MOVEMENT LABEL
-    |--------------------------------------------------------------------------
-    */
-
     $movementType =
         (int) ($movement['movement_type'] ?? 0);
 
@@ -1208,11 +924,6 @@ class inventory_movement_controller extends Controller
     }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | 8. RETURN COMPLETE MOVEMENT
-    |--------------------------------------------------------------------------
-    */
 
     return response()->json([
 
@@ -1252,23 +963,12 @@ class inventory_movement_controller extends Controller
 }
 
 
-    /*
-    |--------------------------------------------------------------------------
-    | DELETE / CANCEL MOVEMENT
-    |--------------------------------------------------------------------------
-    */
 
     public function destroy($id)
     {
         $supabaseUrl =
             env('SUPABASE_URL');
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET MOVEMENT
-        |--------------------------------------------------------------------------
-        */
 
         $movementResponse =
             $this->supabase()->get(
@@ -1299,12 +999,6 @@ class inventory_movement_controller extends Controller
         $movement =
             $movementResponse->json()[0];
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | GET MOVEMENT ITEMS
-        |--------------------------------------------------------------------------
-        */
 
         $itemsResponse =
             $this->supabase()->get(
@@ -1337,16 +1031,6 @@ class inventory_movement_controller extends Controller
             );
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | REVERSE INVENTORY QUANTITY
-        |--------------------------------------------------------------------------
-        |
-        | Inbound  → subtract
-        | Outbound → add
-        | Pending  → no change
-        |
-        */
 
         if (
             (int)
@@ -1399,12 +1083,7 @@ class inventory_movement_controller extends Controller
                     $item['quantity'];
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | REVERSE INBOUND
-                |--------------------------------------------------------------------------
-                */
-
+ 
                 if (
                     (int)
                     $movement['movement_type']
@@ -1417,11 +1096,7 @@ class inventory_movement_controller extends Controller
 
                 }
 
-                /*
-                |--------------------------------------------------------------------------
-                | REVERSE OUTBOUND
-                |--------------------------------------------------------------------------
-                */
+
 
                 else {
 
@@ -1431,12 +1106,6 @@ class inventory_movement_controller extends Controller
                 }
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | PREVENT NEGATIVE
-                |--------------------------------------------------------------------------
-                */
-
                 $newQuantity =
                     max(
                         0,
@@ -1444,11 +1113,6 @@ class inventory_movement_controller extends Controller
                     );
 
 
-                /*
-                |--------------------------------------------------------------------------
-                | UPDATE INVENTORY
-                |--------------------------------------------------------------------------
-                */
 
                 $this->supabase()->patch(
                     $supabaseUrl .
@@ -1465,11 +1129,6 @@ class inventory_movement_controller extends Controller
         }
 
 
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE MOVEMENT ITEMS
-        |--------------------------------------------------------------------------
-        */
 
         $this->supabase()->delete(
             $supabaseUrl .
@@ -1480,12 +1139,6 @@ class inventory_movement_controller extends Controller
             ]
         );
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | DELETE MOVEMENT HEADER
-        |--------------------------------------------------------------------------
-        */
 
         $deleteResponse =
             $this->supabase()->delete(
@@ -1508,12 +1161,6 @@ class inventory_movement_controller extends Controller
             );
         }
 
-
-        /*
-        |--------------------------------------------------------------------------
-        | SUCCESS
-        |--------------------------------------------------------------------------
-        */
 
         return redirect()
             ->route(

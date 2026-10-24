@@ -131,7 +131,47 @@ class ngo_controller extends Controller
             $ngo->logo_url = null;
             $ngo->email = session('user_email');
 
+<<<<<<< HEAD
             $logoResponse = Http::withHeaders($headers)->get(
+=======
+
+public function profile()
+{
+    $headers = [
+        'apikey' => env('SUPABASE_SERVICE_KEY'),
+        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        'Content-Type' => 'application/json',
+    ];
+
+    $ngoId = session('ngo_id');
+
+    if (!$ngoId) {
+        abort(403, 'No NGO associated with this account.');
+    }
+
+
+    $response = Http::withHeaders($headers)
+        ->get(
+            env('SUPABASE_URL') .
+            '/rest/v1/ngo_profile?select=*&id=eq.' . $ngoId
+        );
+
+    $data = $response->json();
+
+    $ngo = isset($data[0])
+        ? (object) $data[0]
+        : null;
+
+    if ($ngo) {
+
+
+        $ngo->logo_url = null;
+        $ngo->email = session('user_email');
+
+        if (!empty($ngo->logo)) {
+
+            $mediaResponse = Http::withHeaders($headers)->get(
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
                 env('SUPABASE_URL') .
                 '/rest/v1/media_table?select=path' .
                 '&type=eq.NGO_LOGO' .
@@ -145,19 +185,51 @@ class ngo_controller extends Controller
             }
 
 
+<<<<<<< HEAD
             // 3. Get ALL bank accounts
             $bankResponse = Http::withHeaders($headers)->get(
+=======
+
+        $bankResponse = Http::withHeaders($headers)->get(
+            env('SUPABASE_URL') .
+            '/rest/v1/bank_accounts?select=*&ngo_id=eq.' . $ngo->id
+        );
+
+        $bankData = $bankResponse->json();
+
+        $ngo->bank_accounts = [];
+
+
+        $accountIds = array_column($bankData, 'id');
+
+        if (!empty($accountIds)) {
+
+            $ids = implode(',', $accountIds);
+
+            $mediaResponse = Http::withHeaders($headers)->get(
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
                 env('SUPABASE_URL') .
                 '/rest/v1/bank_accounts?select=*&ngo_id=eq.' . $ngo->id
             );
 
             $bankData = $bankResponse->json() ?? [];
 
+<<<<<<< HEAD
             $ngo->bank_accounts = [];
 
 
             // 4. Get QR codes for bank accounts
             $accountIds = array_column($bankData, 'id');
+=======
+            $qrCodes = [];
+
+            foreach ($mediaData as $media) {
+                $qrCodes[$media['key_id']] = $media['path'];
+            }
+
+
+            foreach ($bankData as $account) {
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
 
             if (!empty($accountIds)) {
 
@@ -211,12 +283,93 @@ class ngo_controller extends Controller
             abort(403, 'No NGO associated with this account.');
         }
 
+<<<<<<< HEAD
         // Validate organization details
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'description' => 'required|string',
             'contact_number' => 'required|string|max:50',
             'address' => 'required|string|max:500',
+=======
+    if (!$ngoId) {
+        abort(403, 'No NGO associated with this account.');
+    }
+
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'description' => 'required|string',
+        'contact_number' => 'required|string|max:50',
+        'address' => 'required|string|max:500',
+    ]);
+
+
+    $response = Http::withHeaders($headers)->patch(
+        env('SUPABASE_URL') .
+        '/rest/v1/ngo_profile?id=eq.' . $ngoId,
+        [
+            'name' => $validated['name'],
+            'description' => $validated['description'],
+            'contact_number' => $validated['contact_number'],
+            'address' => $validated['address'],
+        ]
+    );
+
+    if (!$response->successful()) {
+        return back()->with(
+            'error',
+            'Failed to update organization details.'
+        );
+    }
+
+    return redirect('/sm-ngos')
+        ->with('success', 'Organization details updated successfully.');
+}
+
+public function addAccount(Request $request)
+{
+    $supabaseUrl = env('SUPABASE_URL');
+    $serviceKey = env('SUPABASE_SERVICE_KEY');
+
+    $headers = [
+        'apikey' => $serviceKey,
+        'Authorization' => 'Bearer ' . $serviceKey,
+        'Content-Type' => 'application/json',
+        'Prefer' => 'return=representation',
+    ];
+
+    $ngoId = session('ngo_id');
+
+    if (!$ngoId) {
+        abort(403, 'No NGO associated with this account.');
+    }
+
+    $validated = $request->validate([
+        'type' => 'required|string|max:50',
+        'account_name' => 'required|string|max:255',
+        'account_number' => 'required|string|max:100',
+        'qr_code' => 'required|image|mimes:jpg,jpeg,png|max:5120',
+    ]);
+
+    $type = strtoupper($validated['type']);
+
+
+    $accountResponse = Http::withHeaders($headers)->post(
+        $supabaseUrl . '/rest/v1/bank_accounts',
+        [
+            'ngo_id' => $ngoId,
+            'account_name' => $validated['account_name'],
+            'account_number' => $validated['account_number'],
+            'type' => $type,
+        ]
+    );
+
+    if (!$accountResponse->successful()) {
+
+        \Log::error('Bank account insert failed', [
+            'status' => $accountResponse->status(),
+            'response' => $accountResponse->body(),
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
         ]);
 
         // Update NGO profile
@@ -294,10 +447,14 @@ class ngo_controller extends Controller
 
         if (!$accountResponse->successful()) {
 
+<<<<<<< HEAD
             \Log::error('Bank account insert failed', [
                 'status' => $accountResponse->status(),
                 'response' => $accountResponse->body(),
             ]);
+=======
+
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
 
             return back()->with(
                 'error',
@@ -305,6 +462,7 @@ class ngo_controller extends Controller
             );
         }
 
+<<<<<<< HEAD
         /*
         |--------------------------------------------------------------------------
         | 3. GET NEW BANK ACCOUNT ID
@@ -312,6 +470,13 @@ class ngo_controller extends Controller
         */
 
         $accountData = $accountResponse->json();
+=======
+
+    $fileName = time() . '_' . uniqid() . '.' . $file->getClientOriginalExtension();
+
+
+    $storagePath = 'bank_accounts/' . $ngoId . '/' . $fileName;
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
 
         if (empty($accountData) || !isset($accountData[0]['id'])) {
 
@@ -416,4 +581,44 @@ class ngo_controller extends Controller
             'Payment account and QR code added successfully.'
         );
     }
+<<<<<<< HEAD
+=======
+
+
+
+    $qrPath = $supabaseUrl .
+        '/storage/v1/object/public/qrcodes/' .
+        $storagePath;
+
+
+    $mediaResponse = Http::withHeaders($headers)->post(
+        $supabaseUrl . '/rest/v1/media_table',
+        [
+            'key_id' => $bankAccountId,
+            'type' => 'BANK_ACC',
+            'path' => $qrPath,
+        ]
+    );
+
+    if (!$mediaResponse->successful()) {
+
+        \Log::error('media_table insert failed', [
+            'bank_account_id' => $bankAccountId,
+            'qr_path' => $qrPath,
+            'status' => $mediaResponse->status(),
+            'response' => $mediaResponse->body(),
+        ]);
+
+        return back()->with(
+            'error',
+            'Bank account was created but QR information failed to save.'
+        );
+    }
+
+    return back()->with(
+        'success',
+        'Payment account and QR code added successfully.'
+    );
+}
+>>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
 }

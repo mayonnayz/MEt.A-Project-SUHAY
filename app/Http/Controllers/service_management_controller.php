@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 
 class service_management_controller extends Controller
@@ -23,9 +24,6 @@ class service_management_controller extends Controller
 
     public function volunteers(Request $request)
 {
-    // =========================================================
-    // GET ACTIVE VOLUNTEERS
-    // =========================================================
 
     $data = $this->supabaseRequest('volunteer_applications', [
         'select' =>
@@ -39,11 +37,6 @@ class service_management_controller extends Controller
 
     $volunteers = collect($data);
 
-
-    // =========================================================
-    // GET EVENT HISTORY
-    // =========================================================
-
     $historyData = $this->supabaseRequest('volunteer_applications', [
         'select' =>
             'id,volunteer_event_id,account_id,application_date,status,' .
@@ -52,11 +45,6 @@ class service_management_controller extends Controller
 
         'accounts.status' => 'eq.1'
     ]);
-
-
-    // =========================================================
-    // GROUP EVENT HISTORY BY ACCOUNT ID
-    // =========================================================
 
     $eventHistory = collect($historyData)
         ->filter(function ($item) {
@@ -118,10 +106,6 @@ class service_management_controller extends Controller
         });
 
 
-    // =========================================================
-    // GET UNIQUE SKILLS
-    // =========================================================
-
     $skills = $volunteers
 
         ->pluck('skills')
@@ -148,10 +132,6 @@ class service_management_controller extends Controller
 
         ->values();
 
-
-    // =========================================================
-    // SEARCH BY NAME OR EMAIL
-    // =========================================================
 
     if ($request->filled('search')) {
 
@@ -206,11 +186,6 @@ class service_management_controller extends Controller
         );
     }
 
-
-    // =========================================================
-    // FILTER BY SKILL
-    // =========================================================
-
     $skillFilter =
         strtolower(
             trim(
@@ -249,11 +224,6 @@ class service_management_controller extends Controller
         );
     }
 
-
-    // =========================================================
-    // GROUP VOLUNTEERS BY ACCOUNT
-    // =========================================================
-
     $volunteers = $volunteers
 
         ->groupBy(function ($item) {
@@ -266,16 +236,11 @@ class service_management_controller extends Controller
 
         ->map(function ($applications) use ($eventHistory) {
 
-            // Get the first application
-            // for displaying the volunteer card.
+           
 
             $item =
                 $applications->first();
 
-
-            // =================================================
-            // ACCOUNT
-            // =================================================
 
             $account =
                 $item['accounts'] ?? [];
@@ -285,17 +250,10 @@ class service_management_controller extends Controller
             }
 
 
-            // =================================================
-            // ACCOUNT ID
-            // =================================================
 
             $accountId =
                 $item['account_id'] ?? null;
-
-
-            // =================================================
-            // CURRENT EVENT
-            // =================================================
+          
 
             $event =
                 $item['volunteer_events'] ?? [];
@@ -305,20 +263,11 @@ class service_management_controller extends Controller
             }
 
 
-            // =================================================
-            // GET ONLY THIS VOLUNTEER'S EVENT HISTORY
-            // =================================================
-
             $history =
                 $eventHistory->get(
                     (string) $accountId,
                     []
                 );
-
-
-            // =================================================
-            // RETURN VOLUNTEER OBJECT
-            // =================================================
 
             return (object) [
 
@@ -375,10 +324,6 @@ class service_management_controller extends Controller
         ->values();
 
 
-    // =========================================================
-    // RETURN VIEW
-    // =========================================================
-
     return view(
         'service_management',
         compact(
@@ -408,25 +353,30 @@ class service_management_controller extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    
+
+public function store(Request $request)
 {
     try {
-
         $activityId = $request->activity_id;
         $accountId = $request->account_id;
         $eventId = $request->event_id;
 
         if (!$activityId || !$accountId || !$eventId) {
             return response()->json([
+                'success' => false,
                 'message' => 'Activity, volunteer, and event are required.'
             ], 400);
         }
 
+        $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
+        $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-        // =====================================================
-        // VERIFY THAT THE VOLUNTEER APPLIED AND WAS APPROVED
-        // FOR THIS EVENT
-        // =====================================================
+        $headers = [
+            'apikey' => $supabaseKey,
+            'Authorization' => 'Bearer ' . $supabaseKey,
+        ];
+
 
         $application = $this->supabaseRequest('volunteer_applications', [
             'select' => 'id,account_id,volunteer_event_id,status',
@@ -437,93 +387,222 @@ class service_management_controller extends Controller
 
         if (empty($application)) {
             return response()->json([
+                'success' => false,
                 'message' => 'This volunteer is not an approved applicant for this event.'
             ], 403);
         }
 
-
-        // =====================================================
-        // CHECK IF ALREADY ASSIGNED TO THIS ACTIVITY
-        // =====================================================
-
-        $existing = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        ])->get(
-            env('SUPABASE_URL') . '/rest/v1/volunteer_assignments',
+        $existing = Http::withHeaders($headers)->get(
+            "$supabaseUrl/rest/v1/volunteer_assignments",
             [
                 'select' => 'id',
                 'activity_id' => 'eq.' . $activityId,
                 'account_id' => 'eq.' . $accountId
             ]
-        )->json();
+        );
 
-        if (!empty($existing)) {
+        if ($existing->failed()) {
             return response()->json([
+                'success' => false,
+                'message' => 'Unable to verify existing assignments.'
+            ], 500);
+        }
+
+        if (!empty($existing->json())) {
+            return response()->json([
+                'success' => false,
                 'message' => 'This volunteer is already assigned to this activity.'
             ], 409);
         }
 
 
-        // =====================================================
-        // GET EVENT DATE
-        // =====================================================
+        $eventResponse = Http::withHeaders($headers)->get(
+            "$supabaseUrl/rest/v1/volunteer_events",
+            [
+                'select' => 'id,date,name',
+                'id' => 'eq.' . $eventId,
+                'limit' => 1
+            ]
+        );
 
-        $event = $this->supabaseRequest('volunteer_events', [
-            'select' => 'id,date',
-            'id' => 'eq.' . $eventId
-        ]);
+        $event = $eventResponse->json()[0] ?? [];
 
-        $eventDate = null;
+        $eventDate = $event['date'] ?? null;
+        $eventName = $event['name'] ?? 'your assigned event';
 
-        if (!empty($event)) {
-            $eventDate = $event[0]['date'] ?? null;
+
+        $activityResponse = Http::withHeaders($headers)->get(
+            "$supabaseUrl/rest/v1/volunteer_activities",
+            [
+                'select' => 'id,name',
+                'id' => 'eq.' . $activityId,
+                'limit' => 1
+            ]
+        );
+
+        if ($activityResponse->failed()) {
+            \Illuminate\Support\Facades\Log::error(
+                'Failed to fetch volunteer activity.',
+                [
+                    'activity_id' => $activityId,
+                    'response' => $activityResponse->body()
+                ]
+            );
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Unable to retrieve the activity details.'
+            ], 500);
         }
 
+        $activity = $activityResponse->json()[0] ?? null;
 
-        // =====================================================
-        // CREATE ASSIGNMENT
-        // =====================================================
+        if (!$activity) {
+            return response()->json([
+                'success' => false,
+                'message' => 'The selected activity does not exist.'
+            ], 404);
+        }
 
-        $insert = Http::withHeaders([
-            'apikey' => env('SUPABASE_SERVICE_KEY'),
-            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        $activityName = $activity['name'];
+
+
+        $insert = Http::withHeaders(array_merge($headers, [
             'Content-Type' => 'application/json',
             'Prefer' => 'return=representation'
-        ])->post(
-            env('SUPABASE_URL') . '/rest/v1/volunteer_assignments',
+        ]))->post(
+            "$supabaseUrl/rest/v1/volunteer_assignments",
             [
                 'account_id' => $accountId,
                 'activity_id' => $activityId,
                 'date' => $eventDate,
-                'status' => 1
+                'status' => 0
             ]
         );
 
-
         if ($insert->failed()) {
             return response()->json([
+                'success' => false,
                 'message' => 'Failed to assign volunteer.',
-                'error' => $insert->json(),
+                'error' => $insert->json()
             ], $insert->status());
+        }
+
+        $assignment = $insert->json()[0] ?? null;
+
+        if (!$assignment || !isset($assignment['id'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Assignment was submitted, but its saved ID could not be retrieved.'
+            ], 500);
+        }
+
+        $assignmentId = $assignment['id'];
+
+
+        $notificationResponse = Http::withHeaders(array_merge($headers, [
+            'Content-Type' => 'application/json',
+            'Prefer' => 'return=representation'
+        ]))->post(
+            "$supabaseUrl/rest/v1/notifications",
+            [
+                'title' => 'Volunteer Assignment',
+                'message' => "You are assigned in {$activityName} for {$eventName}.",
+                'type' => 'Assignment',
+                'reference_id' => $assignmentId,
+                'related_id' => null,
+                'created_at' => now()->toIso8601String()
+            ]
+        );
+
+        if ($notificationResponse->failed()) {
+            \Illuminate\Support\Facades\Log::error(
+                'Failed to create volunteer assignment notification.',
+                [
+                    'assignment_id' => $assignmentId,
+                    'response' => $notificationResponse->body()
+                ]
+            );
+
+            
+            return response()->json([
+                'success' => true,
+                'message' => 'Volunteer assigned successfully, but the notification could not be created.',
+                'data' => $assignment,
+                'notification_created' => false
+            ]);
+        }
+
+        $notification = $notificationResponse->json()[0] ?? null;
+
+
+        if ($notification && isset($notification['id'])) {
+            $statusResponse = Http::withHeaders(array_merge($headers, [
+                'Content-Type' => 'application/json',
+                'Prefer' => 'return=representation'
+            ]))->post(
+                "$supabaseUrl/rest/v1/notification_status",
+                [
+                    'user_id' => $accountId,
+                    'notification_id' => $notification['id'],
+                    'is_read' => 0
+                ]
+            );
+
+            if ($statusResponse->failed()) {
+                \Illuminate\Support\Facades\Log::error(
+                    'Failed to create volunteer notification status.',
+                    [
+                        'assignment_id' => $assignmentId,
+                        'notification_id' => $notification['id'],
+                        'volunteer_id' => $accountId,
+                        'response' => $statusResponse->body()
+                    ]
+                );
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Volunteer assigned and notification created, but notification status could not be saved.',
+                    'data' => $assignment,
+                    'notification_created' => true,
+                    'notification_status_created' => false
+                ]);
+            }
+        } else {
+            \Illuminate\Support\Facades\Log::error(
+                'Notification response did not contain an ID.',
+                [
+                    'assignment_id' => $assignmentId,
+                    'response' => $notificationResponse->body()
+                ]
+            );
         }
 
 
         return response()->json([
             'success' => true,
-            'message' => 'Volunteer assigned successfully.',
-            'data' => $insert->json()
+            'message' => 'Volunteer assigned and notification created successfully.',
+            'data' => $assignment,
+            'notification_created' => (bool) $notification,
+            'notification_status_created' => (bool) (
+                $notification &&
+                isset($notification['id'])
+            )
         ]);
 
-
-    } catch (\Exception $e) {
+    } catch (\Throwable $e) {
+        \Illuminate\Support\Facades\Log::error(
+            'Volunteer assignment failed.',
+            ['error' => $e->getMessage()]
+        );
 
         return response()->json([
-            'message' => 'Assignment failed.',
-            'error' => $e->getMessage()
+            'success' => false,
+            'message' => 'Assignment failed due to a server error.'
         ], 500);
     }
 }
+
   public function getVolunteers(Request $request)
 {
     $eventId = $request->query('event_id');
@@ -539,13 +618,13 @@ class service_management_controller extends Controller
             'id,volunteer_event_id,account_id,status,' .
             'accounts!inner(first_name,last_name,email,status)',
 
-        // ONLY applications for the selected event
+        
         'volunteer_event_id' => 'eq.' . $eventId,
 
-        // ONLY approved applications
+       
         'status' => 'eq.1',
 
-        // ONLY active accounts
+       
         'accounts.status' => 'eq.1'
     ]);
 
