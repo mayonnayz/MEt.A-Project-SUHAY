@@ -75,33 +75,16 @@
 
 
 <div class="flex min-h-screen">
-
-
-    {{-- SIDEBAR --}}
     @include('components.nav')
 
-
-    {{-- MAIN CONTENT --}}
     <div class="flex-1 min-w-0 p-5 sm:p-6 lg:p-8">
-
-
-        {{-- HEADER --}}
         @include('components.header', ['title' => 'Applications'])
-
-
         <div class="max-w-[1400px] mx-auto">
-
-
-
-            {{-- MAIN PANEL --}}
             <div
                 class="bg-white rounded-3xl
                        border border-gray-200
                        shadow-sm overflow-hidden"
             >
-
-
-                {{-- PANEL HEADER --}}
                 <div
                     class="px-5 sm:px-7 py-5
                            border-b border-gray-200
@@ -123,8 +106,6 @@
 
                     </div>
 
-
-                    {{-- TOTAL APPLICATIONS --}}
                     <div
                         class="flex items-center gap-3
                                bg-[#f7f9fb]
@@ -181,14 +162,9 @@
 
                 </div>
 
-
-                {{-- SEARCH + FILTER --}}
                 <div class="px-5 sm:px-7 py-5 bg-[#fafbfc]">
 
                     <div class="flex flex-col md:flex-row gap-3">
-
-
-                        {{-- SEARCH --}}
                         <div class="relative flex-1">
 
                             <div
@@ -243,8 +219,6 @@
 
                         </div>
 
-
-                        {{-- FILTER --}}
                         <div class="relative md:w-56">
 
                             <div
@@ -310,8 +284,6 @@
 
                 </div>
 
-
-                {{-- APPLICATION LIST --}}
                 <div class="p-5 sm:p-7">
 
                     <div
@@ -327,8 +299,6 @@
 
                             @endphp
 
-
-                            {{-- APPLICATION CARD --}}
                             <div
                                 class="application-card
                                        rounded-2xl
@@ -355,16 +325,11 @@
                                            gap-5"
                                 >
 
-
-                                    {{-- LEFT INFORMATION --}}
                                     <div
                                         class="flex items-start
                                                gap-4
                                                min-w-0"
                                     >
-
-
-                                        {{-- APPLICATION ICON --}}
                                         <div
                                             class="w-12 h-12
                                                    shrink-0
@@ -399,8 +364,6 @@
 
                                         </div>
 
-
-                                        {{-- EVENT INFORMATION --}}
                                         <div class="min-w-0">
 
                                             <h3
@@ -414,8 +377,6 @@
 
                                             </h3>
 
-
-                                            {{-- META --}}
                                             <div
                                                 class="flex flex-wrap
                                                        items-center
@@ -426,8 +387,6 @@
                                                        text-gray-500"
                                             >
 
-
-                                                {{-- DATE --}}
                                                 <span
                                                     class="flex items-center gap-1.5"
                                                 >
@@ -865,9 +824,6 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    // =====================================================
-    // ELEMENTS
-    // =====================================================
     const searchInput = document.getElementById('searchInput');
     const filterType = document.getElementById('filterType');
     const applicationList = document.getElementById('applicationList');
@@ -876,9 +832,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const viewModal = document.getElementById('viewModal');
     const viewModalContent = document.getElementById('viewModalContent');
 
-    // =====================================================
-    // SEARCH AND CURRENT / PAST FILTER
-    // =====================================================
     function filterApplications() {
         if (!applicationList) return;
 
@@ -901,8 +854,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 ngoName.includes(search) ||
                 cardText.includes(search);
 
-            // Use the actual event date, not the application status,
-            // to determine whether an event is current or past.
             const dateValue = card.dataset.eventDate || '';
             let matchesDate = true;
 
@@ -938,10 +889,6 @@ document.addEventListener('DOMContentLoaded', function () {
     searchInput?.addEventListener('input', filterApplications);
     filterType?.addEventListener('change', filterApplications);
 
-    // =====================================================
-    // APPLICATION DETAILS MODAL
-    // Uses your existing modalFirstName-style IDs.
-    // =====================================================
     window.openModal = function (app) {
         if (!app || typeof app !== 'object') {
             console.error('Application data was not provided.');
@@ -996,9 +943,6 @@ Object.entries(fields).forEach(([id, value]) => {
         }
     };
 
-    // =====================================================
-    // CLOSE APPLICATION MODAL
-    // =====================================================
     window.closeModal = function () {
         if (!viewModal || viewModal.classList.contains('hidden')) return;
 
@@ -1019,16 +963,12 @@ Object.entries(fields).forEach(([id, value]) => {
         }, 200);
     };
 
-    // Close by clicking the backdrop.
     viewModal?.addEventListener('click', function (event) {
         if (event.target === viewModal) {
             window.closeModal();
         }
     });
 
-    // =====================================================
-    // ESCAPE KEY
-    // =====================================================
     document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape') {
             window.closeModal();
@@ -1036,10 +976,6 @@ Object.entries(fields).forEach(([id, value]) => {
         }
     });
 
-    // =====================================================
-    // HIGHLIGHT APPLICATION
-    // ?highlight=APPLICATION_ID
-    // =====================================================
     const highlightId = new URLSearchParams(
         window.location.search
     ).get('highlight');
@@ -1065,9 +1001,6 @@ Object.entries(fields).forEach(([id, value]) => {
         }
     }
 
-    // =====================================================
-    // LOGOUT MODAL
-    // =====================================================
     window.openLogoutModal = function () {
         const modal = document.getElementById('logoutModal');
 

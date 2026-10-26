@@ -21,28 +21,12 @@
 </head>
 
 <body class="bg-gray-100">
-
-    {{-- NAVBAR --}}
     @include('components.navbar')
 
-
-    <!-- =========================================================
-         PAGE CONTENT
-         Only this section will fade/slide.
-         Navbar will NOT be affected.
-         ========================================================= -->
-
     <div class="page-transition">
-
-        <!-- =====================================================
-             ABOUT US HERO
-             ===================================================== -->
-
         <section class="bg-gray-100 pt-0 pb-0">
 
             <div class="w-full flex flex-col md:flex-row items-center">
-
-                <!-- LEFT IMAGE (HALF) -->
                 <div class="w-full md:w-1/2 relative h-[400px]">
 
                     <img
@@ -50,13 +34,10 @@
                         class="w-full h-full object-cover"
                     >
 
-                    <!-- Gradient fade -->
                     <div class="absolute inset-0 bg-gradient-to-r from-white via-white/70 to-transparent"></div>
 
                 </div>
 
-
-                <!-- RIGHT TEXT (HALF) -->
                 <div class="w-full md:w-1/2 px-8 md:px-16 mt-10 md:mt-0">
 
                     <h1 class="text-5xl font-extrabold text-[#f2c94c] mb-4">
@@ -79,16 +60,9 @@
 
         </section>
 
-
-        <!-- =====================================================
-             MISSION / VISION / VALUES
-             ===================================================== -->
-
         <section class="bg-[#0e243a] text-white py-16 px-0">
 
             <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-10 text-center">
-
-                <!-- MISSION -->
                 <div>
 
                     <img
@@ -107,8 +81,6 @@
 
                 </div>
 
-
-                <!-- VISION -->
                 <div>
 
                     <img
@@ -127,8 +99,6 @@
 
                 </div>
 
-
-                <!-- VALUES -->
                 <div>
 
                     <img
@@ -152,11 +122,6 @@
         </section>
 
     </div>
-
-
-    <!-- =========================================================
-         SUHAY PAGE TRANSITION
-         ========================================================= -->
 
     <script src="{{ asset('js/page-transition.js') }}"></script>
 

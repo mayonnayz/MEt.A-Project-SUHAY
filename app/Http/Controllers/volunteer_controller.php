@@ -9,12 +9,10 @@ use Illuminate\Support\Facades\Auth;
 
 class volunteer_controller extends Controller
 {
-
     public function dashboard()
     {
         $userId = session('user_id');
 
-    
         $userResponse = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -22,7 +20,6 @@ class volunteer_controller extends Controller
 
         $user = $userResponse->json()[0] ?? null;
 
- 
         $response = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -42,21 +39,19 @@ class volunteer_controller extends Controller
         ));
     }
 
-
     public function updateAccount(Request $request)
     {
         $userId = session('user_id');
 
         $validator = Validator::make($request->all(), [
             'email' => 'required|email',
-            'contact_number' => ['required','regex:/^[0-9]{11}$/'],
+            'contact_number' => ['required', 'regex:/^[0-9]{11}$/'],
             'address' => 'required',
         ]);
 
         if ($validator->fails()) {
             return back()->withErrors($validator)->withInput();
         }
-
 
         $existingEmail = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
@@ -87,104 +82,83 @@ class volunteer_controller extends Controller
     }
 
     public function ngos()
-{
-    $headers = [
-        'apikey' => env('SUPABASE_SERVICE_KEY'),
-        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        'Content-Type' => 'application/json',
-    ];
+    {
+        $headers = [
+            'apikey' => env('SUPABASE_SERVICE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            'Content-Type' => 'application/json',
+        ];
 
-    $ngoResponse = Http::withHeaders($headers)
-        ->get(
-            env('SUPABASE_URL') . '/rest/v1/ngo_profile',
-            [
+        $ngoResponse = Http::withHeaders($headers)
+            ->get(env('SUPABASE_URL') . '/rest/v1/ngo_profile', [
                 'select' => '*'
-            ]
-        );
+            ]);
 
-    if (!$ngoResponse->successful()) {
-        dd([
-            'status' => $ngoResponse->status(),
-            'body' => $ngoResponse->body()
-        ]);
-    }
+        if (!$ngoResponse->successful()) {
+            dd([
+                'status' => $ngoResponse->status(),
+                'body' => $ngoResponse->body()
+            ]);
+        }
 
-    $ngos = $ngoResponse->json();
+        $ngos = $ngoResponse->json();
 
-    $accountResponse = Http::withHeaders($headers)
-        ->get(
-            env('SUPABASE_URL') . '/rest/v1/bank_accounts',
-            [
+        $accountResponse = Http::withHeaders($headers)
+            ->get(env('SUPABASE_URL') . '/rest/v1/bank_accounts', [
                 'select' => '*'
-            ]
-        );
+            ]);
 
-    if (!$accountResponse->successful()) {
-        dd([
-            'status' => $accountResponse->status(),
-            'body' => $accountResponse->body()
-        ]);
-    }
+        if (!$accountResponse->successful()) {
+            dd([
+                'status' => $accountResponse->status(),
+                'body' => $accountResponse->body()
+            ]);
+        }
 
-    $bankAccounts = $accountResponse->json();
+        $bankAccounts = $accountResponse->json();
 
-    foreach ($ngos as &$ngo) {
+        foreach ($ngos as &$ngo) {
+            $ngo['bank_accounts'] = array_values(
+                array_filter(
+                    $bankAccounts,
+                    function ($account) use ($ngo) {
+                        return (int) $account['ngo_id'] === (int) $ngo['id'];
+                    }
+                )
+            );
+        }
 
-        $ngo['bank_accounts'] = array_values(
-            array_filter(
-                $bankAccounts,
-                function ($account) use ($ngo) {
-                    return (int) $account['ngo_id'] === (int) $ngo['id'];
-                }
-            )
-        );
-    }
+        unset($ngo);
 
-    unset($ngo);
+        $logoIds = array_filter(array_column($ngos, 'logo'));
+        $logoMap = [];
 
-    $logoIds = array_filter(
-        array_column($ngos, 'logo')
-    );
+        if (!empty($logoIds)) {
+            $ids = implode(',', $logoIds);
 
-    $logoMap = [];
-
-    if (!empty($logoIds)) {
-
-        $ids = implode(',', $logoIds);
-
-        $mediaResponse = Http::withHeaders($headers)
-            ->get(
-                env('SUPABASE_URL') . '/rest/v1/media_table',
-                [
+            $mediaResponse = Http::withHeaders($headers)
+                ->get(env('SUPABASE_URL') . '/rest/v1/media_table', [
                     'select' => 'id,path',
                     'id' => 'in.(' . $ids . ')',
                     'type' => 'eq.NGO_LOGO'
-                ]
-            );
+                ]);
 
-        if ($mediaResponse->successful()) {
-
-            foreach ($mediaResponse->json() as $media) {
-
-                $logoMap[$media['id']] = $media['path'];
+            if ($mediaResponse->successful()) {
+                foreach ($mediaResponse->json() as $media) {
+                    $logoMap[$media['id']] = $media['path'];
+                }
             }
         }
+
+        foreach ($ngos as &$ngo) {
+            $logoId = $ngo['logo'] ?? null;
+            $ngo['logo_url'] = $logoId ? ($logoMap[$logoId] ?? null) : null;
+        }
+
+        unset($ngo);
+
+        return view('Volunteers.ngos', compact('ngos'));
     }
-foreach ($ngos as &$ngo) {
-
-    $logoId = $ngo['logo'] ?? null;
-
-    $ngo['logo_url'] =
-        $logoId ? ($logoMap[$logoId] ?? null) : null;
-}
-    unset($ngo);
-
-
-    return view(
-        'Volunteers.ngos',
-        compact('ngos')
-    );
-}
 
     public function updateProfilePicture(Request $request)
     {
@@ -199,36 +173,33 @@ foreach ($ngos as &$ngo) {
         }
 
         $file = $request->file('profile_picture');
+        $fileName = uniqid() . '.' . $file->getClientOriginalExtension();
 
-$fileName = uniqid() . '.' . $file->getClientOriginalExtension();
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            'Content-Type' => $file->getMimeType(),
+        ])->withBody(
+            file_get_contents($file),
+            $file->getMimeType()
+        )->post(
+            env('SUPABASE_URL') . "/storage/v1/object/profile-pictures/" . $fileName
+        );
 
-$response = Http::withHeaders([
-    'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-    'Content-Type' => $file->getMimeType(),
-])->withBody(
-    file_get_contents($file),
-    $file->getMimeType()
-)->post(
-    env('SUPABASE_URL') . "/storage/v1/object/profile-pictures/" . $fileName
-);
-if (!$response->successful()) {
-    dd($response->status(), $response->body());
-}
+        if (!$response->successful()) {
+            dd($response->status(), $response->body());
+        }
 
         $publicUrl = env('SUPABASE_URL')
             . "/storage/v1/object/public/profile-pictures/"
             . $fileName;
 
-  
         Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
             'Content-Type' => 'application/json',
         ])->patch(
             env('SUPABASE_URL') . "/rest/v1/accounts?id=eq.$userId",
-            [
-                'profile_picture' => $publicUrl
-            ]
+            ['profile_picture' => $publicUrl]
         );
 
         return back()->with('success', 'Profile picture updated!');
@@ -240,7 +211,6 @@ if (!$response->successful()) {
         $accountId = session('user_id');
         $applications = [];
 
-
         if ($accountId) {
             $appResponse = Http::withHeaders([
                 'apikey' => env('SUPABASE_SERVICE_KEY'),
@@ -250,12 +220,11 @@ if (!$response->successful()) {
             if ($appResponse->successful()) {
                 $applications = collect($appResponse->json())
                     ->pluck('volunteer_event_id')
-                    ->map(fn($id) => (string) $id)
+                    ->map(fn ($id) => (string) $id)
                     ->toArray();
             }
         }
 
-   
         $response = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -264,9 +233,11 @@ if (!$response->successful()) {
         $events = collect($response->json());
 
         if ($events->isEmpty()) {
-            return view('Volunteers.events', ['events' => collect(), 'applications' => $applications]);
+            return view('Volunteers.events', [
+                'events' => collect(),
+                'applications' => $applications
+            ]);
         }
-
 
         $ngoIds = $events->pluck('ngo_id')->filter()->unique()->implode(',');
 
@@ -275,12 +246,10 @@ if (!$response->successful()) {
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
         ])->get(env('SUPABASE_URL') . "/rest/v1/ngo_profile?id=in.($ngoIds)&select=id,name")->json());
 
-    
         $activities = collect(Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
         ])->get(env('SUPABASE_URL') . "/rest/v1/volunteer_activities")->json());
-
 
         if (!empty($search)) {
             $search = strtolower($search);
@@ -291,230 +260,330 @@ if (!$response->successful()) {
             })->values();
         }
 
-   
         $events = $events->map(function ($event) use ($ngos, $activities) {
             $ngo = $ngos->firstWhere('id', $event['ngo_id']);
             $event['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
-
             $event['activities'] = $activities
                 ->where('volunteer_event_id', $event['id'])
                 ->values();
-
             return $event;
         });
 
         return view('Volunteers.events', compact('events', 'applications'));
     }
 
-public function applications(Request $request)
-{
-    $userId = session('user_id');
+    public function applications(Request $request)
+    {
+        $userId = session('user_id');
 
-    if (!$userId) {
-        return redirect('/login')->with('error', 'Please log in first.');
-    }
+        if (!$userId) {
+            return redirect('/login')->with('error', 'Please log in first.');
+        }
 
-    $headers = [
-        'apikey' => env('SUPABASE_SERVICE_KEY'),
-        'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-        'Content-Type' => 'application/json',
-    ];
+        $headers = [
+            'apikey' => env('SUPABASE_SERVICE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            'Content-Type' => 'application/json',
+        ];
 
-    $baseUrl = env('SUPABASE_URL') . '/rest/v1/';
+        $baseUrl = env('SUPABASE_URL') . '/rest/v1/';
 
-    $userResponse = Http::withHeaders($headers)->get(
-        $baseUrl . 'accounts',
-        [
+        $userResponse = Http::withHeaders($headers)->get($baseUrl . 'accounts', [
             'select' => 'id,first_name,last_name,email,address,birth_date,contact_number',
             'id' => 'eq.' . $userId,
-        ]
-    );
+        ]);
 
-    if (!$userResponse->successful()) {
-        return back()->with('error', 'Unable to retrieve your account details.');
-    }
+        if (!$userResponse->successful()) {
+            return back()->with('error', 'Unable to retrieve your account details.');
+        }
 
-    $user = $userResponse->json()[0] ?? [];
+        $user = $userResponse->json()[0] ?? [];
 
-    
-    $applicationResponse = Http::withHeaders($headers)->get(
-        $baseUrl . 'volunteer_applications',
-        [
+        $applicationResponse = Http::withHeaders($headers)->get($baseUrl . 'volunteer_applications', [
             'select' => '*',
             'account_id' => 'eq.' . $userId,
             'order' => 'application_date.desc',
-        ]
-    );
+        ]);
 
-    if (!$applicationResponse->successful()) {
-        return back()->with('error', 'Unable to retrieve your applications.');
-    }
+        if (!$applicationResponse->successful()) {
+            return back()->with('error', 'Unable to retrieve your applications.');
+        }
 
-    $applications = collect($applicationResponse->json());
+        $applications = collect($applicationResponse->json());
 
-   
-    if ($applications->isEmpty()) {
+        if ($applications->isEmpty()) {
+            return view('Volunteers.applications', [
+                'applications' => collect(),
+            ]);
+        }
+
+        $eventIds = $applications
+            ->pluck('volunteer_event_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->implode(',');
+
+        $events = collect();
+
+        if ($eventIds !== '') {
+            $eventResponse = Http::withHeaders($headers)->get($baseUrl . 'volunteer_events', [
+                'select' => 'id,name,date,ngo_id',
+                'id' => 'in.(' . $eventIds . ')',
+            ]);
+
+            if (!$eventResponse->successful()) {
+                return back()->with('error', 'Unable to retrieve event details.');
+            }
+
+            $events = collect($eventResponse->json());
+        }
+
+        $ngoIds = $events
+            ->pluck('ngo_id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->implode(',');
+
+        $ngos = collect();
+
+        if ($ngoIds !== '') {
+            $ngoResponse = Http::withHeaders($headers)->get($baseUrl . 'ngo_profile', [
+                'select' => 'id,name',
+                'id' => 'in.(' . $ngoIds . ')',
+            ]);
+
+            if (!$ngoResponse->successful()) {
+                return back()->with('error', 'Unable to retrieve NGO details.');
+            }
+
+            $ngos = collect($ngoResponse->json());
+        }
+
+        $applications = $applications->map(function ($app) use ($user, $events, $ngos) {
+            $event = $events->firstWhere('id', $app['volunteer_event_id'] ?? null);
+            $ngo = $ngos->firstWhere('id', $event['ngo_id'] ?? null);
+
+            $statusLabels = [
+                0 => 'Pending',
+                1 => 'Approved',
+                2 => 'Rejected',
+                3 => 'Archived',
+            ];
+
+            $status = (int) ($app['status'] ?? 0);
+
+            $app['first_name'] = $user['first_name'] ?? '';
+            $app['last_name'] = $user['last_name'] ?? '';
+            $app['email'] = $user['email'] ?? '';
+            $app['address'] = $user['address'] ?? '';
+            $app['birth_date'] = $user['birth_date'] ?? '';
+            $app['contact_number'] = $user['contact_number'] ?? '';
+            $app['event_name'] = $event['name'] ?? 'Unknown Event';
+            $app['event_date'] = $event['date'] ?? null;
+            $app['date'] = $event['date'] ?? null;
+            $app['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
+            $app['status'] = $status;
+            $app['status_label'] = $statusLabels[$status] ?? 'Unknown';
+            $app['skills'] = $app['skills'] ?? '';
+            $app['remarks'] = $app['remarks'] ?? '';
+            $app['application_date'] = $app['application_date'] ?? null;
+
+            return $app;
+        });
+
         return view('Volunteers.applications', [
-            'applications' => collect(),
+            'applications' => $applications->values(),
         ]);
     }
 
-  
-    $eventIds = $applications
-        ->pluck('volunteer_event_id')
-        ->filter()
-        ->unique()
-        ->values()
-        ->implode(',');
+    public function volunteers(Request $request)
+    {
+        $eventId = $request->query('event_id');
 
-    $events = collect();
+        if (!$eventId) {
+            return response()->json([
+                'message' => 'Event ID is required.'
+            ], 400);
+        }
 
-    if ($eventIds !== '') {
-        $eventResponse = Http::withHeaders($headers)->get(
-            $baseUrl . 'volunteer_events',
+        $response = Http::withHeaders([
+            'apikey' => env('SUPABASE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
+        ])->get(env('SUPABASE_URL') . '/rest/v1/volunteer_applications', [
+            'select' => 'id,volunteer_event_id,account_id,status,accounts!inner(id,first_name,last_name,email)',
+            'volunteer_event_id' => 'eq.' . $eventId,
+            'status' => 'eq.1'
+        ]);
+
+        if (!$response->successful()) {
+            return response()->json([
+                'message' => 'Failed to fetch event volunteers.',
+                'error' => $response->body()
+            ], $response->status());
+        }
+
+        $applications = $response->json();
+
+        $volunteers = collect($applications)->map(function ($application) {
+            $account = $application['accounts'] ?? [];
+
+            return [
+                'id' => $application['account_id'],
+                'name' => trim(
+                    ($account['first_name'] ?? '') . ' ' .
+                    ($account['last_name'] ?? '')
+                ),
+                'email' => $account['email'] ?? '',
+            ];
+        })->values();
+
+        return response()->json($volunteers);
+    }
+
+    public function assignments()
+    {
+        $userId = session('user_id');
+
+        if (!$userId) {
+            return redirect('/login')->with('error', 'Please log in first.');
+        }
+
+        $headers = [
+            'apikey' => env('SUPABASE_SERVICE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+        ];
+
+        $baseUrl = rtrim(env('SUPABASE_URL'), '/') . '/rest/v1/';
+
+        $response = Http::withHeaders($headers)->get(
+            $baseUrl . 'volunteer_assignments',
             [
-                'select' => 'id,name,date,ngo_id',
-                'id' => 'in.(' . $eventIds . ')',
+                'select' => 'id,account_id,activity_id,date,status',
+                'account_id' => 'eq.' . $userId,
+                'order' => 'date.desc',
             ]
         );
 
-        if (!$eventResponse->successful()) {
-            return back()->with('error', 'Unable to retrieve event details.');
+        if (!$response->successful()) {
+            return back()->with('error', 'Unable to retrieve your assignments.');
         }
 
-        $events = collect($eventResponse->json());
-    }
+        $rawAssignments = collect($response->json());
+        $assignments = collect();
 
-  
-    $ngoIds = $events
-        ->pluck('ngo_id')
-        ->filter()
-        ->unique()
-        ->values()
-        ->implode(',');
+        if ($rawAssignments->isNotEmpty()) {
+            $activityIds = $rawAssignments
+                ->pluck('activity_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->implode(',');
 
-    $ngos = collect();
+            $activities = collect();
 
-    if ($ngoIds !== '') {
-        $ngoResponse = Http::withHeaders($headers)->get(
-            $baseUrl . 'ngo_profile',
-            [
-                'select' => 'id,name',
-                'id' => 'in.(' . $ngoIds . ')',
-            ]
-        );
+            if ($activityIds !== '') {
+                $activityResponse = Http::withHeaders($headers)->get(
+                    $baseUrl . 'volunteer_activities',
+                    [
+                        'select' => 'id,name,volunteer_event_id',
+                        'id' => 'in.(' . $activityIds . ')',
+                    ]
+                );
 
-        if (!$ngoResponse->successful()) {
-            return back()->with('error', 'Unable to retrieve NGO details.');
+                if (!$activityResponse->successful()) {
+                    return back()->with('error', 'Unable to retrieve activity details.');
+                }
+
+                $activities = collect($activityResponse->json());
+            }
+
+            $eventIds = $activities
+                ->pluck('volunteer_event_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->implode(',');
+
+            $events = collect();
+
+            if ($eventIds !== '') {
+                $eventResponse = Http::withHeaders($headers)->get(
+                    $baseUrl . 'volunteer_events',
+                    [
+                        'select' => 'id,name,date,ngo_id',
+                        'id' => 'in.(' . $eventIds . ')',
+                    ]
+                );
+
+                if (!$eventResponse->successful()) {
+                    return back()->with('error', 'Unable to retrieve event details.');
+                }
+
+                $events = collect($eventResponse->json());
+            }
+
+            $ngoIds = $events
+                ->pluck('ngo_id')
+                ->filter()
+                ->unique()
+                ->values()
+                ->implode(',');
+
+            $ngos = collect();
+
+            if ($ngoIds !== '') {
+                $ngoResponse = Http::withHeaders($headers)->get(
+                    $baseUrl . 'ngo_profile',
+                    [
+                        'select' => 'id,name',
+                        'id' => 'in.(' . $ngoIds . ')',
+                    ]
+                );
+
+                if (!$ngoResponse->successful()) {
+                    return back()->with('error', 'Unable to retrieve NGO details.');
+                }
+
+                $ngos = collect($ngoResponse->json());
+            }
+
+            $assignments = $rawAssignments->map(function ($assignment) use (
+                $activities,
+                $events,
+                $ngos
+            ) {
+                $activity = $activities->firstWhere(
+                    'id',
+                    $assignment['activity_id'] ?? null
+                );
+
+                $event = $events->firstWhere(
+                    'id',
+                    $activity['volunteer_event_id'] ?? null
+                );
+
+                $ngo = $ngos->firstWhere(
+                    'id',
+                    $event['ngo_id'] ?? null
+                );
+
+                return [
+                    'event_id' => $event['id'] ?? null,
+                    'ngo_name' => $ngo['name'] ?? 'Unknown NGO',
+                    'event_name' => $event['name'] ?? 'Unknown Event',
+                    'date' => $assignment['date'] ?? $event['date'] ?? null,
+                    'activity' => $activity['name'] ?? 'Unknown Activity',
+                    'status' => (int) ($assignment['status'] ?? 0) === 1
+                        ? 'Completed'
+                        : 'On Going',
+                ];
+            });
+
+            $assignments = $assignments->values();
         }
 
-        $ngos = collect($ngoResponse->json());
+        return view('Volunteers.assignments', compact('assignments'));
     }
-
-   
-    $applications = $applications->map(function ($app) use ($user, $events, $ngos) {
-        $event = $events->firstWhere(
-            'id',
-            $app['volunteer_event_id'] ?? null
-        );
-
-        $ngo = $ngos->firstWhere(
-            'id',
-            $event['ngo_id'] ?? null
-        );
-
-        $statusLabels = [
-            0 => 'Pending',
-            1 => 'Approved',
-            2 => 'Rejected',
-            3 => 'Archived',
-        ];
-
-        $status = (int) ($app['status'] ?? 0);
-
-        $app['first_name'] = $user['first_name'] ?? '';
-        $app['last_name'] = $user['last_name'] ?? '';
-        $app['email'] = $user['email'] ?? '';
-        $app['address'] = $user['address'] ?? '';
-        $app['birth_date'] = $user['birth_date'] ?? '';
-        $app['contact_number'] = $user['contact_number'] ?? '';
-
-        $app['event_name'] = $event['name'] ?? 'Unknown Event';
-        $app['event_date'] = $event['date'] ?? null;
-
-        $app['date'] = $event['date'] ?? null;
-
-        $app['ngo_name'] = $ngo['name'] ?? 'Unknown NGO';
-
-        $app['status'] = $status;
-        $app['status_label'] = $statusLabels[$status] ?? 'Unknown';
-
-        $app['skills'] = $app['skills'] ?? '';
-        $app['remarks'] = $app['remarks'] ?? '';
-        $app['application_date'] = $app['application_date'] ?? null;
-
-        return $app;
-    });
-
-    return view('Volunteers.applications', [
-        'applications' => $applications->values(),
-    ]);
 }
-public function volunteers(Request $request)
-{
-    $eventId = $request->query('event_id');
-
-    if (!$eventId) {
-        return response()->json([
-            'message' => 'Event ID is required.'
-        ], 400);
-    }
-
-    $response = Http::withHeaders([
-        'apikey' => env('SUPABASE_KEY'),
-        'Authorization' => 'Bearer ' . env('SUPABASE_KEY'),
-    ])->get(env('SUPABASE_URL') . '/rest/v1/volunteer_applications', [
-        'select' => '
-            id,
-            volunteer_event_id,
-            account_id,
-            status,
-            accounts!inner(
-                id,
-                first_name,
-                last_name,
-                email
-            )
-        ',
-        'volunteer_event_id' => 'eq.' . $eventId,
-        'status' => 'eq.1'
-    ]);
-
-    if (!$response->successful()) {
-        return response()->json([
-            'message' => 'Failed to fetch event volunteers.',
-            'error' => $response->body()
-        ], $response->status());
-    }
-
-    $applications = $response->json();
-
-    $volunteers = collect($applications)->map(function ($application) {
-
-        $account = $application['accounts'] ?? [];
-
-        return [
-            'id' => $application['account_id'],
-            'name' => trim(
-                ($account['first_name'] ?? '') . ' ' .
-                ($account['last_name'] ?? '')
-            ),
-            'email' => $account['email'] ?? '',
-        ];
-
-    })->values();
-
-    return response()->json($volunteers);
-}
-
-    }

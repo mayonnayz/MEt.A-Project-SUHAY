@@ -62,9 +62,6 @@
     <div class="flex-1 p-8">
         @include('components.header', ['title' => 'Events'])
 
-        {{-- =========================================================
-            EVENTS / ASSIGNMENTS TABS
-        ========================================================== --}}
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
 
             <a href="/volunteer/events"
@@ -79,16 +76,7 @@
 
         </div>
 
-
-        {{-- =========================================================
-            MAIN EVENTS SECTION
-        ========================================================== --}}
         <div class="bg-[#f5f5f5] rounded-[22px] border-[10px] border-[#0e243a] p-6 sm:p-8">
-
-
-            {{-- =====================================================
-                SEARCH BAR
-            ====================================================== --}}
             <form method="GET"
                   action="/volunteer/events"
                   class="mb-7">
@@ -123,10 +111,6 @@
 
             </form>
 
-
-            {{-- =====================================================
-                EVENTS LIST
-            ====================================================== --}}
             <div id="eventsList" class="space-y-4">
 
                 @forelse($events as $event)
@@ -140,11 +124,7 @@
 
                         <div class="flex flex-col lg:flex-row lg:items-center
                                     lg:justify-between gap-5">
-
-                            {{-- EVENT INFORMATION --}}
                             <div class="min-w-0 flex-1">
-
-                                {{-- EVENT TITLE --}}
                                 <div class="flex items-start gap-3 mb-3">
 
                                     <div class="w-10 h-10 rounded-xl bg-[#0e243a]
@@ -187,13 +167,9 @@
 
                                 </div>
 
-
-                                {{-- DATE + NGO --}}
                                 <div class="flex flex-col sm:flex-row
                                             sm:items-center gap-3 sm:gap-6
                                             text-sm text-gray-600 ml-0 sm:ml-[52px]">
-
-                                    {{-- DATE --}}
                                     <div class="flex items-center gap-2">
 
                                         <img
@@ -208,8 +184,6 @@
 
                                     </div>
 
-
-                                    {{-- NGO --}}
                                     <div class="flex items-center gap-2">
 
                                         <img
@@ -228,13 +202,9 @@
 
                             </div>
 
-
-                            {{-- ACTION BUTTONS --}}
                             <div class="flex flex-col sm:flex-row
                                         lg:flex-col xl:flex-row
                                         gap-2 sm:gap-3 lg:items-stretch">
-
-                                {{-- VIEW ACTIVITIES --}}
                                 <button
                                     type="button"
                                     class="view-activities-btn px-6 py-2.5
@@ -263,9 +233,6 @@
                                     View Activities
                                 </button>
 
-
-                                
-                                        {{-- APPLICATION STATUS --}}
                                         @php
                                             $alreadyApplied = in_array(
                                                 (string) $event['id'],
@@ -298,7 +265,6 @@
 
                                         @endif
 
-
                             </div>
 
                         </div>
@@ -306,8 +272,6 @@
                     </div>
 
                 @empty
-
-                    {{-- NO EVENTS FROM DATABASE --}}
                     <div class="bg-white border-2 border-dashed
                                 border-gray-300 rounded-2xl
                                 p-10 text-center">
@@ -349,10 +313,6 @@
 
             </div>
 
-
-            {{-- =====================================================
-                NO SEARCH RESULTS
-            ====================================================== --}}
             <div
                 id="noResults"
                 class="hidden bg-white border-2 border-dashed
@@ -391,27 +351,17 @@
     </div>
 </div>
 
-
 @include('components.logout-modal')
 
-
-{{-- =============================================================
-    ACTIVITIES MODAL
-============================================================= --}}
 <div
     id="activitiesModal"
     class="hidden fixed inset-0 z-50
            items-center justify-center p-4"
 >
+    <div class="absolute inset-0 bg-black/60" onclick="closeActivitiesModal()">
 
-    {{-- BACKDROP --}}
-    <div
-        class="absolute inset-0 bg-black/60"
-        onclick="closeActivitiesModal()"
-    ></div>
+    </div>
 
-
-    {{-- MODAL --}}
     <div
         id="activitiesModalContent"
         class="relative w-full max-w-lg
@@ -419,8 +369,6 @@
                bg-white rounded-3xl
                shadow-2xl"
     >
-
-        {{-- CLOSE BUTTON --}}
         <button
             type="button"
             onclick="closeActivitiesModal()"
@@ -435,8 +383,6 @@
             &times;
         </button>
 
-
-        {{-- MODAL HEADER --}}
         <div class="px-6 sm:px-8 pt-7 pb-5
                     border-b border-gray-100">
 
@@ -475,14 +421,10 @@
 
         </div>
 
-
-        {{-- MODAL BODY --}}
         <div class="px-6 sm:px-8 py-6">
 
-            {{-- EVENT DETAILS --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-7">
 
-                {{-- DATE --}}
                 <div class="rounded-2xl bg-gray-50
                             border border-gray-200 p-4">
 
@@ -509,8 +451,6 @@
 
                 </div>
 
-
-                {{-- ORGANIZATION --}}
                 <div class="rounded-2xl bg-gray-50
                             border border-gray-200 p-4">
 
@@ -539,8 +479,6 @@
 
             </div>
 
-
-            {{-- ACTIVITIES --}}
             <div>
 
                 <div class="flex items-center justify-between mb-3">
@@ -559,7 +497,6 @@
 
                 </div>
 
-
                 <ul
                     id="modalActivitiesList"
                     class="space-y-3"
@@ -570,8 +507,6 @@
 
         </div>
 
-
-        {{-- MODAL FOOTER --}}
         <div class="px-6 sm:px-8 py-5
                     border-t border-gray-100
                     flex justify-end">
@@ -594,12 +529,7 @@
 
 </div>
 
-
 <script>
-    
-/* =========================================================
-   QUICK VOLUNTEER APPLICATION
-========================================================== */
 
 document.querySelectorAll('.volunteer-now-btn').forEach(button => {
     button.addEventListener('click', async function () {
@@ -638,7 +568,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                 );
             }
 
-            // Update the button without reloading the page.
             this.textContent = 'Already Applied';
             this.classList.remove(
                 'bg-[#d39a11]',
@@ -654,7 +583,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                 'cursor-not-allowed'
             );
 
-            // Keep the existing applied-state behavior.
             this.disabled = true;
 
             alert(result.message);
@@ -670,11 +598,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
         }
     });
 });
-
-
-    /* =========================================================
-       ACTIVITIES MODAL
-    ========================================================== */
 
     function closeActivitiesModal() {
 
@@ -694,7 +617,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
         }, 180);
     }
 
-
     function openActivitiesModal({ title, date, org, activities }) {
 
         document.getElementById('modalEventTitle').textContent = title;
@@ -704,7 +626,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
         const list = document.getElementById('modalActivitiesList');
 
         list.innerHTML = "";
-
 
         if (!activities || activities.length === 0) {
 
@@ -731,7 +652,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                     "rounded-2xl border border-gray-200 bg-white p-4 " +
                     "shadow-sm";
 
-
                 const number = document.createElement('div');
 
                 number.className =
@@ -741,11 +661,9 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
                 number.textContent = index + 1;
 
-
                 const content = document.createElement('div');
 
                 content.className = "min-w-0";
-
 
                 const name = document.createElement('div');
 
@@ -753,7 +671,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                     "font-semibold text-[#0e243a] text-sm";
 
                 name.textContent = activity.name || "Unnamed Activity";
-
 
                 const remarks = document.createElement('div');
 
@@ -763,10 +680,8 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                 remarks.textContent =
                     activity.remarks || "No additional details provided.";
 
-
                 content.appendChild(name);
                 content.appendChild(remarks);
-
 
                 li.className += " flex items-start gap-3";
 
@@ -779,25 +694,17 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
         }
 
-
         const modal = document.getElementById('activitiesModal');
         const modalContent =
             document.getElementById('activitiesModalContent');
 
-
         modal.classList.remove('hidden');
         modal.classList.add('flex');
-
 
         modalContent.classList.remove('modal-exit');
         modalContent.classList.add('modal-enter');
 
     }
-
-
-    /* =========================================================
-       ACTIVITY BUTTONS
-    ========================================================== */
 
     document.querySelectorAll('.view-activities-btn').forEach(btn => {
 
@@ -817,7 +724,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                 activities = [];
             }
 
-
             openActivitiesModal({
                 title,
                 date,
@@ -829,15 +735,9 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
     });
 
-
-    /* =========================================================
-       SEARCH EVENTS
-    ========================================================== */
-
     const searchInput = document.getElementById('searchInput');
     const eventCards = document.querySelectorAll('.event-card');
     const noResults = document.getElementById('noResults');
-
 
     if (searchInput) {
 
@@ -847,7 +747,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
                 this.value.toLowerCase().trim();
 
             let visibleCount = 0;
-
 
             eventCards.forEach(card => {
 
@@ -868,7 +767,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
             });
 
-
             if (noResults) {
 
                 if (visibleCount === 0 && search !== "") {
@@ -887,11 +785,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
     }
 
-
-    /* =========================================================
-       ESC KEY
-    ========================================================== */
-
     document.addEventListener('keydown', function (event) {
 
         if (event.key === 'Escape') {
@@ -907,11 +800,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
 
     });
 
-
-    /* =========================================================
-       LOGOUT MODAL
-    ========================================================== */
-
     function openLogoutModal() {
 
         document.getElementById('logoutModal')
@@ -921,7 +809,6 @@ document.querySelectorAll('.volunteer-now-btn').forEach(button => {
             .classList.add('flex');
 
     }
-
 
     function closeLogoutModal() {
 

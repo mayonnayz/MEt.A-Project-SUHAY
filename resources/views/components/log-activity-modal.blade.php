@@ -1,10 +1,7 @@
-<!-- Log Activity Modal -->
 <div id="logActivityModal"
      class="hidden fixed inset-0 bg-black/50 items-center justify-center z-50">
 
     <div class="bg-[#0e243a] w-full max-w-xl rounded-2xl p-6 text-white shadow-lg">
-
-        <!-- Header -->
         <div class="flex justify-between items-center mb-4">
 
             <h2 id="logActivityModalTitle"
@@ -20,8 +17,6 @@
 
         </div>
 
-
-        <!-- Form -->
         <form id="logActivityForm"
               action="/track-activity/store"
               method="POST"
@@ -29,14 +24,10 @@
 
             @csrf
 
-            <!-- Assignment ID -->
-            <!-- Empty when adding, filled when editing -->
             <input type="hidden"
                    id="activityAssignmentId"
                    name="assignment_id">
 
-
-            <!-- Volunteer -->
             <div>
                 <label class="block text-sm mb-1">
                     Volunteer
@@ -62,8 +53,6 @@
                 </select>
             </div>
 
-
-            <!-- Activity -->
             <div>
                 <label class="block text-sm mb-1">
                     Activity
@@ -118,8 +107,6 @@
            disabled
            class="w-full p-3 rounded-xl text-black disabled:bg-gray-400 disabled:cursor-not-allowed">
 </div>
-
-            <!-- Status -->
             <div>
                 <label class="block text-sm mb-1">
                     Status
@@ -144,11 +131,7 @@
                 </select>
             </div>
 
-
-            <!-- Buttons -->
                 <div class="flex justify-between gap-3 pt-2">
-
-                    <!-- Remove Assignment -->
                     <button
                         id="removeAssignmentButton"
                         type="button"

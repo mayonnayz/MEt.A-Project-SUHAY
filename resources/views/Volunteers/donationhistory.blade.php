@@ -39,22 +39,14 @@
 <body class="bg-gray-200">
 
 <div class="flex">
-
-    {{-- SIDEBAR --}}
     @include('components.nav')
 
     <div class="flex-1 p-6 md:p-8">
-
-        {{-- HEADER --}}
         @include('components.header', ['title' => 'Donations'])
 
-        {{-- MAIN CONTAINER --}}
         <div class="bg-[#f5f5f5] rounded-[22px] border-[10px] border-[#0e243a] p-6 sm:p-8">
 
-            {{-- SEARCH + FILTER --}}
             <div class="mb-6 flex flex-col md:flex-row gap-3">
-
-                <!-- SEARCH -->
                 <div class="flex items-center bg-white border-2 border-[#0e243a] rounded-full px-4 py-2 flex-1">
                     <input type="text" id="searchInput"
                         placeholder="Search Donation History..."
@@ -68,7 +60,6 @@
                     </div>
                 </div>
 
-                <!-- FILTER -->
                 <select id="filterType"
                     class="border-2 border-[#0e243a] rounded-full px-5 py-2 text-sm font-medium">
                     <option value="all">All</option>
@@ -78,7 +69,6 @@
 
             </div>
 
-            {{-- DONATION LIST --}}
             <div id="donationList" class="space-y-5">
 
                 @forelse ($donations as $donation)
@@ -132,20 +122,15 @@
     </div>
 </div>
 
-<!-- Donation Modal - PERFECT ANIMATIONS -->
 <div id="donationModalBackdrop" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 p-4">
   <div id="donationModalContent" class="bg-white rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] overflow-y-auto">
-    
-    <!-- HEADER -->
     <div class="p-6 text-center relative border-b">
       <button onclick="closeDonationModal()" class="absolute top-4 right-6 text-xl font-bold hover:text-gray-700">×</button>
       <img src="{{ asset('images/suhayLogo.png') }}" class="h-12 mx-auto mb-3">
       <h2 class="font-bold text-xl text-[#0e243a]">Donation Details</h2>
     </div>
 
-    <!-- CONTENT -->
     <div id="donationModalBody" class="p-6 space-y-4">
-      <!-- Dynamic content will be populated here -->
     </div>
 
   </div>
@@ -154,7 +139,6 @@
 @include('components.logout-modal')
 
 <script>
-// SEARCH & FILTER
 const searchInput = document.getElementById('searchInput');
 const filterType = document.getElementById('filterType');
 const cards = document.querySelectorAll('.donation-card');
@@ -187,7 +171,6 @@ function filterDonations() {
     noResults.style.display = visible === 0 ? "block" : "none";
 }
 
-// DONATION MODAL FUNCTIONS
 function openDonationModal(btn) {
     const donationType = btn.dataset.donationType || 'N/A';
     const channel = btn.dataset.channel || 'N/A';
@@ -212,9 +195,6 @@ function openDonationModal(btn) {
             </div>
     `;
 
-    // =========================
-    // NON-MONETARY
-    // =========================
     if (donationType.toLowerCase().includes('non')) {
 
         content += `
@@ -249,9 +229,6 @@ function openDonationModal(btn) {
         content += `</div></div>`;
     }
 
-    // =========================
-    // MONETARY
-    // =========================
     else {
 
         content += `
@@ -283,10 +260,8 @@ function openDonationModal(btn) {
 
     content += `</div>`;
 
-    // INSERT CONTENT
     document.getElementById('donationModalBody').innerHTML = content;
 
-    // SHOW MODAL
     const backdrop = document.getElementById('donationModalBackdrop');
     const contentEl = document.getElementById('donationModalContent');
 
@@ -313,28 +288,24 @@ function closeDonationModal() {
     }, 250);
 }
 
-// EVENT LISTENERS - Connect to buttons
 document.querySelectorAll('.view-donation-btn').forEach(btn => {
     btn.addEventListener('click', (e) => {
         openDonationModal(e.currentTarget);
     });
 });
 
-// CLICK OUTSIDE TO CLOSE
 document.getElementById('donationModalBackdrop').addEventListener('click', function(e) {
     if (e.target.id === 'donationModalBackdrop') {
         closeDonationModal();
     }
 });
 
-// ESC KEY TO CLOSE
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
         closeDonationModal();
     }
 });
 
-// LOGOUT FUNCTIONS
 function openLogoutModal() {
     const modal = document.getElementById('logoutModal');
     if (modal) {

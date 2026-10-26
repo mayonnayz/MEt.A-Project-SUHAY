@@ -7,8 +7,6 @@
     <div
         class="w-full max-w-3xl overflow-hidden rounded-[22px]
                border border-gray-200 bg-white shadow-2xl">
-
-        <!-- HEADER -->
         <div class="flex items-center justify-between
                     border-b border-gray-200 px-7 py-6">
 
@@ -43,10 +41,8 @@
 
         </div>
 
-        <!-- BODY -->
         <div class="space-y-6 px-7 py-7">
 
-            <!-- ITEM NAME AND CATEGORY -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
                 <div>
@@ -92,7 +88,6 @@
 
             </div>
 
-            <!-- QUANTITY AND UNIT -->
             <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
 
                 <div>
@@ -134,7 +129,6 @@
 
             </div>
 
-            <!-- MINIMUM STOCK THRESHOLD -->
             <div>
                 <label for="threshold"
                        class="mb-2 block text-base font-semibold
@@ -161,7 +155,6 @@
 
         </div>
 
-        <!-- FOOTER -->
         <div class="flex flex-col-reverse gap-3
                     border-t border-gray-200 bg-white
                     px-7 py-5 sm:flex-row sm:justify-end">

@@ -1,23 +1,10 @@
-{{-- =========================================================
-     HEADER
-========================================================= --}}
-
 <div class="flex justify-between items-center mb-6">
-
-    {{-- PAGE TITLE --}}
     <h1 class="text-3xl font-bold text-[#0e243a]">
         {{ $title ?? 'Dashboard' }}
     </h1>
 
-    {{-- RIGHT SIDE --}}
     <div class="flex items-center gap-5">
-
-        {{-- =================================================
-             NOTIFICATIONS
-        ================================================== --}}
         <div class="relative" id="notificationContainer">
-
-            {{-- NOTIFICATION BUTTON --}}
             <button
                 type="button"
                 id="notificationButton"
@@ -42,13 +29,10 @@
                 </svg>
             </button>
 
-            {{-- NOTIFICATION DROPDOWN --}}
             <div
                 id="notificationDropdown"
                 class="hidden absolute right-0 top-11 w-96 max-w-[90vw] bg-white rounded-xl shadow-2xl border border-gray-200 z-[99999] overflow-hidden"
             >
-
-                {{-- DROPDOWN HEADER --}}
                 <div class="px-4 py-4 border-b border-gray-200">
                     <div class="flex items-center justify-between">
                         <div>
@@ -70,7 +54,6 @@
                     </div>
                 </div>
 
-                {{-- NOTIFICATION LIST --}}
                 <div
                     id="notificationList"
                     class="max-h-[400px] overflow-y-auto"
@@ -86,9 +69,6 @@
             </div>
         </div>
 
-        {{-- =================================================
-             USER PROFILE
-        ================================================== --}}
         <div class="flex items-center gap-3">
 
             <img
@@ -289,7 +269,6 @@
 
                     item.appendChild(row);
 
-                    // Manual deletion button.
                     const deleteButton = document.createElement('button');
 
                     deleteButton.type = 'button';
@@ -342,7 +321,6 @@ deleteButton.addEventListener('click', event => {
                     );
                 }
 
-                // Remove only the deleted notification from the current account's list.
                 notifications = notifications.filter(
                     n => String(n.id) !== String(notification.id)
                 );
@@ -353,7 +331,6 @@ deleteButton.addEventListener('click', event => {
                     notifications.filter(isUnread).length
                 );
 
-                // Tells the confirmation modal to close.
                 return true;
 
             } catch (error) {
@@ -365,8 +342,6 @@ deleteButton.addEventListener('click', event => {
                 window.alert(
                     error.message || 'Unable to delete notification.'
                 );
-
-                // Keep the confirmation modal open if deletion fails.
                 return false;
             }
         }
@@ -375,7 +350,6 @@ deleteButton.addEventListener('click', event => {
 
                     item.appendChild(deleteButton);
 
-                    // Clicking elsewhere on the notification still marks it as read.
                     item.addEventListener('click', () => markAsRead(item));
 
                     item.addEventListener('keydown', event => {
@@ -435,7 +409,6 @@ deleteButton.addEventListener('click', event => {
                 return;
             }
 
-            // Wait until the server confirms every update.
             const results = await Promise.allSettled(
                 unread.map(notification => postRead(notification.id))
             );
@@ -444,7 +417,6 @@ deleteButton.addEventListener('click', event => {
                 result.status === 'rejected'
             );
 
-            // Update only notifications successfully marked as read.
             unread.forEach((notification, index) => {
                 if (results[index].status === 'fulfilled') {
                     notification.is_read = true;
@@ -532,7 +504,6 @@ deleteButton.addEventListener('click', event => {
             button.setAttribute('aria-expanded', String(opening));
 
             if (opening) {
-                // Load first, then mark all fetched notifications as read.
                 await loadNotifications(true);
 
                 if (loaded) {
@@ -547,8 +518,6 @@ deleteButton.addEventListener('click', event => {
                 button.setAttribute('aria-expanded', 'false');
             }
         });
-
-        // Load unread count when the page opens; don't mark anything read yet.
         loadNotifications();
     }
 
