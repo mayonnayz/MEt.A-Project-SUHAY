@@ -20,12 +20,30 @@ use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
 use App\Http\Controllers\notification_controller;
 use App\Http\Controllers\reports_controller;
+use App\Http\Controllers\updatepost_controller;
 
-/*
-|--------------------------------------------------------------------------
-| LANDING & AUTHENTICATION / SIGNUP
-|--------------------------------------------------------------------------
-*/
+
+
+Route::post('/update-posts', [
+    updatepost_controller::class,
+    'store'
+]);
+
+Route::patch('/update-posts/{id}', [
+    updatepost_controller::class,
+    'update'
+]);
+
+Route::patch('/update-posts/{id}/status', [
+    updatepost_controller::class,
+    'changeStatus'
+]);
+
+Route::delete('/update-posts/{id}', [
+    updatepost_controller::class,
+    'destroy'
+]);
+
 
 
 Route::delete(

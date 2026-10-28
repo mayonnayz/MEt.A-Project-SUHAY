@@ -242,362 +242,400 @@
         </div>
 
 
+     
 
+        
         {{-- ================================================= --}}
-        {{-- SECOND ROW                                        --}}
+        {{-- NGO UPDATES                                       --}}
         {{-- ================================================= --}}
 
-        <div
-            class="grid grid-cols-1
-                   lg:grid-cols-2
-                   gap-6 mb-6"
-        >
+        <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
 
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+                <div>
+                    <h2 class="text-lg font-bold text-[#0e243a]">
+                        NGO Updates
+                    </h2>
+                    <p class="text-sm text-gray-400">
+                        Share announcements and stories with the SUHAY community.
+                    </p>
+                </div>
 
-            {{-- ================================================= --}}
-            {{-- VOLUNTEER APPLICATIONS                             --}}
-            {{-- ================================================= --}}
-
-            <div
-                class="bg-white rounded-2xl
-                       shadow-sm p-6"
-            >
-
-                <div
-                    class="flex justify-between
-                           items-center mb-5"
+                <button
+                    type="button"
+                    onclick="openUpdatePostModal()"
+                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0e243a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#183b5d] transition"
                 >
+                    <span class="text-lg leading-none">+</span>
+                    Create Post
+                </button>
+            </div>
 
+            @forelse(($updatePosts ?? []) as $post)
+
+                <div class="border border-gray-100 rounded-xl p-4 mb-3 last:mb-0">
+
+                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+
+                        {{-- POST CONTENT --}}
+                        <div class="min-w-0 flex-1">
+
+                            {{-- TITLE AND STATUS --}}
+                            <div class="flex flex-wrap items-center gap-2 mb-3">
+                                <h3 class="font-semibold text-[#0e243a]">
+                                    {{ $post->title }}
+                                </h3>
+
+                                @if((int) $post->status === 1)
+                                    <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                        Published
+                                    </span>
+                                @elseif((int) $post->status === 2)
+                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+                                        Archived
+                                    </span>
+                                @else
+                                    <span class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">
+                                        Draft
+                                    </span>
+                                @endif
+                            </div>
+
+                            {{-- POST IMAGE --}}
+                            @if(!empty($post->image))
+                                <div class="w-full max-w-2xl mb-4 overflow-hidden rounded-xl bg-gray-100">
+                                    <img
+                                        src="{{ $post->image }}"
+                                        alt="{{ $post->title }}"
+                                        loading="eager"
+                                        class="block w-full h-48 sm:h-56 object-cover rounded-xl"
+                                        onload="console.log('Post image loaded:', this.src);"
+                                        onerror="console.error('Post image failed:', this.src);"
+                                    >
+                                </div>
+                            @endif
+
+                            {{-- POST DESCRIPTION --}}
+                            <p class="text-sm text-gray-600 whitespace-pre-line">
+                                {{ \Illuminate\Support\Str::limit($post->description, 220) }}
+                            </p>
+
+                            {{-- POST DATE --}}
+                            @if(isset($post->created_at) && $post->created_at)
+                                <p class="text-xs text-gray-400 mt-2">
+                                    {{ \Carbon\Carbon::parse($post->created_at)->diffForHumans() }}
+                                </p>
+                            @endif
+
+                        </div>
+
+                        {{-- POST ACTIONS --}}
+                        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+
+                            {{-- PUBLISH / UNPUBLISH --}}
+                            @if((int) $post->status === 1)
+
+                                <form
+                                    method="POST"
+                                    action="{{ url('/update-posts/' . $post->id . '/status') }}"
+                                    onsubmit="return false;"
+                                    data-confirm-title="Unpublish Post"
+                                    data-confirm-message="This post will no longer be published. Do you want to move it back to drafts?"
+                                    data-confirm-text="Unpublish"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="0">
+
+                                    <button
+                                        type="button"
+                                        onclick="confirmUpdatePostAction(this)"
+                                        class="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-yellow-700 hover:bg-yellow-100 transition"
+                                    >
+                                        Unpublish
+                                    </button>
+                                </form>
+
+                            @elseif((int) $post->status === 0)
+
+                                <form
+                                    method="POST"
+                                    action="{{ url('/update-posts/' . $post->id . '/status') }}"
+                                    onsubmit="return false;"
+                                    data-confirm-title="Publish Post"
+                                    data-confirm-message="This post will be published and made available to the SUHAY community. Do you want to continue?"
+                                    data-confirm-text="Publish"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="1">
+
+                                    <button
+                                        type="button"
+                                        onclick="confirmUpdatePostAction(this)"
+                                        class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-700 hover:bg-green-100 transition"
+                                    >
+                                        Publish
+                                    </button>
+                                </form>
+
+                            @endif
+
+                            {{-- ARCHIVE / RESTORE --}}
+                            @if((int) $post->status === 2)
+
+                                <form
+                                    method="POST"
+                                    action="{{ url('/update-posts/' . $post->id . '/status') }}"
+                                    onsubmit="return false;"
+                                    data-confirm-title="Restore Post"
+                                    data-confirm-message="This archived post will be restored as a draft. Do you want to continue?"
+                                    data-confirm-text="Restore"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="0">
+
+                                    <button
+                                        type="button"
+                                        onclick="confirmUpdatePostAction(this)"
+                                        class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                                    >
+                                        Restore to Draft
+                                    </button>
+                                </form>
+
+                            @else
+
+                                <form
+                                    method="POST"
+                                    action="{{ url('/update-posts/' . $post->id . '/status') }}"
+                                    onsubmit="return false;"
+                                    data-confirm-title="Archive Post"
+                                    data-confirm-message="This post will be archived and no longer treated as an active update. Do you want to continue?"
+                                    data-confirm-text="Archive"
+                                >
+                                    @csrf
+                                    @method('PATCH')
+                                    <input type="hidden" name="status" value="2">
+
+                                    <button
+                                        type="button"
+                                        onclick="confirmUpdatePostAction(this)"
+                                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+                                    >
+                                        Archive
+                                    </button>
+                                </form>
+
+                            @endif
+
+                            {{-- DELETE --}}
+                            <form
+                                method="POST"
+                                action="{{ url('/update-posts/' . $post->id) }}"
+                                onsubmit="return false;"
+                                data-confirm-title="Delete Post"
+                                data-confirm-message="This post will be permanently deleted. This action cannot be undone. Are you sure?"
+                                data-confirm-text="Delete Permanently"
+                            >
+                                @csrf
+                                @method('DELETE')
+
+                                <button
+                                    type="button"
+                                    onclick="confirmUpdatePostAction(this)"
+                                    class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
+                                >
+                                    Delete
+                                </button>
+                            </form>
+
+                        </div>
+
+                    </div>
+                </div>
+
+            @empty
+
+                <div class="rounded-xl border border-dashed border-gray-300 px-4 py-8 text-center">
+                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-50 text-[#b38720]">
+                        <span class="text-2xl">✎</span>
+                    </div>
+
+                    <p class="font-semibold text-[#0e243a]">
+                        No updates yet
+                    </p>
+
+                    <p class="mt-1 text-sm text-gray-400">
+                        Create your first post to share your organization's news.
+                    </p>
+                </div>
+
+            @endforelse
+
+        </div>
+
+
+
+        {{-- ================================================= --}}
+        {{-- SECOND ROW: APPLICATIONS AND EVENTS               --}}
+        {{-- ================================================= --}}
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+
+            {{-- VOLUNTEER APPLICATIONS --}}
+
+            <div class="bg-white rounded-2xl shadow-sm p-6">
+
+                <div class="flex justify-between items-center mb-5">
                     <div>
-
-                        <h2
-                            class="text-lg font-bold
-                                   text-[#0e243a]"
-                        >
+                        <h2 class="text-lg font-bold text-[#0e243a]">
                             Volunteer Applications
                         </h2>
-
 
                         <p class="text-sm text-gray-400">
                             Application status
                         </p>
-
                     </div>
 
-
-                    <a
-                        href="/applications"
-                        class="text-sm text-[#d39a11]
-                               hover:underline"
-                    >
+                    <a href="/applications"
+                       class="text-sm text-[#d39a11] hover:underline">
                         View
                     </a>
-
                 </div>
-
 
                 @php
-
                     $totalApplications =
-                        ($pendingApplications ?? 0)
-                        +
-                        ($approvedApplications ?? 0)
-                        +
+                        ($pendingApplications ?? 0) +
+                        ($approvedApplications ?? 0) +
                         ($rejectedApplications ?? 0);
 
-
-                    $pendingPercentage =
-                        $totalApplications > 0
-                        ? (
-                            ($pendingApplications ?? 0)
-                            / $totalApplications
-                        ) * 100
+                    $pendingPercentage = $totalApplications > 0
+                        ? (($pendingApplications ?? 0) / $totalApplications) * 100
                         : 0;
 
-
-                    $approvedPercentage =
-                        $totalApplications > 0
-                        ? (
-                            ($approvedApplications ?? 0)
-                            / $totalApplications
-                        ) * 100
+                    $approvedPercentage = $totalApplications > 0
+                        ? (($approvedApplications ?? 0) / $totalApplications) * 100
                         : 0;
 
-
-                    $rejectedPercentage =
-                        $totalApplications > 0
-                        ? (
-                            ($rejectedApplications ?? 0)
-                            / $totalApplications
-                        ) * 100
+                    $rejectedPercentage = $totalApplications > 0
+                        ? (($rejectedApplications ?? 0) / $totalApplications) * 100
                         : 0;
-
                 @endphp
 
-
-
                 {{-- PENDING --}}
-
                 <div class="mb-4">
-
-                    <div
-                        class="flex justify-between
-                               text-sm mb-2"
-                    >
-
-                        <span>
-                            Pending
-                        </span>
-
-
-                        <span
-                            class="font-semibold
-                                   text-orange-500"
-                        >
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>Pending</span>
+                        <span class="font-semibold text-orange-500">
                             {{ $pendingApplications ?? 0 }}
                         </span>
-
                     </div>
 
-
-                    <div
-                        class="w-full bg-gray-200
-                               rounded-full h-2"
-                    >
-
-                        <div
-                            class="bg-orange-400
-                                   h-2 rounded-full"
-                            style="
-                                width:
-                                {{ $pendingPercentage }}%
-                            "
-                        ></div>
-
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-orange-400 h-2 rounded-full"
+                             style="width: {{ $pendingPercentage }}%">
+                        </div>
                     </div>
-
                 </div>
-
-
 
                 {{-- APPROVED --}}
-
                 <div class="mb-4">
-
-                    <div
-                        class="flex justify-between
-                               text-sm mb-2"
-                    >
-
-                        <span>
-                            Approved
-                        </span>
-
-
-                        <span
-                            class="font-semibold
-                                   text-green-600"
-                        >
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>Approved</span>
+                        <span class="font-semibold text-green-600">
                             {{ $approvedApplications ?? 0 }}
                         </span>
-
                     </div>
 
-
-                    <div
-                        class="w-full bg-gray-200
-                               rounded-full h-2"
-                    >
-
-                        <div
-                            class="bg-green-500
-                                   h-2 rounded-full"
-                            style="
-                                width:
-                                {{ $approvedPercentage }}%
-                            "
-                        ></div>
-
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-green-500 h-2 rounded-full"
+                             style="width: {{ $approvedPercentage }}%">
+                        </div>
                     </div>
-
                 </div>
 
-
-
                 {{-- REJECTED --}}
-
                 <div>
-
-                    <div
-                        class="flex justify-between
-                               text-sm mb-2"
-                    >
-
-                        <span>
-                            Rejected
-                        </span>
-
-
-                        <span
-                            class="font-semibold
-                                   text-red-500"
-                        >
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>Rejected</span>
+                        <span class="font-semibold text-red-500">
                             {{ $rejectedApplications ?? 0 }}
                         </span>
-
                     </div>
 
-
-                    <div
-                        class="w-full bg-gray-200
-                               rounded-full h-2"
-                    >
-
-                        <div
-                            class="bg-red-400
-                                   h-2 rounded-full"
-                            style="
-                                width:
-                                {{ $rejectedPercentage }}%
-                            "
-                        ></div>
-
+                    <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-red-400 h-2 rounded-full"
+                             style="width: {{ $rejectedPercentage }}%">
+                        </div>
                     </div>
-
                 </div>
 
             </div>
 
 
+            {{-- UPCOMING EVENTS --}}
 
-            {{-- ================================================= --}}
-            {{-- UPCOMING EVENTS                                   --}}
-            {{-- ================================================= --}}
+            <div class="bg-white rounded-2xl shadow-sm p-6">
 
-            <div
-                class="bg-white rounded-2xl
-                       shadow-sm p-6"
-            >
-
-                <div
-                    class="flex justify-between
-                           items-center mb-5"
-                >
-
+                <div class="flex justify-between items-center mb-5">
                     <div>
-
-                        <h2
-                            class="text-lg font-bold
-                                   text-[#0e243a]"
-                        >
+                        <h2 class="text-lg font-bold text-[#0e243a]">
                             Upcoming Events
                         </h2>
-
 
                         <p class="text-sm text-gray-400">
                             Volunteer events
                         </p>
-
                     </div>
 
-
-                    <a
-                        href="/events"
-                        class="text-sm text-[#d39a11]
-                               hover:underline"
-                    >
+                    <a href="/events"
+                       class="text-sm text-[#d39a11] hover:underline">
                         View
                     </a>
-
                 </div>
-
-
-
-                {{-- REAL EVENTS --}}
 
                 @forelse($upcomingEvents ?? [] as $event)
 
                     <div class="flex gap-4 mb-5">
 
-                        {{-- DATE --}}
-
-                        <div
-                            class="w-12 h-12
-                                   rounded-xl
-                                   bg-[#f2c94c]
-                                   flex flex-col
-                                   items-center
-                                   justify-center
-                                   flex-shrink-0"
-                        >
-
+                        <div class="w-12 h-12 rounded-xl bg-[#f2c94c] flex flex-col items-center justify-center flex-shrink-0">
                             <span class="text-xs">
-
                                 {{ \Carbon\Carbon::parse($event->date)->format('M') }}
-
                             </span>
-
 
                             <span class="text-lg font-bold">
-
                                 {{ \Carbon\Carbon::parse($event->date)->format('d') }}
-
                             </span>
-
                         </div>
 
-
-
-                        {{-- EVENT DETAILS --}}
-
                         <div class="min-w-0">
-
-                            <h3
-                                class="font-semibold
-                                       text-[#0e243a]"
-                            >
-
+                            <h3 class="font-semibold text-[#0e243a]">
                                 {{ $event->name }}
-
                             </h3>
 
-
-                            <p
-                                class="text-xs
-                                       text-gray-500"
-                            >
-
+                            <p class="text-xs text-gray-500">
                                 {{ $event->volunteer_count ?? 0 }}
-
                                 volunteer(s) assigned
-
                             </p>
-
                         </div>
 
                     </div>
-
 
                 @empty
 
                     <div class="py-5 text-center">
-
                         <p class="text-sm text-gray-400">
-
                             No upcoming events.
-
                         </p>
-
                     </div>
 
                 @endforelse
 
-
             </div>
 
-
         </div>
-
 
 
         {{-- ================================================= --}}
@@ -861,58 +899,14 @@
 
 
 </div>
+
+@include('components.update-post-modal')
+
+@include('components.confirm-modal')
 @include('components.logout-modal')
-<script>
-    
-function openLogoutModal() {
 
-    const modal =
-        document.getElementById(
-            'logoutModal'
-        );
+@include('components.confirm-modal-script')
 
-
-    if (!modal) {
-        return;
-    }
-
-
-    modal.classList.remove(
-        'hidden'
-    );
-
-    modal.classList.add(
-        'flex'
-    );
-
-}
-
-
-function closeLogoutModal() {
-
-    const modal =
-        document.getElementById(
-            'logoutModal'
-        );
-
-
-    if (!modal) {
-        return;
-    }
-
-
-    modal.classList.add(
-        'hidden'
-    );
-
-    modal.classList.remove(
-        'flex'
-    );
-
-}
-
-</script>
-
+<script src="{{ asset('js/dashboard.js') }}"></script>
 </body>
-
 </html>

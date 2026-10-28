@@ -1,6 +1,6 @@
 <div class="p-6 bg-gray-100 rounded-xl">
 
-    <!-- 🔷 Program Header -->
+
     <div class="bg-white p-5 rounded-xl shadow mb-6">
         <h2 class="text-2xl font-bold text-gray-800">KALINGA PROGRAM</h2>
         <p class="text-gray-600">March 22, 2026 | 9:00 AM – 4:00 PM</p>
@@ -15,13 +15,13 @@
             </span>
         </div>
 
-        <!-- Progress Bar -->
+
         <div class="w-full bg-gray-300 rounded-full mt-3">
             <div class="bg-yellow-500 h-3 rounded-full" style="width: 60%"></div>
         </div>
     </div>
 
-    <!-- 🔍 Search + Filters -->
+
     <div class="flex justify-between mb-4">
         <input type="text" placeholder="Search Volunteers..."
             class="border p-2 rounded w-1/2">
@@ -36,7 +36,7 @@
 
     <div class="grid grid-cols-2 gap-6">
 
-        <!-- 👥 Available Volunteers -->
+        
         <div class="bg-white p-4 rounded-xl shadow">
             <h3 class="font-bold text-lg mb-3">Available Volunteers</h3>
 
@@ -63,7 +63,6 @@
             </div>
         </div>
 
-        <!-- 📋 Assigned Volunteers -->
         <div class="bg-white p-4 rounded-xl shadow">
             <h3 class="font-bold text-lg mb-3">Assigned Volunteers</h3>
 
@@ -91,7 +90,6 @@
 
     </div>
 
-    <!-- 💾 Actions -->
     <div class="flex justify-end mt-6 gap-3">
         <button class="bg-gray-400 text-white px-4 py-2 rounded">
             Cancel

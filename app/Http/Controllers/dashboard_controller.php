@@ -98,6 +98,92 @@ class dashboard_controller extends Controller
 
         
 
+            
+        
+$updatePosts = collect();
+
+if (!empty($ngoId)) {
+
+    // Fetch NGO posts.
+    $updatePostsResponse = Http::withHeaders($headers)
+        ->get($supabaseUrl . '/rest/v1/update_posts', [
+            'select' => '*',
+            'ngo_id' => 'eq.' . (int) $ngoId,
+            'order' => 'id.desc',
+        ]);
+
+    if ($updatePostsResponse->successful()) {
+
+        $updatePosts = collect($updatePostsResponse->json())
+            ->map(function ($post) {
+                $post['image'] = null;
+
+                return (object) $post;
+            })
+            ->values();
+
+        // Collect post IDs.
+        $postIds = $updatePosts
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($postIds)) {
+
+            // Fetch media associated with these posts.
+            $mediaResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/media_table', [
+                    'select' => 'key_id,type,path',
+                    'type' => 'eq.POST',
+                    'key_id' => 'in.(' . implode(',', $postIds) . ')',
+                ]);
+
+            if ($mediaResponse->successful()) {
+
+                $postImages = collect($mediaResponse->json())
+                    ->keyBy(function ($media) {
+                        return (string) $media['key_id'];
+                    });
+
+                // Attach image URLs to their respective posts.
+                $updatePosts = $updatePosts
+                    ->map(function ($post) use ($postImages) {
+
+                        $media = $postImages->get(
+                            (string) $post->id
+                        );
+
+                        $post->image = $media['path'] ?? null;
+
+                        return $post;
+                    });
+
+            } else {
+
+                \Log::error('Failed to fetch NGO update images.', [
+                    'status' => $mediaResponse->status(),
+                    'response' => $mediaResponse->body(),
+                    'post_ids' => $postIds,
+                    'ngo_id' => $ngoId,
+                ]);
+            }
+
+        }
+
+    } else {
+
+        \Log::error('Failed to fetch NGO updates.', [
+            'status' => $updatePostsResponse->status(),
+            'response' => $updatePostsResponse->body(),
+            'ngo_id' => $ngoId,
+        ]);
+    }
+}
+
+
+
         $notifications = collect();
         $unreadNotifications = 0;
 
@@ -420,7 +506,8 @@ class dashboard_controller extends Controller
             'ngoName',
             'userName',
             'notifications',
-            'unreadNotifications'
+            'unreadNotifications',
+            'updatePosts'
         ));
     }
 }
