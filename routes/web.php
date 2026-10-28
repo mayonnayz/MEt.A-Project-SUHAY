@@ -21,6 +21,7 @@ use App\Http\Controllers\dashboard_controller;
 use App\Http\Controllers\notification_controller;
 use App\Http\Controllers\reports_controller;
 use App\Http\Controllers\updatepost_controller;
+use App\Http\Controllers\impact_controller;
 
 
 
@@ -128,9 +129,8 @@ Route::post(
 )->name('donations.updateStatus');
 Route::get('/donations', [donation_controller::class, 'index']);
 
-Route::get('/impact', function () {
-    return view('impact');
-})->name('impact');
+Route::get('/impact', [impact_controller::class, 'index'])
+    ->name('impact');
 
 Route::get(
     '/donate',
