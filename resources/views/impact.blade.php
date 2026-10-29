@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -64,6 +63,24 @@
 
         .post-gallery a:hover img {
             transform: scale(1.03);
+        }
+
+        .gallery-trigger {
+            cursor: zoom-in;
+        }
+
+        /* Lightbox */
+        #lightbox {
+            transition: opacity .2s ease;
+        }
+
+        #lightbox.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #lbImg {
+            transition: opacity .2s ease;
         }
     </style>
 </head>
@@ -141,7 +158,7 @@
         </div>
     </section>
 
-  
+
     <section id="feed" class="py-16 px-6">
         <div class="max-w-6xl mx-auto">
 
@@ -204,7 +221,6 @@
                 </div>
             </div>
 
-            
 
             <div class="grid lg:grid-cols-3 gap-8">
 
@@ -271,11 +287,11 @@
                             class="post-card bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden feed-item"
                             data-ngo="{{ Str::slug($name) }}"
                             data-search="{{ $searchText }}"
+                            data-title="{{ $title }}"
+                            data-images="{{ json_encode($images) }}"
                             data-aos="fade-up"
                             data-aos-delay="{{ min($i, 4) * 80 }}"
                         >
-
-                            {{-- POST HEADER --}}
 
                             <div class="flex items-start justify-between gap-3 p-5 pb-3">
 
@@ -334,8 +350,6 @@
 
                             </div>
 
-                            {{-- POST CONTENT --}}
-
                             <div class="px-5 pb-4">
 
                                 <h4 class="text-xl font-bold mb-1.5">
@@ -357,18 +371,23 @@
 
                             </div>
 
-                            {{-- POST IMAGE GALLERY --}}
-
                             @if (count($images) === 1)
 
                                 <div class="w-full overflow-hidden bg-gray-100">
-                                    <img
-                                        src="{{ $images[0] }}"
-                                        alt="{{ $title }}"
-                                        loading="lazy"
-                                        class="block w-full max-h-[480px] object-cover"
-                                        onerror="console.error('Post image failed:', this.src); this.closest('div').classList.add('hidden');"
+                                    <button
+                                        type="button"
+                                        class="gallery-trigger block w-full"
+                                        data-index="0"
+                                        aria-label="View image for {{ $title }}"
                                     >
+                                        <img
+                                            src="{{ $images[0] }}"
+                                            alt="{{ $title }}"
+                                            loading="lazy"
+                                            class="block w-full max-h-[480px] object-cover"
+                                            onerror="console.error('Post image failed:', this.src); this.closest('div').classList.add('hidden');"
+                                        >
+                                    </button>
                                 </div>
 
                             @elseif (count($images) > 1)
@@ -379,10 +398,9 @@
 
                                         <a
                                             href="{{ $img }}"
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            aria-label="Open image {{ $k + 1 }} for {{ $title }}"
-                                            class="relative block aspect-[4/3] overflow-hidden bg-gray-100 {{ count($images) === 3 && $k === 0 ? 'col-span-2' : '' }}"
+                                            data-index="{{ $k }}"
+                                            aria-label="View image {{ $k + 1 }} for {{ $title }}"
+                                            class="gallery-trigger relative block aspect-[4/3] overflow-hidden bg-gray-100 {{ count($images) === 3 && $k === 0 ? 'col-span-2' : '' }}"
                                         >
 
                                             <img
@@ -406,8 +424,6 @@
                                 </div>
 
                             @endif
-
-                            {{-- POST FOOTER --}}
 
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
 
@@ -446,8 +462,6 @@
 
                     @endforelse
 
-                    {{-- NO SEARCH RESULTS --}}
-
                     <div
                         id="noResults"
                         class="hidden bg-white rounded-2xl shadow p-10 text-center"
@@ -463,12 +477,8 @@
 
                 </div>
 
-               
 
                 <aside class="space-y-6 lg:sticky lg:top-6 self-start">
-
-                    {{-- PARTICIPATING NGOS --}}
-
                     <div
                         class="bg-white rounded-2xl shadow-md p-6"
                         data-aos="fade-left"
@@ -532,8 +542,6 @@
                         </ul>
                     </div>
 
-                    {{-- TRANSPARENCY INFORMATION --}}
-
                     <div
                         class="rounded-2xl p-6 bg-gradient-to-br from-[#0e243a] to-[#16385a] text-white shadow-md"
                         data-aos="fade-left"
@@ -574,7 +582,6 @@
     </section>
 
 
-
     <section
         class="py-20 bg-[#0e243a] text-center text-white"
         data-aos="fade-up"
@@ -600,12 +607,67 @@
         </div>
     </section>
 
- 
+    <div
+        id="lightbox"
+        class="fixed inset-0 z-[100] bg-black/90 opacity-0 pointer-events-none flex items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image viewer"
+        aria-hidden="true"
+    >
+        <button
+            type="button"
+            id="lbClose"
+            aria-label="Close"
+            class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div
+            id="lbCounter"
+            class="absolute top-5 left-5 text-white/90 text-sm font-semibold bg-white/10 px-3 py-1 rounded-full z-10"
+        ></div>
+
+        <button
+            type="button"
+            id="lbPrev"
+            aria-label="Previous image"
+            class="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <button
+            type="button"
+            id="lbNext"
+            aria-label="Next image"
+            class="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <figure id="lbStage" class="max-w-[92vw] max-h-[88vh] flex flex-col items-center">
+            <img
+                id="lbImg"
+                src=""
+                alt=""
+                class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl select-none"
+                draggable="false"
+            >
+            <figcaption id="lbCaption" class="mt-3 text-white/90 text-sm text-center px-4"></figcaption>
+        </figure>
+    </div>
+
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
-            // Initialize animations.
             if (typeof AOS !== 'undefined') {
                 AOS.init({
                     duration: 800,
@@ -622,7 +684,6 @@
 
             let activeNgo = 'all';
 
-     
 
             function applyFilters() {
                 const q = (search?.value || '').trim().toLowerCase();
@@ -690,7 +751,6 @@
             search?.addEventListener('input', applyFilters);
 
 
-
             document.querySelectorAll('.toggle-more').forEach(button => {
                 button.addEventListener('click', function () {
                     const desc = this.previousElementSibling;
@@ -704,6 +764,154 @@
                         : 'Read more';
                 });
             });
+
+            const lb = document.getElementById('lightbox');
+            const lbImg = document.getElementById('lbImg');
+            const lbCounter = document.getElementById('lbCounter');
+            const lbCaption = document.getElementById('lbCaption');
+            const lbPrev = document.getElementById('lbPrev');
+            const lbNext = document.getElementById('lbNext');
+            const lbClose = document.getElementById('lbClose');
+            const lbStage = document.getElementById('lbStage');
+
+            let lbImages = [];
+            let lbIndex = 0;
+            let lbTitle = '';
+            let lbLastFocus = null;
+
+            function isLightboxOpen() {
+                return lb.classList.contains('is-open');
+            }
+
+            function preload(i) {
+                if (!lbImages.length) return;
+                const idx = (i + lbImages.length) % lbImages.length;
+                const img = new Image();
+                img.src = lbImages[idx];
+            }
+
+            function renderLightbox() {
+                const total = lbImages.length;
+
+                lbImg.style.opacity = '0';
+                lbImg.onload = () => { lbImg.style.opacity = '1'; };
+                lbImg.onerror = () => { lbImg.style.opacity = '1'; };
+                lbImg.src = lbImages[lbIndex];
+                lbImg.alt = lbTitle + ' - Image ' + (lbIndex + 1);
+
+                lbCaption.textContent = lbTitle;
+                lbCounter.textContent = (lbIndex + 1) + ' / ' + total;
+
+                const multiple = total > 1;
+                lbPrev.classList.toggle('hidden', !multiple);
+                lbNext.classList.toggle('hidden', !multiple);
+                lbCounter.classList.toggle('hidden', !multiple);
+
+                if (multiple) {
+                    preload(lbIndex + 1);
+                    preload(lbIndex - 1);
+                }
+            }
+
+            function openLightbox(images, index, title) {
+                if (!images.length) return;
+
+                lbImages = images;
+                lbIndex = Math.min(Math.max(index, 0), images.length - 1);
+                lbTitle = title || '';
+                lbLastFocus = document.activeElement;
+
+                renderLightbox();
+
+                lb.classList.add('is-open');
+                lb.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                lbClose.focus();
+            }
+
+            function closeLightbox() {
+                lb.classList.remove('is-open');
+                lb.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                lbImg.src = '';
+
+                if (lbLastFocus && typeof lbLastFocus.focus === 'function') {
+                    lbLastFocus.focus();
+                }
+            }
+
+            function showNext() {
+                if (lbImages.length < 2) return;
+                lbIndex = (lbIndex + 1) % lbImages.length;
+                renderLightbox();
+            }
+
+            function showPrev() {
+                if (lbImages.length < 2) return;
+                lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
+                renderLightbox();
+            }
+
+            document.addEventListener('click', function (e) {
+                const trigger = e.target.closest('.gallery-trigger');
+                if (!trigger) return;
+
+                const article = trigger.closest('.feed-item');
+                if (!article) return;
+
+                e.preventDefault();
+
+                let images = [];
+                try {
+                    images = JSON.parse(article.dataset.images || '[]');
+                } catch (err) {
+                    images = [];
+                }
+
+                openLightbox(
+                    images,
+                    parseInt(trigger.dataset.index || '0', 10),
+                    article.dataset.title || ''
+                );
+            });
+
+            lbClose.addEventListener('click', closeLightbox);
+            lbNext.addEventListener('click', showNext);
+            lbPrev.addEventListener('click', showPrev);
+            lb.addEventListener('click', function (e) {
+                if (e.target === lb || e.target === lbStage) {
+                    closeLightbox();
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (!isLightboxOpen()) return;
+
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowRight') {
+                    showNext();
+                } else if (e.key === 'ArrowLeft') {
+                    showPrev();
+                }
+            });
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            lb.addEventListener('touchstart', function (e) {
+                touchStartX = e.changedTouches[0].clientX;
+                touchStartY = e.changedTouches[0].clientY;
+            }, { passive: true });
+
+            lb.addEventListener('touchend', function (e) {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+                    dx < 0 ? showNext() : showPrev();
+                }
+            }, { passive: true });
 
         });
     </script>

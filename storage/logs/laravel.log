@@ -30574,3 +30574,7 @@ Did you mean one of these?
 [2026-10-29 15:07:43] local.INFO: NGO update upload diagnostics {"has_images":true,"image_count":2,"all_file_fields":["images"]} 
 [2026-10-29 15:07:44] local.INFO: Post image media record created successfully. {"post_id":19,"key_id":19,"response":[{"id":31,"key_id":19,"type":"POST","path":"https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/posts/post_19_e328a597225a99d0.jpg"}]} 
 [2026-10-29 15:07:44] local.INFO: Post image media record created successfully. {"post_id":19,"key_id":19,"response":[{"id":32,"key_id":19,"type":"POST","path":"https://vqywnoljhhcnybzbvhhh.supabase.co/storage/v1/object/public/posts/post_19_16fac3a778f1d2e8.jpg"}]} 
+[2026-10-29 12:00:13] local.ERROR: Maximum execution time of 60 seconds exceeded {"exception":"[object] (Symfony\\Component\\ErrorHandler\\Error\\FatalError(code: 0): Maximum execution time of 60 seconds exceeded at C:/Sysands/MEt.A-Project-SUHAY/vendor/composer/ClassLoader.php:429)
+[stacktrace]
+#0 {main}
+"} 
