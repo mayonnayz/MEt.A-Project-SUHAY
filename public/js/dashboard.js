@@ -13,13 +13,18 @@ const updatePostStatus = document.getElementById('updatePostStatus');
 const updatePostImage = document.getElementById('updatePostImage');
 
 let isSubmittingUpdatePost = false;
-let imagePreviewUrl = null;
+
+
+/* =========================================
+   UPDATE POST MODAL CONTROLS
+========================================= */
 
 function openUpdatePostModal() {
     if (!updatePostModal) return;
 
     updatePostModal.classList.remove('hidden');
     updatePostModal.classList.add('flex');
+
     document.body.classList.add('overflow-hidden');
 
     updatePostTitle?.focus();
@@ -49,13 +54,11 @@ function closeUnsavedPostModal() {
 }
 
 function hasUnsavedUpdatePost() {
-    if (!updatePostForm) return false;
+    const hasTitle = Boolean(updatePostTitle?.value.trim());
+    const hasDescription = Boolean(updatePostDescription?.value.trim());
+    const hasImages = selectedUpdatePostImages.length > 0;
 
-    const hasTitle = updatePostTitle?.value.trim() !== '';
-    const hasDescription = updatePostDescription?.value.trim() !== '';
-    const hasImage = updatePostImage?.files?.length > 0;
-
-    return Boolean(hasTitle || hasDescription || hasImage);
+    return hasTitle || hasDescription || hasImages;
 }
 
 function requestCloseUpdatePostModal() {
@@ -83,8 +86,21 @@ function discardUpdatePost() {
         updatePostStatus.value = '1';
     }
 
-    removeUpdatePostImage();
+    clearUpdatePostImages();
     updateCharacterCounts();
+
+    isSubmittingUpdatePost = false;
+
+    const publishButton = document.getElementById('publishUpdateButton');
+
+    if (publishButton) {
+        publishButton.disabled = false;
+        publishButton.textContent = 'Publish';
+        publishButton.classList.remove(
+            'opacity-60',
+            'cursor-not-allowed'
+        );
+    }
 
     closeUnsavedPostModal();
     closeUpdatePostModal();
@@ -93,15 +109,87 @@ function discardUpdatePost() {
 function saveUpdatePostDraft() {
     if (!updatePostForm || isSubmittingUpdatePost) return;
 
-    // The backend must accept status 0 as a draft.
-    updatePostStatus.value = '0';
+    if (updatePostStatus) {
+        updatePostStatus.value = '0';
+    }
 
-    // A draft submission follows the same server endpoint.
     updatePostForm.requestSubmit();
 }
 
+
 /* =========================================
-   MODAL DISMISSAL
+   UPDATE POST FORM SUBMISSION
+========================================= */
+
+updatePostForm?.addEventListener('submit', function (event) {
+    if (isSubmittingUpdatePost) {
+        event.preventDefault();
+        return;
+    }
+
+    // Ensure the actual file input contains every selected image.
+    syncUpdatePostImages();
+
+    console.log('NGO update form submission:', {
+        selectedImages: selectedUpdatePostImages.length,
+        inputFiles: updatePostImage?.files.length ?? 0,
+        formDataImages: new FormData(updatePostForm)
+            .getAll('images[]')
+            .filter(item => item instanceof File && item.size > 0)
+            .map(file => file.name)
+    });
+
+    isSubmittingUpdatePost = true;
+
+    const publishButton = document.getElementById('publishUpdateButton');
+
+    if (publishButton) {
+        publishButton.disabled = true;
+        publishButton.textContent = 'Submitting...';
+
+        publishButton.classList.add(
+            'opacity-60',
+            'cursor-not-allowed'
+        );
+    }
+});
+
+
+/* =========================================
+   EDIT UPDATE POST MODAL
+========================================= */
+
+function openEditUpdatePostModal(id, title, description) {
+    const modal = document.getElementById('editUpdatePostModal');
+    const form = document.getElementById('editUpdatePostForm');
+
+    if (!modal || !form) return;
+
+    document.getElementById('editUpdatePostTitle').value = title;
+    document.getElementById('editUpdatePostDescription').value = description;
+
+    form.action = `/update-posts/${id}`;
+
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    document.body.classList.add('overflow-hidden');
+}
+
+function closeEditUpdatePostModal() {
+    const modal = document.getElementById('editUpdatePostModal');
+
+    if (!modal) return;
+
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+
+    document.body.classList.remove('overflow-hidden');
+}
+
+
+/* =========================================
+   MODAL BACKDROP AND ESCAPE KEY
 ========================================= */
 
 updatePostModal?.addEventListener('click', function (event) {
@@ -117,16 +205,17 @@ unsavedPostModal?.addEventListener('click', function (event) {
 });
 
 document.addEventListener('keydown', function (event) {
-    if (event.key === 'Escape') {
-        if (unsavedPostModal?.classList.contains('flex')) {
-            continueEditingUpdatePost();
-        } else if (updatePostModal?.classList.contains('flex')) {
-            requestCloseUpdatePostModal();
-        } else {
-            closeLogoutModal();
-        }
+    if (event.key !== 'Escape') return;
+
+    if (unsavedPostModal?.classList.contains('flex')) {
+        continueEditingUpdatePost();
+    } else if (updatePostModal?.classList.contains('flex')) {
+        requestCloseUpdatePostModal();
+    } else {
+        closeLogoutModal();
     }
 });
+
 
 /* =========================================
    CHARACTER COUNTERS
@@ -150,8 +239,23 @@ updatePostDescription?.addEventListener('input', updateCharacterCounts);
 
 updateCharacterCounts();
 
+
 /* =========================================
-   IMAGE UPLOAD AND PREVIEW
+   MULTIPLE IMAGE UPLOAD AND PREVIEW
+========================================= */
+
+const imagePreviewContainer = document.getElementById('imagePreviewContainer');
+const imageCount = document.getElementById('imageCount');
+const clearImagesButton = document.getElementById('clearUpdatePostImages');
+
+const MAX_POST_IMAGES = 10;
+const MAX_POST_IMAGE_SIZE = 5 * 1024 * 1024;
+
+let selectedUpdatePostImages = [];
+
+
+/* =========================================
+   IMAGE ERROR MESSAGES
 ========================================= */
 
 function showImageError(message) {
@@ -172,36 +276,105 @@ function clearImageError() {
     imageError.classList.add('hidden');
 }
 
-function removeUpdatePostImage() {
-    const imagePlaceholder = document.getElementById('imagePlaceholder');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-    const imagePreview = document.getElementById('updatePostImagePreview');
 
-    if (updatePostImage) {
-        updatePostImage.value = '';
-    }
+/* =========================================
+   SYNCHRONIZE SELECTED FILES
+========================================= */
 
-    if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
-        imagePreviewUrl = null;
-    }
+function syncUpdatePostImages() {
+    if (!updatePostImage) return;
 
-    if (imagePreview) {
-        imagePreview.removeAttribute('src');
-    }
+    const dataTransfer = new DataTransfer();
 
-    imagePlaceholder?.classList.remove('hidden');
-    imagePreviewContainer?.classList.add('hidden');
+    selectedUpdatePostImages.forEach(file => {
+        dataTransfer.items.add(file);
+    });
 
-    clearImageError();
+    updatePostImage.files = dataTransfer.files;
 }
+
+
+/* =========================================
+   RENDER IMAGE PREVIEWS
+========================================= */
+
+function renderUpdatePostImagePreviews() {
+    if (!imagePreviewContainer) return;
+
+    // Release existing preview URLs to avoid memory leaks.
+    imagePreviewContainer
+        .querySelectorAll('img[data-preview-url]')
+        .forEach(img => {
+            URL.revokeObjectURL(img.dataset.previewUrl);
+        });
+
+    imagePreviewContainer.innerHTML = '';
+
+    selectedUpdatePostImages.forEach((file, index) => {
+        const wrapper = document.createElement('div');
+
+        wrapper.className =
+            'relative overflow-hidden rounded-xl border border-gray-200 bg-gray-50';
+
+        const preview = document.createElement('img');
+        const previewUrl = URL.createObjectURL(file);
+
+        preview.src = previewUrl;
+        preview.dataset.previewUrl = previewUrl;
+        preview.alt = `Selected post image ${index + 1}`;
+
+        preview.className = 'h-36 w-full object-cover';
+
+        const removeButton = document.createElement('button');
+
+        removeButton.type = 'button';
+        removeButton.textContent = '×';
+
+        removeButton.setAttribute(
+            'aria-label',
+            `Remove image ${index + 1}`
+        );
+
+        removeButton.className =
+            'absolute right-2 top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white text-lg font-bold text-red-600 shadow hover:bg-red-50';
+
+        removeButton.addEventListener('click', function () {
+            selectedUpdatePostImages.splice(index, 1);
+
+            syncUpdatePostImages();
+            renderUpdatePostImagePreviews();
+            clearImageError();
+        });
+
+        const filename = document.createElement('p');
+
+        filename.className = 'truncate px-2 py-2 text-xs text-gray-600';
+        filename.textContent = file.name;
+
+        wrapper.append(preview, removeButton, filename);
+        imagePreviewContainer.appendChild(wrapper);
+    });
+
+    if (imageCount) {
+        imageCount.textContent =
+            `${selectedUpdatePostImages.length} of ${MAX_POST_IMAGES} images selected`;
+    }
+
+    clearImagesButton?.classList.toggle(
+        'hidden',
+        selectedUpdatePostImages.length === 0
+    );
+}
+
+
+/* =========================================
+   IMAGE INPUT CHANGE HANDLER
+========================================= */
 
 updatePostImage?.addEventListener('change', function () {
     clearImageError();
 
-    const file = this.files?.[0];
-
-    if (!file) return;
+    const incomingFiles = Array.from(this.files || []);
 
     const allowedTypes = [
         'image/jpeg',
@@ -209,60 +382,186 @@ updatePostImage?.addEventListener('change', function () {
         'image/webp'
     ];
 
-    if (!allowedTypes.includes(file.type)) {
-        this.value = '';
-        showImageError('Please select a JPG, PNG, or WEBP image.');
-        return;
+    const existingFiles = new Set(
+        selectedUpdatePostImages.map(file =>
+            `${file.name}|${file.size}|${file.lastModified}`
+        )
+    );
+
+    const validFiles = [];
+    let errorMessage = '';
+
+    for (const file of incomingFiles) {
+        if (!allowedTypes.includes(file.type)) {
+            errorMessage =
+                'Only JPG, PNG, and WEBP images are allowed.';
+            continue;
+        }
+
+        if (file.size > MAX_POST_IMAGE_SIZE) {
+            errorMessage =
+                `${file.name} exceeds the 5 MB limit.`;
+            continue;
+        }
+
+        const fileKey =
+            `${file.name}|${file.size}|${file.lastModified}`;
+
+        if (existingFiles.has(fileKey)) {
+            continue;
+        }
+
+        existingFiles.add(fileKey);
+        validFiles.push(file);
     }
 
-    if (file.size > 5 * 1024 * 1024) {
-        this.value = '';
-        showImageError('The image must not exceed 5 MB.');
-        return;
+    const remainingSlots =
+        MAX_POST_IMAGES - selectedUpdatePostImages.length;
+
+    if (validFiles.length > remainingSlots) {
+        errorMessage =
+            'You can upload a maximum of 10 images per post.';
     }
 
-    if (imagePreviewUrl) {
-        URL.revokeObjectURL(imagePreviewUrl);
+    selectedUpdatePostImages.push(
+        ...validFiles.slice(0, remainingSlots)
+    );
+
+    // Preserve all selected files in the actual form input.
+    syncUpdatePostImages();
+    renderUpdatePostImagePreviews();
+
+    if (errorMessage) {
+        showImageError(errorMessage);
     }
 
-    imagePreviewUrl = URL.createObjectURL(file);
-
-    const imagePreview = document.getElementById('updatePostImagePreview');
-    const imagePlaceholder = document.getElementById('imagePlaceholder');
-    const imagePreviewContainer = document.getElementById('imagePreviewContainer');
-
-    if (imagePreview) {
-        imagePreview.src = imagePreviewUrl;
-    }
-
-    imagePlaceholder?.classList.add('hidden');
-    imagePreviewContainer?.classList.remove('hidden');
+    // Do not clear this.value here.
 });
+
 
 /* =========================================
-   FORM SUBMISSION
+   CLEAR ALL SELECTED IMAGES
 ========================================= */
 
-updatePostForm?.addEventListener('submit', function (event) {
-    if (isSubmittingUpdatePost) {
-        event.preventDefault();
-        return;
+function clearUpdatePostImages() {
+    selectedUpdatePostImages = [];
+
+    if (updatePostImage) {
+        updatePostImage.value = '';
     }
 
-    isSubmittingUpdatePost = true;
+    syncUpdatePostImages();
+    renderUpdatePostImagePreviews();
+    clearImageError();
+}
 
-    const publishButton = document.getElementById('publishUpdateButton');
+// Compatibility with existing buttons or scripts.
+function removeUpdatePostImage() {
+    clearUpdatePostImages();
+}
 
-    if (publishButton) {
-        publishButton.disabled = true;
-        publishButton.textContent =
-            updatePostStatus?.value === '0'
-                ? 'Saving draft...'
-                : 'Publishing...';
 
-        publishButton.classList.add('opacity-60', 'cursor-not-allowed');
+/* =========================================
+   UPDATE POSTS FILTER AND EXPANSION
+========================================= */
+
+let currentUpdateFilter = 'all';
+let updatePostsExpanded = false;
+
+function filterUpdatePosts(status, button) {
+    currentUpdateFilter = status;
+    updatePostsExpanded = false;
+
+    document.querySelectorAll('.update-filter-btn').forEach(btn => {
+        const active = btn.dataset.filter === status;
+
+        btn.classList.toggle('bg-[#0e243a]', active);
+        btn.classList.toggle('text-white', active);
+
+        btn.classList.toggle('border', !active);
+        btn.classList.toggle('border-gray-200', !active);
+        btn.classList.toggle('bg-white', !active);
+        btn.classList.toggle('text-gray-600', !active);
+    });
+
+    renderUpdatePosts();
+}
+
+function renderUpdatePosts() {
+    const posts = Array.from(
+        document.querySelectorAll('.update-post-item')
+    );
+
+    const toggleContainer = document.getElementById(
+        'updatePostsToggleContainer'
+    );
+
+    const toggleButton = document.getElementById(
+        'toggleUpdatePostsBtn'
+    );
+
+    const toggleText = document.getElementById(
+        'toggleUpdatePostsText'
+    );
+
+    const toggleIcon = document.getElementById(
+        'toggleUpdatePostsIcon'
+    );
+
+    const emptyMessage = document.getElementById(
+        'filteredUpdatePostsEmpty'
+    );
+
+    const filteredPosts = posts.filter(post => {
+        return currentUpdateFilter === 'all' ||
+            post.dataset.status === currentUpdateFilter;
+    });
+
+    posts.forEach(post => post.classList.add('hidden'));
+
+    const visiblePosts = updatePostsExpanded
+        ? filteredPosts
+        : filteredPosts.slice(0, 1);
+
+    visiblePosts.forEach(post => post.classList.remove('hidden'));
+
+    const hasMore = filteredPosts.length > 1;
+
+    toggleContainer?.classList.toggle('hidden', !hasMore);
+
+    if (toggleButton) {
+        toggleButton.setAttribute(
+            'aria-expanded',
+            String(updatePostsExpanded)
+        );
     }
-});
+
+    if (toggleText) {
+        toggleText.textContent = updatePostsExpanded
+            ? 'See Less'
+            : 'See More Updates';
+    }
+
+    if (toggleIcon) {
+        toggleIcon.classList.toggle(
+            'rotate-180',
+            updatePostsExpanded
+        );
+    }
+
+    if (emptyMessage) {
+        emptyMessage.classList.toggle(
+            'hidden',
+            filteredPosts.length !== 0
+        );
+    }
+}
+
+function toggleUpdatePosts() {
+    updatePostsExpanded = !updatePostsExpanded;
+    renderUpdatePosts();
+}
+
 
 /* =========================================
    LOGOUT MODAL
@@ -285,3 +584,14 @@ function closeLogoutModal() {
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
+
+
+/* =========================================
+   INITIALIZE
+========================================= */
+
+document.addEventListener('DOMContentLoaded', function () {
+    renderUpdatePosts();
+    updateCharacterCounts();
+    renderUpdatePostImagePreviews();
+});

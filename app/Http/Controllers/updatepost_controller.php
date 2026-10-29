@@ -7,11 +7,7 @@ use Illuminate\Support\Facades\Log;
 
 class updatepost_controller extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | SUPABASE CONNECTION
-    |--------------------------------------------------------------------------
-    */
+
 
     private function supabase()
     {
@@ -32,11 +28,7 @@ class updatepost_controller extends Controller
         ])->baseUrl($url . '/rest/v1/');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | GET AUTHENTICATED NGO STAFF ACCOUNT
-    |--------------------------------------------------------------------------
-    */
+  
 
     private function getNgoStaff()
     {
@@ -102,33 +94,31 @@ class updatepost_controller extends Controller
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | CREATE POST / PUBLISH / SAVE DRAFT
-    |--------------------------------------------------------------------------
-    |
-    | Status:
-    | 0 = Draft
-    | 1 = Published
-    | 2 = Archived
-    |
-    */
 
    
+
 public function store(Request $request)
+
 {
+    Log::info('NGO update upload diagnostics', [
+    'has_images' => $request->hasFile('images'),
+    'image_count' => count($request->file('images', [])),
+    'all_file_fields' => array_keys($request->allFiles()),
+]);
     $staff = $this->getNgoStaff();
 
     if (isset($staff['error'])) {
         return $staff['error'];
     }
 
+    // STEP 1: VALIDATE THE POST AND IMAGES
     $validated = $request->validate([
         'title' => ['required', 'string', 'max:255'],
         'description' => ['required', 'string', 'max:5000'],
         'status' => ['required', 'integer', 'in:0,1'],
-        'image' => [
-            'nullable',
+        'images' => ['nullable', 'array', 'max:10'],
+        'images.*' => [
+            'required',
             'image',
             'mimes:jpg,jpeg,png,webp',
             'max:5120',
@@ -136,10 +126,9 @@ public function store(Request $request)
     ]);
 
     $postId = null;
-    $uploadedPath = null;
 
     try {
-        // STEP 1: CREATE THE POST FIRST
+        // STEP 2: CREATE THE NGO UPDATE
         $postResponse = $this->supabase()
             ->withHeaders([
                 'Prefer' => 'return=representation',
@@ -150,6 +139,7 @@ public function store(Request $request)
                 'description' => trim($validated['description']),
                 'status' => (int) $validated['status'],
                 'posted_by_id' => $staff['user_id'],
+                'date_created' => now()->toIso8601String(),
             ]);
 
         if (!$postResponse->successful()) {
@@ -159,11 +149,10 @@ public function store(Request $request)
             ]);
 
             return redirect()->back()
-                ->withInput($request->except('_token', 'image'))
+                ->withInput($request->except('_token', 'images'))
                 ->with('error', 'Unable to save the NGO update.');
         }
 
-        // Get the newly created post ID.
         $createdPost = collect($postResponse->json())->first();
 
         if (!$createdPost || empty($createdPost['id'])) {
@@ -172,24 +161,29 @@ public function store(Request $request)
             ]);
 
             return redirect()->back()
-                ->with('error', 'The post was saved, but its ID could not be retrieved.');
+                ->with(
+                    'error',
+                    'The post may have been saved, but its ID could not be retrieved.'
+                );
         }
 
         $postId = (int) $createdPost['id'];
 
-        // STEP 2: UPLOAD IMAGE IF PROVIDED
-        if ($request->hasFile('image')) {
-            $image = $request->file('image');
+        // STEP 3: UPLOAD IMAGES AND SAVE EACH IMAGE RECORD
+        $images = $request->file('images', []);
 
-            $extension = strtolower($image->getClientOriginalExtension());
-            $filename = 'post_' . $postId . '_' . bin2hex(random_bytes(8))
-                . '.' . $extension;
+        $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
+        $supabaseKey = env('SUPABASE_SERVICE_KEY');
 
-            $uploadedPath = $filename;
+        foreach ($images as $image) {
+            $extension = strtolower(
+                $image->getClientOriginalExtension()
+            );
 
-            $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
-            $supabaseKey = env('SUPABASE_SERVICE_KEY');
+            $filename = 'post_' . $postId . '_'
+                . bin2hex(random_bytes(8)) . '.' . $extension;
 
+            // Upload image to Supabase Storage.
             $uploadResponse = Http::withHeaders([
                 'apikey' => $supabaseKey,
                 'Authorization' => 'Bearer ' . $supabaseKey,
@@ -205,20 +199,24 @@ public function store(Request $request)
             if (!$uploadResponse->successful()) {
                 Log::error('Post image upload failed.', [
                     'post_id' => $postId,
+                    'filename' => $filename,
                     'status' => $uploadResponse->status(),
                     'body' => $uploadResponse->body(),
                 ]);
 
                 return redirect()->back()
-                    ->with('warning', 'The post was saved, but its image could not be uploaded.');
+                    ->with(
+                        'warning',
+                        'The post was saved, but an image upload failed. Check the Laravel logs.'
+                    );
             }
 
-            // STEP 3: GENERATE THE PUBLIC IMAGE URL
+            // Generate the public image URL.
             $imageUrl = $supabaseUrl
                 . '/storage/v1/object/public/posts/'
                 . $filename;
 
-            // STEP 4: SAVE IMAGE URL TO media_table
+            // Insert one media_table row for this image.
             $mediaResponse = $this->supabase()
                 ->withHeaders([
                     'Prefer' => 'return=representation',
@@ -232,16 +230,28 @@ public function store(Request $request)
             if (!$mediaResponse->successful()) {
                 Log::error('Post image media record creation failed.', [
                     'post_id' => $postId,
-                    'image_url' => $imageUrl,
+                    'key_id' => $postId,
+                    'filename' => $filename,
+                    'path' => $imageUrl,
                     'status' => $mediaResponse->status(),
                     'body' => $mediaResponse->body(),
                 ]);
 
                 return redirect()->back()
-                    ->with('warning', 'The post and image were saved, but the media record could not be created.');
+                    ->with(
+                        'warning',
+                        'The image uploaded, but its database record could not be saved. Check storage/logs/laravel.log.'
+                    );
             }
+
+            Log::info('Post image media record created successfully.', [
+                'post_id' => $postId,
+                'key_id' => $postId,
+                'response' => $mediaResponse->json(),
+            ]);
         }
 
+        // STEP 4: RETURN SUCCESS ONCE ALL IMAGES ARE PROCESSED
         $status = (int) $validated['status'];
 
         return redirect()->back()->with(
@@ -258,17 +268,13 @@ public function store(Request $request)
         ]);
 
         return redirect()->back()
-            ->with('error', 'An unexpected error occurred while saving the post.');
+            ->with(
+                'error',
+                'An unexpected error occurred while saving the post. Check the Laravel logs.'
+            );
     }
 }
 
-    /*
-    |--------------------------------------------------------------------------
-    | UPDATE EXISTING POST
-    |--------------------------------------------------------------------------
-    */
-
-   
 public function update(Request $request, $id)
 {
     $staff = $this->getNgoStaff();

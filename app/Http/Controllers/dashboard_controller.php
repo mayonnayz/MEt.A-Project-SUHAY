@@ -100,16 +100,20 @@ class dashboard_controller extends Controller
 
             
         
+
 $updatePosts = collect();
 
 if (!empty($ngoId)) {
 
-    // Fetch NGO posts.
+    // =========================================
+    // FETCH NGO UPDATES
+    // =========================================
+
     $updatePostsResponse = Http::withHeaders($headers)
         ->get($supabaseUrl . '/rest/v1/update_posts', [
-            'select' => '*',
+            'select' => 'id,ngo_id,title,description,status,posted_by_id,date_created',
             'ngo_id' => 'eq.' . (int) $ngoId,
-            'order' => 'id.desc',
+            'order' => 'date_created.desc,id.desc',
         ]);
 
     if ($updatePostsResponse->successful()) {
@@ -117,12 +121,16 @@ if (!empty($ngoId)) {
         $updatePosts = collect($updatePostsResponse->json())
             ->map(function ($post) {
                 $post['image'] = null;
+                $post['images'] = [];
 
                 return (object) $post;
             })
             ->values();
 
-        // Collect post IDs.
+        // =========================================
+        // COLLECT POST IDS
+        // =========================================
+
         $postIds = $updatePosts
             ->pluck('id')
             ->filter()
@@ -132,7 +140,10 @@ if (!empty($ngoId)) {
 
         if (!empty($postIds)) {
 
-            // Fetch media associated with these posts.
+            // =========================================
+            // FETCH ALL IMAGES FOR THESE POSTS
+            // =========================================
+
             $mediaResponse = Http::withHeaders($headers)
                 ->get($supabaseUrl . '/rest/v1/media_table', [
                     'select' => 'key_id,type,path',
@@ -142,23 +153,46 @@ if (!empty($ngoId)) {
 
             if ($mediaResponse->successful()) {
 
+                // Group all images by their post ID.
                 $postImages = collect($mediaResponse->json())
-                    ->keyBy(function ($media) {
+                    ->filter(function ($media) {
+                        return !empty($media['key_id'])
+                            && !empty($media['path']);
+                    })
+                    ->groupBy(function ($media) {
                         return (string) $media['key_id'];
+                    })
+                    ->map(function ($mediaItems) {
+                        return $mediaItems
+                            ->pluck('path')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
                     });
 
-                // Attach image URLs to their respective posts.
+                // =========================================
+                // ATTACH IMAGES TO EACH POST
+                // =========================================
+
                 $updatePosts = $updatePosts
                     ->map(function ($post) use ($postImages) {
 
-                        $media = $postImages->get(
-                            (string) $post->id
+                        $images = $postImages->get(
+                            (string) $post->id,
+                            []
                         );
 
-                        $post->image = $media['path'] ?? null;
+                        // All image URLs for the gallery.
+                        $post->images = $images;
+
+                        // Keep the first image for older code
+                        // that still uses $post->image.
+                        $post->image = $images[0] ?? null;
 
                         return $post;
-                    });
+                    })
+                    ->values();
 
             } else {
 
@@ -169,7 +203,120 @@ if (!empty($ngoId)) {
                     'ngo_id' => $ngoId,
                 ]);
             }
+        }
 
+    } else {
+
+        \Log::error('Failed to fetch NGO updates.', [
+            'status' => $updatePostsResponse->status(),
+            'response' => $updatePostsResponse->body(),
+            'ngo_id' => $ngoId,
+        ]);
+    }
+}
+
+$updatePosts = collect();
+
+if (!empty($ngoId)) {
+
+    // =========================================
+    // FETCH NGO UPDATES
+    // =========================================
+
+    $updatePostsResponse = Http::withHeaders($headers)
+        ->get($supabaseUrl . '/rest/v1/update_posts', [
+            'select' => 'id,ngo_id,title,description,status,posted_by_id,date_created',
+            'ngo_id' => 'eq.' . (int) $ngoId,
+            'order' => 'date_created.desc,id.desc',
+        ]);
+
+    if ($updatePostsResponse->successful()) {
+
+        $updatePosts = collect($updatePostsResponse->json())
+            ->map(function ($post) {
+                $post['image'] = null;
+                $post['images'] = [];
+
+                return (object) $post;
+            })
+            ->values();
+
+        // =========================================
+        // COLLECT POST IDS
+        // =========================================
+
+        $postIds = $updatePosts
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($postIds)) {
+
+            // =========================================
+            // FETCH ALL IMAGES FOR THESE POSTS
+            // =========================================
+
+            $mediaResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/media_table', [
+                    'select' => 'key_id,type,path',
+                    'type' => 'eq.POST',
+                    'key_id' => 'in.(' . implode(',', $postIds) . ')',
+                ]);
+
+            if ($mediaResponse->successful()) {
+
+                // Group all images by their post ID.
+                $postImages = collect($mediaResponse->json())
+                    ->filter(function ($media) {
+                        return !empty($media['key_id'])
+                            && !empty($media['path']);
+                    })
+                    ->groupBy(function ($media) {
+                        return (string) $media['key_id'];
+                    })
+                    ->map(function ($mediaItems) {
+                        return $mediaItems
+                            ->pluck('path')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
+                    });
+
+                // =========================================
+                // ATTACH IMAGES TO EACH POST
+                // =========================================
+
+                $updatePosts = $updatePosts
+                    ->map(function ($post) use ($postImages) {
+
+                        $images = $postImages->get(
+                            (string) $post->id,
+                            []
+                        );
+
+                        // All image URLs for the gallery.
+                        $post->images = $images;
+
+                        // Keep the first image for older code
+                        // that still uses $post->image.
+                        $post->image = $images[0] ?? null;
+
+                        return $post;
+                    })
+                    ->values();
+
+            } else {
+
+                \Log::error('Failed to fetch NGO update images.', [
+                    'status' => $mediaResponse->status(),
+                    'response' => $mediaResponse->body(),
+                    'post_ids' => $postIds,
+                    'ngo_id' => $ngoId,
+                ]);
+            }
         }
 
     } else {

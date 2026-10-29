@@ -49,6 +49,19 @@
         box-shadow: 0 15px 30px rgba(0,0,0,0.15);
     }
 
+    .ngo-card {
+        border: 2px solid #0e243a;
+        transition: all 0.3s ease;
+    }
+
+    .ngo-card:hover {
+        border-color: #f2c94c;
+        box-shadow:
+            0 0 10px rgba(242, 201, 76, 0.45),
+            0 0 25px rgba(242, 201, 76, 0.30),
+            0 0 40px rgba(242, 201, 76, 0.15);
+    }
+
     html {
         scroll-behavior: smooth;
     }
@@ -259,7 +272,7 @@
 
             <div
                 onclick="openModal(<?php echo e($ngo['id']); ?>)"
-                class="bg-white border-2 border-[#0e243a] rounded-2xl p-8 md:p-10 flex items-center justify-between hover-scale cursor-pointer"
+                class="ngo-card bg-white rounded-2xl p-8 md:p-10 flex items-center justify-between hover-scale cursor-pointer"
             >
 
                 <div class="flex items-center gap-6">
@@ -357,6 +370,7 @@
     };
 </script>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="<?php echo e(asset('js/donate.js')); ?>"></script>
 
 </body>

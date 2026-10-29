@@ -255,235 +255,354 @@
         
         
 
-        <div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
+    
+<div class="bg-white rounded-2xl shadow-sm p-6 mb-6">
 
-            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
-                <div>
-                    <h2 class="text-lg font-bold text-[#0e243a]">
-                        NGO Updates
-                    </h2>
-                    <p class="text-sm text-gray-400">
-                        Share announcements and stories with the SUHAY community.
+    
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-5">
+        <div>
+            <h2 class="text-lg font-bold text-[#0e243a]">
+                NGO Updates
+            </h2>
+            <p class="text-sm text-gray-400">
+                Share announcements and stories with the SUHAY community.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            onclick="openUpdatePostModal()"
+            class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0e243a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#183b5d] transition"
+        >
+            <span class="text-lg leading-none">+</span>
+            Create Post
+        </button>
+    </div>
+
+
+<div class="flex flex-wrap items-center gap-2 mb-4">
+    <button
+        type="button"
+        onclick="filterUpdatePosts('all', this)"
+        data-filter="all"
+        class="update-filter-btn rounded-lg bg-[#0e243a] px-3 py-2 text-xs font-semibold text-white transition"
+    >
+        All
+    </button>
+
+    <button
+        type="button"
+        onclick="filterUpdatePosts('1', this)"
+        data-filter="1"
+        class="update-filter-btn rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+    >
+        Published
+    </button>
+
+    <button
+        type="button"
+        onclick="filterUpdatePosts('0', this)"
+        data-filter="0"
+        class="update-filter-btn rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+    >
+        Drafts
+    </button>
+
+    <button
+        type="button"
+        onclick="filterUpdatePosts('2', this)"
+        data-filter="2"
+        class="update-filter-btn rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+    >
+        Archived
+    </button>
+</div>
+
+    
+    <?php $__empty_1 = true; $__currentLoopData = ($updatePosts ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $post): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+    
+<div
+    class="update-post-item border border-gray-100 rounded-xl p-4 mb-3"
+    data-status="<?php echo e((int) $post->status); ?>"
+>
+
+
+     
+
+            <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+
+                
+                <div class="min-w-0 flex-1">
+
+                    
+                    <div class="flex flex-wrap items-center gap-2 mb-2">
+                        <h3 class="font-semibold text-[#0e243a]">
+                            <?php echo e($post->title); ?>
+
+                        </h3>
+
+                        <?php if((int) $post->status === 1): ?>
+                            <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
+                                Published
+                            </span>
+                        <?php elseif((int) $post->status === 2): ?>
+                            <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
+                                Archived
+                            </span>
+                        <?php else: ?>
+                            <span class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">
+                                Draft
+                            </span>
+                        <?php endif; ?>
+                    </div>
+
+                    
+                    <?php if(!empty($post->date_created)): ?>
+                        <p class="text-xs text-gray-400 mb-3 flex items-center gap-1.5">
+                            <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                class="w-3.5 h-3.5 shrink-0"
+                                fill="none"
+                                viewBox="0 0 24 24"
+                                stroke="currentColor"
+                                stroke-width="1.8"
+                            >
+                                <path
+                                    stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                            </svg>
+
+                            <?php echo e(\Carbon\Carbon::parse($post->date_created)
+                                ->timezone('Asia/Manila')
+                                ->format('M d, Y • h:i A')); ?>
+
+                        </p>
+                    <?php endif; ?>
+
+                   
+
+<?php if(!empty($post->images)): ?>
+    <div class="w-full max-w-2xl mb-4">
+        <div class="grid grid-cols-2 gap-2">
+            <?php $__currentLoopData = $post->images; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $index => $image): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                <div class="overflow-hidden rounded-xl bg-gray-100
+                    <?php echo e(count($post->images) === 3 && $index === 0 ? 'col-span-2' : ''); ?>">
+                    <img
+                        src="<?php echo e($image); ?>"
+                        alt="<?php echo e($post->title); ?> - Image <?php echo e($index + 1); ?>"
+                        loading="lazy"
+                        class="block w-full h-40 sm:h-48 object-cover rounded-xl"
+                        onerror="console.error('Post image failed:', this.src); this.closest('div').classList.add('hidden');"
+                    >
+                </div>
+            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+                    
+                    <p class="text-sm text-gray-600 whitespace-pre-line">
+                        <?php echo e(\Illuminate\Support\Str::limit($post->description, 220)); ?>
+
                     </p>
+
                 </div>
 
-                <button
-                    type="button"
-                    onclick="openUpdatePostModal()"
-                    class="inline-flex items-center justify-center gap-2 rounded-xl bg-[#0e243a] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#183b5d] transition"
-                >
-                    <span class="text-lg leading-none">+</span>
-                    Create Post
-                </button>
+                
+                <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+
+                    
+                    <?php if((int) $post->status === 1): ?>
+
+                        <form
+                            method="POST"
+                            action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
+                            onsubmit="return false;"
+                            data-confirm-title="Unpublish Post"
+                            data-confirm-message="This post will no longer be published. Do you want to move it back to drafts?"
+                            data-confirm-text="Unpublish"
+                        >
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <input type="hidden" name="status" value="0">
+
+                            <button
+                                type="button"
+                                onclick="confirmUpdatePostAction(this)"
+                                class="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-yellow-700 hover:bg-yellow-100 transition"
+                            >
+                                Unpublish
+                            </button>
+                        </form>
+
+                    <?php elseif((int) $post->status === 0): ?>
+
+                        <form
+                            method="POST"
+                            action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
+                            onsubmit="return false;"
+                            data-confirm-title="Publish Post"
+                            data-confirm-message="This post will be published and made available to the SUHAY community. Do you want to continue?"
+                            data-confirm-text="Publish"
+                        >
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <input type="hidden" name="status" value="1">
+
+                            <button
+                                type="button"
+                                onclick="confirmUpdatePostAction(this)"
+                                class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-700 hover:bg-green-100 transition"
+                            >
+                                Publish
+                            </button>
+                        </form>
+
+                    <?php endif; ?>
+                        
+                    
+                    <button
+                        type="button"
+                        onclick="openEditUpdatePostModal(
+                            <?php echo e($post->id); ?>,
+                            <?php echo e(Js::from($post->title)); ?>,
+                            <?php echo e(Js::from($post->description)); ?>
+
+                        )"
+                        class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                    >
+                        Edit
+                    </button>
+
+
+                    
+                    <?php if((int) $post->status === 2): ?>
+
+                        <form
+                            method="POST"
+                            action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
+                            onsubmit="return false;"
+                            data-confirm-title="Restore Post"
+                            data-confirm-message="This archived post will be restored as a draft. Do you want to continue?"
+                            data-confirm-text="Restore"
+                        >
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <input type="hidden" name="status" value="0">
+
+                            <button
+                                type="button"
+                                onclick="confirmUpdatePostAction(this)"
+                                class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
+                            >
+                                Restore to Draft
+                            </button>
+                        </form>
+
+                    <?php else: ?>
+
+                        <form
+                            method="POST"
+                            action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
+                            onsubmit="return false;"
+                            data-confirm-title="Archive Post"
+                            data-confirm-message="This post will be archived and no longer treated as an active update. Do you want to continue?"
+                            data-confirm-text="Archive"
+                        >
+                            <?php echo csrf_field(); ?>
+                            <?php echo method_field('PATCH'); ?>
+                            <input type="hidden" name="status" value="2">
+
+                            <button
+                                type="button"
+                                onclick="confirmUpdatePostAction(this)"
+                                class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
+                            >
+                                Archive
+                            </button>
+                        </form>
+
+                    <?php endif; ?>
+
+                    
+                    <form
+                        method="POST"
+                        action="<?php echo e(url('/update-posts/' . $post->id)); ?>"
+                        onsubmit="return false;"
+                        data-confirm-title="Delete Post"
+                        data-confirm-message="This post will be permanently deleted. This action cannot be undone. Are you sure?"
+                        data-confirm-text="Delete Permanently"
+                    >
+                        <?php echo csrf_field(); ?>
+                        <?php echo method_field('DELETE'); ?>
+
+                        <button
+                            type="button"
+                            onclick="confirmUpdatePostAction(this)"
+                            class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
+                        >
+                            Delete
+                        </button>
+                    </form>
+
+                </div>
+
+            </div>
+        </div>
+
+    <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
+
+        <div class="rounded-xl border border-dashed border-gray-300 px-4 py-8 text-center">
+            <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-50 text-[#b38720]">
+                <span class="text-2xl">✎</span>
             </div>
 
-            <?php $__empty_1 = true; $__currentLoopData = ($updatePosts ?? []); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $post): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?>
+            <p class="font-semibold text-[#0e243a]">
+                No updates yet
+            </p>
 
-                <div class="border border-gray-100 rounded-xl p-4 mb-3 last:mb-0">
-
-                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-
-                        
-                        <div class="min-w-0 flex-1">
-
-                            
-                            <div class="flex flex-wrap items-center gap-2 mb-3">
-                                <h3 class="font-semibold text-[#0e243a]">
-                                    <?php echo e($post->title); ?>
-
-                                </h3>
-
-                                <?php if((int) $post->status === 1): ?>
-                                    <span class="rounded-full bg-green-100 px-2.5 py-1 text-xs font-semibold text-green-700">
-                                        Published
-                                    </span>
-                                <?php elseif((int) $post->status === 2): ?>
-                                    <span class="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-600">
-                                        Archived
-                                    </span>
-                                <?php else: ?>
-                                    <span class="rounded-full bg-yellow-100 px-2.5 py-1 text-xs font-semibold text-yellow-700">
-                                        Draft
-                                    </span>
-                                <?php endif; ?>
-                            </div>
-
-                            
-                            <?php if(!empty($post->image)): ?>
-                                <div class="w-full max-w-2xl mb-4 overflow-hidden rounded-xl bg-gray-100">
-                                    <img
-                                        src="<?php echo e($post->image); ?>"
-                                        alt="<?php echo e($post->title); ?>"
-                                        loading="eager"
-                                        class="block w-full h-48 sm:h-56 object-cover rounded-xl"
-                                        onload="console.log('Post image loaded:', this.src);"
-                                        onerror="console.error('Post image failed:', this.src);"
-                                    >
-                                </div>
-                            <?php endif; ?>
-
-                            
-                            <p class="text-sm text-gray-600 whitespace-pre-line">
-                                <?php echo e(\Illuminate\Support\Str::limit($post->description, 220)); ?>
-
-                            </p>
-
-                            
-                            <?php if(isset($post->created_at) && $post->created_at): ?>
-                                <p class="text-xs text-gray-400 mt-2">
-                                    <?php echo e(\Carbon\Carbon::parse($post->created_at)->diffForHumans()); ?>
-
-                                </p>
-                            <?php endif; ?>
-
-                        </div>
-
-                        
-                        <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-
-                            
-                            <?php if((int) $post->status === 1): ?>
-
-                                <form
-                                    method="POST"
-                                    action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
-                                    onsubmit="return false;"
-                                    data-confirm-title="Unpublish Post"
-                                    data-confirm-message="This post will no longer be published. Do you want to move it back to drafts?"
-                                    data-confirm-text="Unpublish"
-                                >
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <input type="hidden" name="status" value="0">
-
-                                    <button
-                                        type="button"
-                                        onclick="confirmUpdatePostAction(this)"
-                                        class="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs font-semibold text-yellow-700 hover:bg-yellow-100 transition"
-                                    >
-                                        Unpublish
-                                    </button>
-                                </form>
-
-                            <?php elseif((int) $post->status === 0): ?>
-
-                                <form
-                                    method="POST"
-                                    action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
-                                    onsubmit="return false;"
-                                    data-confirm-title="Publish Post"
-                                    data-confirm-message="This post will be published and made available to the SUHAY community. Do you want to continue?"
-                                    data-confirm-text="Publish"
-                                >
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <input type="hidden" name="status" value="1">
-
-                                    <button
-                                        type="button"
-                                        onclick="confirmUpdatePostAction(this)"
-                                        class="rounded-lg border border-green-200 bg-green-50 px-3 py-2 text-xs font-semibold text-green-700 hover:bg-green-100 transition"
-                                    >
-                                        Publish
-                                    </button>
-                                </form>
-
-                            <?php endif; ?>
-
-                            
-                            <?php if((int) $post->status === 2): ?>
-
-                                <form
-                                    method="POST"
-                                    action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
-                                    onsubmit="return false;"
-                                    data-confirm-title="Restore Post"
-                                    data-confirm-message="This archived post will be restored as a draft. Do you want to continue?"
-                                    data-confirm-text="Restore"
-                                >
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <input type="hidden" name="status" value="0">
-
-                                    <button
-                                        type="button"
-                                        onclick="confirmUpdatePostAction(this)"
-                                        class="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-semibold text-blue-700 hover:bg-blue-100 transition"
-                                    >
-                                        Restore to Draft
-                                    </button>
-                                </form>
-
-                            <?php else: ?>
-
-                                <form
-                                    method="POST"
-                                    action="<?php echo e(url('/update-posts/' . $post->id . '/status')); ?>"
-                                    onsubmit="return false;"
-                                    data-confirm-title="Archive Post"
-                                    data-confirm-message="This post will be archived and no longer treated as an active update. Do you want to continue?"
-                                    data-confirm-text="Archive"
-                                >
-                                    <?php echo csrf_field(); ?>
-                                    <?php echo method_field('PATCH'); ?>
-                                    <input type="hidden" name="status" value="2">
-
-                                    <button
-                                        type="button"
-                                        onclick="confirmUpdatePostAction(this)"
-                                        class="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-semibold text-gray-600 hover:bg-gray-50 transition"
-                                    >
-                                        Archive
-                                    </button>
-                                </form>
-
-                            <?php endif; ?>
-
-                            
-                            <form
-                                method="POST"
-                                action="<?php echo e(url('/update-posts/' . $post->id)); ?>"
-                                onsubmit="return false;"
-                                data-confirm-title="Delete Post"
-                                data-confirm-message="This post will be permanently deleted. This action cannot be undone. Are you sure?"
-                                data-confirm-text="Delete Permanently"
-                            >
-                                <?php echo csrf_field(); ?>
-                                <?php echo method_field('DELETE'); ?>
-
-                                <button
-                                    type="button"
-                                    onclick="confirmUpdatePostAction(this)"
-                                    class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 transition"
-                                >
-                                    Delete
-                                </button>
-                            </form>
-
-                        </div>
-
-                    </div>
-                </div>
-
-            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?>
-
-                <div class="rounded-xl border border-dashed border-gray-300 px-4 py-8 text-center">
-                    <div class="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-yellow-50 text-[#b38720]">
-                        <span class="text-2xl">✎</span>
-                    </div>
-
-                    <p class="font-semibold text-[#0e243a]">
-                        No updates yet
-                    </p>
-
-                    <p class="mt-1 text-sm text-gray-400">
-                        Create your first post to share your organization's news.
-                    </p>
-                </div>
-
-            <?php endif; ?>
-
+            <p class="mt-1 text-sm text-gray-400">
+                Create your first post to share your organization's news.
+            </p>
         </div>
+
+    <?php endif; ?>
+
+   
+
+
+<div id="updatePostsToggleContainer" class="hidden flex justify-center mt-4">
+    <button
+        type="button"
+        id="toggleUpdatePostsBtn"
+        onclick="toggleUpdatePosts()"
+        aria-expanded="false"
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#0e243a] hover:bg-gray-50 transition"
+    >
+        <span id="toggleUpdatePostsText">See More Updates</span>
+
+        <svg
+            id="toggleUpdatePostsIcon"
+            xmlns="http://www.w3.org/2000/svg"
+            class="w-4 h-4 transition-transform duration-200"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+            stroke-width="2"
+        >
+            <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                d="M19 9l-7 7-7-7"
+            />
+        </svg>
+    </button>
+</div>
+
+
+</div>
 
 
 
@@ -923,6 +1042,8 @@
 </div>
 
 <?php echo $__env->make('components.update-post-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+<?php echo $__env->make('components.edit-post-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
 
 <?php echo $__env->make('components.confirm-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
 <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
