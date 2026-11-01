@@ -294,8 +294,6 @@
                             data-aos-delay="<?php echo e(min($i, 4) * 80); ?>"
                         >
 
-                            
-
                             <div class="flex items-start justify-between gap-3 p-5 pb-3">
 
                                 <div class="flex items-center gap-3 min-w-0">
@@ -356,8 +354,6 @@
 
                             </div>
 
-                            
-
                             <div class="px-5 pb-4">
 
                                 <h4 class="text-xl font-bold mb-1.5">
@@ -380,8 +376,6 @@
                                 <?php endif; ?>
 
                             </div>
-
-                            
 
                             <?php if(count($images) === 1): ?>
 
@@ -438,8 +432,6 @@
 
                             <?php endif; ?>
 
-                            
-
                             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
 
                                 <span>
@@ -478,8 +470,6 @@
 
                     <?php endif; ?>
 
-                    
-
                     <div
                         id="noResults"
                         class="hidden bg-white rounded-2xl shadow p-10 text-center"
@@ -497,9 +487,6 @@
 
 
                 <aside class="space-y-6 lg:sticky lg:top-6 self-start">
-
-                    
-
                     <div
                         class="bg-white rounded-2xl shadow-md p-6"
                         data-aos="fade-left"
@@ -564,8 +551,6 @@
 
                         </ul>
                     </div>
-
-                    
 
                     <div
                         class="rounded-2xl p-6 bg-gradient-to-br from-[#0e243a] to-[#16385a] text-white shadow-md"
@@ -632,9 +617,6 @@
         </div>
     </section>
 
-
-    
-
     <div
         id="lightbox"
         class="fixed inset-0 z-[100] bg-black/90 opacity-0 pointer-events-none flex items-center justify-center"
@@ -643,7 +625,6 @@
         aria-label="Image viewer"
         aria-hidden="true"
     >
-        
         <button
             type="button"
             id="lbClose"
@@ -655,13 +636,11 @@
             </svg>
         </button>
 
-        
         <div
             id="lbCounter"
             class="absolute top-5 left-5 text-white/90 text-sm font-semibold bg-white/10 px-3 py-1 rounded-full z-10"
         ></div>
 
-        
         <button
             type="button"
             id="lbPrev"
@@ -673,7 +652,6 @@
             </svg>
         </button>
 
-        
         <button
             type="button"
             id="lbNext"
@@ -685,7 +663,6 @@
             </svg>
         </button>
 
-        
         <figure id="lbStage" class="max-w-[92vw] max-h-[88vh] flex flex-col items-center">
             <img
                 id="lbImg"
@@ -701,8 +678,6 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function () {
-
-            // Initialize animations.
             if (typeof AOS !== 'undefined') {
                 AOS.init({
                     duration: 800,
@@ -800,11 +775,6 @@
                 });
             });
 
-
-            // ---------------------------------------------------
-            // LIGHTBOX
-            // ---------------------------------------------------
-
             const lb = document.getElementById('lightbox');
             const lbImg = document.getElementById('lbImg');
             const lbCounter = document.getElementById('lbCounter');
@@ -892,7 +862,6 @@
                 renderLightbox();
             }
 
-            // Open when any gallery image is clicked.
             document.addEventListener('click', function (e) {
                 const trigger = e.target.closest('.gallery-trigger');
                 if (!trigger) return;
@@ -919,15 +888,12 @@
             lbClose.addEventListener('click', closeLightbox);
             lbNext.addEventListener('click', showNext);
             lbPrev.addEventListener('click', showPrev);
-
-            // Click the dark backdrop to close (not the image or buttons).
             lb.addEventListener('click', function (e) {
                 if (e.target === lb || e.target === lbStage) {
                     closeLightbox();
                 }
             });
 
-            // Keyboard: Esc closes, arrows navigate.
             document.addEventListener('keydown', function (e) {
                 if (!isLightboxOpen()) return;
 
@@ -940,7 +906,6 @@
                 }
             });
 
-            // Swipe support for mobile.
             let touchStartX = 0;
             let touchStartY = 0;
 
@@ -962,4 +927,4 @@
     </script>
 
 </body>
-</html><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/impact.blade.php ENDPATH**/ ?>
+</html><?php /**PATH C:\ProjectSuhay\MEt.A-Project-SUHAY\resources\views/impact.blade.php ENDPATH**/ ?>

@@ -54,4 +54,4 @@
 
         </div>
     </div>
-</nav><?php /**PATH C:\Sysands\MEt.A-Project-SUHAY\resources\views/components/navbar.blade.php ENDPATH**/ ?>
+</nav><?php /**PATH C:\ProjectSuhay\MEt.A-Project-SUHAY\resources\views/components/navbar.blade.php ENDPATH**/ ?>

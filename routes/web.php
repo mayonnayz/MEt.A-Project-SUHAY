@@ -431,10 +431,8 @@ Route::post(
 // NGO members
 Route::get(
     '/ngo-members',
-    function () {
-        return view('ngo_members');
-    }
-);
+    [account_controller::class, 'members']
+)->name('ngo-members');
 
 // Add NGO account
 Route::post(
