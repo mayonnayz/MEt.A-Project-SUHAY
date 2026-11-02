@@ -1,16 +1,6 @@
-// =====================================================
-// EVENT FILTERING
-// =====================================================
-
 function filterEventStatus() {
-    // Re-apply all filters together
     filterEvents();
 }
-
-
-// =====================================================
-// CLEAR FILTERS
-// =====================================================
 
 function clearFilters() {
 
@@ -22,16 +12,10 @@ function clearFilters() {
         fp.clear();
     }
 
-    // Reset to Upcoming Events
     document.getElementById("eventStatusFilter").value = "future";
 
     filterEvents();
 }
-
-
-// =====================================================
-// DATE PICKER
-// =====================================================
 
 flatpickr("#dateFilter", {
 
@@ -61,21 +45,11 @@ flatpickr("#dateFilter", {
     }
 });
 
-
-// =====================================================
-// SEARCH + DATE INPUT
-// =====================================================
-
 const searchInput = document.getElementById("searchInput");
 const dateInput = document.getElementById("dateFilter");
 
 searchInput.addEventListener("input", filterEvents);
 dateInput.addEventListener("change", filterEvents);
-
-
-// =====================================================
-// FILTER EVENTS
-// =====================================================
 
 function filterEvents() {
 
@@ -100,24 +74,16 @@ function filterEvents() {
         const eventStatus =
             card.dataset.eventStatus || "";
 
-
-        // Search filter
         const matchSearch =
             name.includes(search);
 
-
-        // Date filter
         const matchDate =
             !date || eventDate === date;
 
-
-        // Event status filter
         const matchStatus =
             statusFilter === "all" ||
             eventStatus === statusFilter;
 
-
-        // Show only if ALL filters match
         if (
             matchSearch &&
             matchDate &&
@@ -134,23 +100,10 @@ function filterEvents() {
     });
 }
 
-
-// =====================================================
-// GLOBAL VARIABLES
-// =====================================================
-
 let currentEventId = null;
 let currentEventStatus = "future";
 let selectedActivityId = null;
-
-
-// Cache volunteers PER EVENT
 let cachedVolunteers = {};
-
-
-// =====================================================
-// LOGOUT MODAL
-// =====================================================
 
 function openLogoutModal() {
 
@@ -171,50 +124,27 @@ function closeLogoutModal() {
     modal.classList.remove('flex');
 }
 
-
-// =====================================================
-// ACTIVITY MODAL
-// =====================================================
-
 function openActivities(
     eventId,
     eventName,
     eventStatus
 ) {
-
-    // Store the current event
     currentEventId = eventId;
-
-    // Store whether the event is upcoming or completed
     currentEventStatus = eventStatus;
 
-
-    // Set modal title
     document.getElementById('modalTitle').innerText =
         eventName;
-
-
-    // Loading message
     document.getElementById('activityList').innerHTML =
         'Loading...';
 
-
-    // Open modal
     const modal =
         document.getElementById('activityModal');
 
     modal.classList.remove('hidden');
     modal.classList.add('flex');
 
-
-    // Load activities
     loadActivities();
 }
-
-
-// =====================================================
-// LOAD ACTIVITIES
-// =====================================================
 
 function loadActivities() {
 
@@ -252,17 +182,10 @@ function loadActivities() {
         });
 }
 
-
-// =====================================================
-// RENDER ACTIVITIES
-// =====================================================
-
 function renderActivities(data) {
 
     let html = '';
 
-
-    // No activities
     if (!data || data.length === 0) {
 
         html =
@@ -273,12 +196,6 @@ function renderActivities(data) {
         data.forEach(act => {
 
             let volunteersHTML = '';
-
-
-
-            // =================================================
-            // ACTIVITY CARD
-            // =================================================
 
             html += `
 
@@ -302,8 +219,6 @@ function renderActivities(data) {
 
 
                     ${
-                        // ASSIGN BUTTON
-                        // Only show for UPCOMING events
                         currentEventStatus !== "done"
                             ? `
                                 <button
@@ -323,16 +238,9 @@ function renderActivities(data) {
         });
     }
 
-
-    // Display activities
     document.getElementById('activityList').innerHTML =
         html;
 }
-
-
-// =====================================================
-// REFRESH ACTIVITIES
-// =====================================================
 
 async function refreshActivities() {
 
@@ -378,11 +286,6 @@ async function refreshActivities() {
     }
 }
 
-
-// =====================================================
-// CLOSE ACTIVITY MODAL
-// =====================================================
-
 function closeModal() {
 
     const modal =
@@ -397,15 +300,7 @@ function closeModal() {
         '';
 }
 
-
-// =====================================================
-// VOLUNTEER MODAL
-// =====================================================
-
 function assignVolunteer(activityId) {
-
-    // Extra protection:
-    // Completed events cannot assign volunteers
     if (currentEventStatus === "done") {
 
         alert(
@@ -430,11 +325,6 @@ function assignVolunteer(activityId) {
     document.getElementById('volunteerList').innerHTML =
         'Loading...';
 
-
-    // =================================================
-    // USE CACHE IF AVAILABLE
-    // =================================================
-
     if (cachedVolunteers[currentEventId]) {
 
         renderVolunteers(
@@ -443,11 +333,6 @@ function assignVolunteer(activityId) {
 
         return;
     }
-
-
-    // =================================================
-    // FETCH VOLUNTEERS FOR THIS EVENT ONLY
-    // =================================================
 
     fetch(
         `/api/volunteers?event_id=${currentEventId}`
@@ -466,8 +351,6 @@ function assignVolunteer(activityId) {
         })
 
         .then(data => {
-
-            // Cache volunteers PER EVENT
             cachedVolunteers[currentEventId] =
                 data;
 
@@ -484,12 +367,6 @@ function assignVolunteer(activityId) {
                 '<p class="text-red-500">Failed to load volunteers.</p>';
         });
 }
-
-
-// =====================================================
-// RENDER VOLUNTEERS
-// =====================================================
-
 
 function renderVolunteers(data) {
     let html = "";
@@ -546,7 +423,6 @@ function renderVolunteers(data) {
     });
 }
 
-// Escape values before placing them inside HTML.
 function escapeHTML(value) {
     return String(value ?? "").replace(/[&<>"']/g, char => ({
         "&": "&amp;",
@@ -556,11 +432,6 @@ function escapeHTML(value) {
         "'": "&#39;"
     })[char]);
 }
-
-
-// =====================================================
-// ASSIGN VOLUNTEER
-
 
 async function confirmAssign(volunteerId) {
     if (currentEventStatus === "done") {
@@ -612,14 +483,10 @@ async function confirmAssign(volunteerId) {
                     "The assignment could not be completed. Please try again."
             };
         }
-
-        // Close volunteer selection modal after successful assignment.
         closeVolunteerModal();
 
-        // Clear cached volunteers for this event.
         delete cachedVolunteers[currentEventId];
 
-        // Refresh activity list and assigned count.
         await refreshActivities();
         await refreshEventAssignmentCount(currentEventId);
 
@@ -668,18 +535,6 @@ async function refreshEventAssignmentCount(
         const data =
             await res.json();
 
-
-        /*
-         * Event card:
-         *
-         * data-event-id="{{ $event['id'] }}"
-         *
-         * Count:
-         *
-         * data-assigned-count
-         */
-
-
         const countElements =
             document.querySelectorAll(
                 `[data-event-id="${eventId}"] [data-assigned-count]`
@@ -705,11 +560,6 @@ async function refreshEventAssignmentCount(
     }
 }
 
-
-// =====================================================
-// CLOSE VOLUNTEER MODAL
-// =====================================================
-
 function closeVolunteerModal() {
 
     const modal =
@@ -726,11 +576,6 @@ function closeVolunteerModal() {
         'volunteerList'
     ).innerHTML = '';
 }
-
-
-// =====================================================
-// MAKE FUNCTIONS AVAILABLE TO HTML
-// =====================================================
 
 window.openActivities =
     openActivities;

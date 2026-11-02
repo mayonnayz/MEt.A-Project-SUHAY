@@ -29,12 +29,10 @@
         modal.classList.remove('flex');
     }
 
-    // Close when clicking the dark backdrop
     document.getElementById('logoutModal').addEventListener('click', function (e) {
         if (e.target === this) closeLogoutModal();
     });
 
-    // Close with Escape key
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') closeLogoutModal();
     });

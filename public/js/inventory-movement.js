@@ -1,9 +1,3 @@
-
-
-    /* =====================================================
-       SEARCH + FILTER
-    ===================================================== */
-
     const searchInput = document.getElementById('searchInput');
     const movementFilter = document.getElementById('movementFilter');
     const dateFilter = document.getElementById('dateFilter');
@@ -83,12 +77,6 @@
         filterMovements
     );
 
-
-
-    /* =====================================================
-       DETAILS MODAL
-    ===================================================== */
-
     function openMovementDetails(movement) {
 
         const modal =
@@ -149,9 +137,6 @@
         remarks.textContent =
             movement.remarks ||
             'No remarks provided.';
-
-
-        /* Movement type */
 
         let typeText = '';
         let typeClass = '';
@@ -327,12 +312,6 @@
 
     }
 
-
-
-    /* =====================================================
-       ADD MOVEMENT MODAL
-    ===================================================== */
-
     function openMovementModal() {
 
         const modal =
@@ -363,12 +342,6 @@
         );
 
     }
-
-
-
-    /* =====================================================
-       ADD / REMOVE MOVEMENT ITEMS
-    ===================================================== */
 
     let movementItemIndex = 1;
 
@@ -536,12 +509,6 @@
 
     }
 
-
-
-    /* =====================================================
-       DATE FORMAT
-    ===================================================== */
-
     function formatDate(dateString) {
 
         if (!dateString) {
@@ -561,12 +528,6 @@
         );
 
     }
-
-
-
-    /* =====================================================
-       CLOSE MODAL WHEN CLICKING OUTSIDE
-    ===================================================== */
 
     document
         .getElementById('movementDetailsModal')
@@ -592,11 +553,6 @@
             }
 
         });
-
-
-    /* =====================================================
-       ESC KEY
-    ===================================================== */
 
     document.addEventListener(
         'keydown',

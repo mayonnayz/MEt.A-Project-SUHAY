@@ -141,7 +141,7 @@ private function updateStatus($id, $status)
         'Content-Type' => 'application/json',
     ]);
 
-    // 1. Retrieve the application and applicant.
+ 
     $applicationResponse = $supabase->get(
         $baseUrl . 'volunteer_applications',
         [
@@ -182,7 +182,7 @@ private function updateStatus($id, $status)
         ], 422);
     }
 
-    // 2. Update the application status.
+   
     $updateResponse = $supabase->patch(
         $baseUrl . 'volunteer_applications?id=eq.' . (int) $id,
         ['status' => (int) $status]
@@ -202,7 +202,7 @@ private function updateStatus($id, $status)
     }
 
     // Pending = 0, Approved = 1, Rejected = 2, Archived = 3.
-    // Only approval and rejection create applicant notifications.
+
     if (!in_array((int) $status, [1, 2], true)) {
         return response()->json([
             'success' => true,
@@ -222,7 +222,6 @@ private function updateStatus($id, $status)
         $message = "Your application for {$eventName} has been rejected.";
     }
 
-    // 3. Create the notification.
     $notificationResponse = $supabase
     ->withHeaders([
         'Prefer' => 'return=representation',
@@ -278,7 +277,7 @@ private function updateStatus($id, $status)
         ], 500);
     }
 
-    // 4. Link the notification to the applicant.
+   
     $statusResponse = $supabase
         ->withHeaders([
             'Prefer' => 'return=representation',
@@ -306,7 +305,7 @@ private function updateStatus($id, $status)
         ], 500);
     }
 
-    // 5. Both inserts succeeded.
+  
     Log::info('Application notification created successfully.', [
         'application_id' => $id,
         'account_id' => $accountId,

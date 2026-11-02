@@ -20,12 +20,31 @@ use App\Http\Controllers\account_controller;
 use App\Http\Controllers\dashboard_controller;
 use App\Http\Controllers\notification_controller;
 use App\Http\Controllers\reports_controller;
+use App\Http\Controllers\updatepost_controller;
+use App\Http\Controllers\impact_controller;
 
-/*
-|--------------------------------------------------------------------------
-| LANDING & AUTHENTICATION / SIGNUP
-|--------------------------------------------------------------------------
-*/
+
+
+Route::post('/update-posts', [
+    updatepost_controller::class,
+    'store'
+]);
+
+Route::patch('/update-posts/{id}', [
+    updatepost_controller::class,
+    'update'
+]);
+
+Route::patch('/update-posts/{id}/status', [
+    updatepost_controller::class,
+    'changeStatus'
+]);
+
+Route::delete('/update-posts/{id}', [
+    updatepost_controller::class,
+    'destroy'
+]);
+
 
 
 Route::delete(
@@ -110,9 +129,8 @@ Route::post(
 )->name('donations.updateStatus');
 Route::get('/donations', [donation_controller::class, 'index']);
 
-Route::get('/impact', function () {
-    return view('impact');
-})->name('impact');
+Route::get('/impact', [impact_controller::class, 'index'])
+    ->name('impact');
 
 Route::get(
     '/donate',
@@ -413,10 +431,8 @@ Route::post(
 // NGO members
 Route::get(
     '/ngo-members',
-    function () {
-        return view('ngo_members');
-    }
-);
+    [account_controller::class, 'members']
+)->name('ngo-members');
 
 // Add NGO account
 Route::post(

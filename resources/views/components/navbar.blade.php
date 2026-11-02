@@ -8,7 +8,6 @@
             </a>
         </div>
 
-        <!-- MENU -->
         <div class="hidden md:flex items-center gap-10 font-bold text-xl mr-2">
 
             <a href="{{ route('home') }}"

@@ -2,18 +2,14 @@
     class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
 
     <div class="bg-white w-[500px] rounded-2xl shadow-xl p-6">
-
-        <!-- Logo -->
         <div class="flex justify-center">
             <img src="/images/suhayLogo.png" class="h-20">
         </div>
 
-        <!-- Title -->
         <h2 class="text-center font-bold text-xl mt-2">
             Donation Form
         </h2>
 
-        <!-- Date + Donor -->
         <p class="text-center text-sm text-gray-600"
             id="nonModalDate">
         </p>
@@ -22,7 +18,6 @@
             id="nonModalName">
         </p>
 
-        <!-- Donation Type -->
         <div class="flex justify-between items-center mt-5">
             <span class="font-semibold">
                 Donation Type
@@ -33,7 +28,6 @@
             </span>
         </div>
 
-        <!-- Table -->
         <table class="w-full mt-4 border text-sm">
             <thead class="bg-slate-800 text-white">
                 <tr>
@@ -48,7 +42,6 @@
             </tbody>
         </table>
 
-        <!-- Buttons -->
         <div class="flex justify-center gap-3 mt-6">
          <button 
              id="nonConfirmBtn"

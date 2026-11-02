@@ -71,31 +71,16 @@
 <body class="bg-[#eef1f5] text-[#0e243a]">
 
 <div class="flex min-h-screen">
-
-    {{-- SIDEBAR --}}
     @include('components.nav')
 
-
-    {{-- MAIN CONTENT --}}
     <div class="flex-1 min-w-0 p-5 sm:p-6 lg:p-8">
-
-        {{-- HEADER --}}
         @include('components.header', ['title' => 'Donations'])
-
-
-        {{-- PAGE CONTENT --}}
         <div class="max-w-[1400px] mx-auto">
-
-
-            {{-- MAIN PANEL --}}
             <div
                 class="bg-white rounded-3xl
                        border border-gray-200
                        shadow-sm overflow-hidden"
             >
-
-
-                {{-- PANEL HEADER --}}
                 <div
                     class="px-5 sm:px-7 py-5
                            border-b border-gray-200
@@ -116,8 +101,6 @@
 
                     </div>
 
-
-                    {{-- TOTAL --}}
                     <div
                         class="flex items-center gap-3
                                bg-[#f7f9fb]
@@ -173,14 +156,9 @@
 
                 </div>
 
-
-                {{-- SEARCH + FILTER --}}
                 <div class="px-5 sm:px-7 py-5 bg-[#fafbfc]">
 
                     <div class="flex flex-col md:flex-row gap-3">
-
-
-                        {{-- SEARCH --}}
                         <div class="relative flex-1">
 
                             <div
@@ -235,8 +213,6 @@
 
                         </div>
 
-
-                        {{-- FILTER --}}
                         <div class="relative md:w-56">
 
                             <div
@@ -310,8 +286,6 @@
 
                 </div>
 
-
-                {{-- DONATION LIST --}}
                 <div class="p-5 sm:p-7">
 
                     <div
@@ -356,8 +330,6 @@
 
                             @endphp
 
-
-                            {{-- DONATION CARD --}}
                             <div
                                 class="donation-card
                                        rounded-2xl
@@ -385,13 +357,7 @@
                                            lg:justify-between
                                            gap-5"
                                 >
-
-
-                                    {{-- LEFT --}}
                                     <div class="flex items-start gap-4 min-w-0">
-
-
-                                        {{-- DONATION ICON --}}
                                         <div
                                             class="w-12 h-12
                                                    shrink-0
@@ -426,8 +392,6 @@
 
                                         </div>
 
-
-                                        {{-- INFORMATION --}}
                                         <div class="min-w-0">
 
                                             <h3
@@ -439,8 +403,6 @@
                                                 {{ $donation['ngo_name'] ?? 'Unknown NGO' }}
                                             </h3>
 
-
-                                            {{-- META --}}
                                             <div
                                                 class="flex flex-wrap
                                                        items-center
@@ -449,8 +411,6 @@
                                                        text-xs sm:text-sm
                                                        text-gray-500"
                                             >
-
-                                                {{-- DATE --}}
                                                 <span class="flex items-center gap-1.5">
 
                                                     <svg
@@ -507,8 +467,6 @@
 
                                                 </span>
 
-
-                                                {{-- TYPE --}}
                                                 <span class="flex items-center gap-1.5">
 
                                                     <span
@@ -523,8 +481,6 @@
 
                                             </div>
 
-
-                                            {{-- DESCRIPTION --}}
                                             @if(!empty($donation['description']))
 
                                                 <p
@@ -542,8 +498,6 @@
 
                                     </div>
 
-
-                                    {{-- RIGHT --}}
                                     <div
                                         class="flex flex-row
                                                lg:flex-col
@@ -554,9 +508,6 @@
                                                gap-3
                                                shrink-0"
                                     >
-
-
-                                        {{-- STATUS --}}
                                         @if($status === 'CONFIRMED')
 
                                             <span
@@ -649,8 +600,6 @@
 
                                         @endif
 
-
-                                        {{-- VIEW BUTTON --}}
                                         <button
                                             type="button"
                                             class="view-donation-btn
@@ -695,8 +644,6 @@
                             </div>
 
                         @empty
-
-                            {{-- EMPTY STATE --}}
                             <div class="py-16 text-center">
 
                                 <div
@@ -750,8 +697,6 @@
 
                         @endforelse
 
-
-                        {{-- NO SEARCH RESULTS --}}
                         <div
                             id="noResults"
                             class="hidden py-12 text-center"
@@ -816,8 +761,6 @@
 
 </div>
 
-
-{{-- DONATION MODAL --}}
 <div
     id="donationModalBackdrop"
     class="fixed inset-0
@@ -840,8 +783,6 @@
                max-h-[90vh]
                overflow-y-auto"
     >
-
-        {{-- MODAL HEADER --}}
         <div
             class="relative
                    px-6 py-6
@@ -906,17 +847,12 @@
 
         </div>
 
-
-        {{-- MODAL BODY --}}
         <div
             id="donationModalBody"
             class="p-6 space-y-4"
         >
-            <!-- Dynamic content -->
         </div>
 
-
-        {{-- MODAL FOOTER --}}
         <div
             class="px-6 pb-6"
         >
@@ -945,12 +881,8 @@
 
 </div>
 
-
-{{-- LOGOUT MODAL --}}
 @include('components.logout-modal')
 
-
-{{-- JAVASCRIPT --}}
 <script src="{{ asset('js/donation-history.js') }}"></script>
 
 </body>

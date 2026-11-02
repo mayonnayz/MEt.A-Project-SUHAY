@@ -1,8 +1,3 @@
-/* =========================================================
-   SUHAY PAGE TRANSITION
-   Smooth fade + slide from bottom to top
-   ========================================================= */
-
 .page-transition {
     opacity: 0;
     transform: translateY(25px);
@@ -17,12 +12,6 @@
     opacity: 1;
     transform: translateY(0);
 }
-
-
-/* =========================================================
-   PAGE EXIT
-   Used when navigating to another page
-   ========================================================= */
 
 .page-transition.page-exit {
     opacity: 0;

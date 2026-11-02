@@ -9,11 +9,7 @@ class dashboard_controller extends Controller
 {
     public function index()
     {
-        /*
-        |--------------------------------------------------------------------------
-        | SUPABASE CONNECTION
-        |--------------------------------------------------------------------------
-        */
+       
 
         $supabaseUrl = rtrim(env('SUPABASE_URL'), '/');
         $supabaseKey = env('SUPABASE_SERVICE_KEY');
@@ -24,11 +20,7 @@ class dashboard_controller extends Controller
             'Content-Type' => 'application/json',
         ];
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOGGED-IN USER
-        |--------------------------------------------------------------------------
-        */
+        
 
         $userId = session('user_id');
 
@@ -37,12 +29,7 @@ class dashboard_controller extends Controller
                 ->with('error', 'User session not found.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | GET ACCOUNT
-        |--------------------------------------------------------------------------
-        */
-
+        
         $userResponse = Http::withHeaders($headers)
             ->get($supabaseUrl . '/rest/v1/accounts', [
                 'select' => 'id,first_name,last_name,roles,ngo_id',
@@ -65,11 +52,7 @@ class dashboard_controller extends Controller
         $userNgoId = $user['ngo_id'] ?? null;
         $ngoId = $userNgoId;
 
-        /*
-        |--------------------------------------------------------------------------
-        | USER NAME
-        |--------------------------------------------------------------------------
-        */
+        
 
         $userName = trim(
             ($user['first_name'] ?? '') . ' ' .
@@ -80,11 +63,7 @@ class dashboard_controller extends Controller
             $userName = session('user_name', 'Guest');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NGO STAFF MUST HAVE AN NGO
-        |--------------------------------------------------------------------------
-        */
+        
 
         if (
             in_array($userRole, [0, 1, 2], true)
@@ -94,11 +73,7 @@ class dashboard_controller extends Controller
                 ->with('error', 'NGO assignment not found.');
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NGO PROFILE
-        |--------------------------------------------------------------------------
-        */
+        
 
         $ngo = null;
         $ngoName = 'Your NGO';
@@ -121,27 +96,245 @@ class dashboard_controller extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | NOTIFICATIONS
-        |--------------------------------------------------------------------------
-        |
-        | Notifications are handled by notification_controller.
-        | The shared header should fetch them through GET /notifications.
-        | These defaults are retained in case dashboard.blade.php references
-        | these variables. They are not the source of notification data.
-        |--------------------------------------------------------------------------
-        */
+        
+
+            
+        
+
+$updatePosts = collect();
+
+if (!empty($ngoId)) {
+
+    // =========================================
+    // FETCH NGO UPDATES
+    // =========================================
+
+    $updatePostsResponse = Http::withHeaders($headers)
+        ->get($supabaseUrl . '/rest/v1/update_posts', [
+            'select' => 'id,ngo_id,title,description,status,posted_by_id,date_created',
+            'ngo_id' => 'eq.' . (int) $ngoId,
+            'order' => 'date_created.desc,id.desc',
+        ]);
+
+    if ($updatePostsResponse->successful()) {
+
+        $updatePosts = collect($updatePostsResponse->json())
+            ->map(function ($post) {
+                $post['image'] = null;
+                $post['images'] = [];
+
+                return (object) $post;
+            })
+            ->values();
+
+        // =========================================
+        // COLLECT POST IDS
+        // =========================================
+
+        $postIds = $updatePosts
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($postIds)) {
+
+            // =========================================
+            // FETCH ALL IMAGES FOR THESE POSTS
+            // =========================================
+
+            $mediaResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/media_table', [
+                    'select' => 'key_id,type,path',
+                    'type' => 'eq.POST',
+                    'key_id' => 'in.(' . implode(',', $postIds) . ')',
+                ]);
+
+            if ($mediaResponse->successful()) {
+
+                // Group all images by their post ID.
+                $postImages = collect($mediaResponse->json())
+                    ->filter(function ($media) {
+                        return !empty($media['key_id'])
+                            && !empty($media['path']);
+                    })
+                    ->groupBy(function ($media) {
+                        return (string) $media['key_id'];
+                    })
+                    ->map(function ($mediaItems) {
+                        return $mediaItems
+                            ->pluck('path')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
+                    });
+
+                // =========================================
+                // ATTACH IMAGES TO EACH POST
+                // =========================================
+
+                $updatePosts = $updatePosts
+                    ->map(function ($post) use ($postImages) {
+
+                        $images = $postImages->get(
+                            (string) $post->id,
+                            []
+                        );
+
+                        // All image URLs for the gallery.
+                        $post->images = $images;
+
+                        // Keep the first image for older code
+                        // that still uses $post->image.
+                        $post->image = $images[0] ?? null;
+
+                        return $post;
+                    })
+                    ->values();
+
+            } else {
+
+                \Log::error('Failed to fetch NGO update images.', [
+                    'status' => $mediaResponse->status(),
+                    'response' => $mediaResponse->body(),
+                    'post_ids' => $postIds,
+                    'ngo_id' => $ngoId,
+                ]);
+            }
+        }
+
+    } else {
+
+        \Log::error('Failed to fetch NGO updates.', [
+            'status' => $updatePostsResponse->status(),
+            'response' => $updatePostsResponse->body(),
+            'ngo_id' => $ngoId,
+        ]);
+    }
+}
+
+$updatePosts = collect();
+
+if (!empty($ngoId)) {
+
+    // =========================================
+    // FETCH NGO UPDATES
+    // =========================================
+
+    $updatePostsResponse = Http::withHeaders($headers)
+        ->get($supabaseUrl . '/rest/v1/update_posts', [
+            'select' => 'id,ngo_id,title,description,status,posted_by_id,date_created',
+            'ngo_id' => 'eq.' . (int) $ngoId,
+            'order' => 'date_created.desc,id.desc',
+        ]);
+
+    if ($updatePostsResponse->successful()) {
+
+        $updatePosts = collect($updatePostsResponse->json())
+            ->map(function ($post) {
+                $post['image'] = null;
+                $post['images'] = [];
+
+                return (object) $post;
+            })
+            ->values();
+
+        // =========================================
+        // COLLECT POST IDS
+        // =========================================
+
+        $postIds = $updatePosts
+            ->pluck('id')
+            ->filter()
+            ->unique()
+            ->values()
+            ->all();
+
+        if (!empty($postIds)) {
+
+            // =========================================
+            // FETCH ALL IMAGES FOR THESE POSTS
+            // =========================================
+
+            $mediaResponse = Http::withHeaders($headers)
+                ->get($supabaseUrl . '/rest/v1/media_table', [
+                    'select' => 'key_id,type,path',
+                    'type' => 'eq.POST',
+                    'key_id' => 'in.(' . implode(',', $postIds) . ')',
+                ]);
+
+            if ($mediaResponse->successful()) {
+
+                // Group all images by their post ID.
+                $postImages = collect($mediaResponse->json())
+                    ->filter(function ($media) {
+                        return !empty($media['key_id'])
+                            && !empty($media['path']);
+                    })
+                    ->groupBy(function ($media) {
+                        return (string) $media['key_id'];
+                    })
+                    ->map(function ($mediaItems) {
+                        return $mediaItems
+                            ->pluck('path')
+                            ->filter()
+                            ->unique()
+                            ->values()
+                            ->all();
+                    });
+
+                // =========================================
+                // ATTACH IMAGES TO EACH POST
+                // =========================================
+
+                $updatePosts = $updatePosts
+                    ->map(function ($post) use ($postImages) {
+
+                        $images = $postImages->get(
+                            (string) $post->id,
+                            []
+                        );
+
+                        // All image URLs for the gallery.
+                        $post->images = $images;
+
+                        // Keep the first image for older code
+                        // that still uses $post->image.
+                        $post->image = $images[0] ?? null;
+
+                        return $post;
+                    })
+                    ->values();
+
+            } else {
+
+                \Log::error('Failed to fetch NGO update images.', [
+                    'status' => $mediaResponse->status(),
+                    'response' => $mediaResponse->body(),
+                    'post_ids' => $postIds,
+                    'ngo_id' => $ngoId,
+                ]);
+            }
+        }
+
+    } else {
+
+        \Log::error('Failed to fetch NGO updates.', [
+            'status' => $updatePostsResponse->status(),
+            'response' => $updatePostsResponse->body(),
+            'ngo_id' => $ngoId,
+        ]);
+    }
+}
+
+
 
         $notifications = collect();
         $unreadNotifications = 0;
 
-        /*
-        |--------------------------------------------------------------------------
-        | DONATIONS
-        |--------------------------------------------------------------------------
-        */
-
+        
         $donations = collect();
 
         if (!empty($ngoId)) {
@@ -156,11 +349,7 @@ class dashboard_controller extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | MONTHLY MONETARY DONATIONS
-        |--------------------------------------------------------------------------
-        */
+        
 
         $currentMonth = now()->month;
         $currentYear = now()->year;
@@ -196,11 +385,7 @@ class dashboard_controller extends Controller
                 return (float) ($donation['amount'] ?? 0);
             });
 
-        /*
-        |--------------------------------------------------------------------------
-        | INVENTORY
-        |--------------------------------------------------------------------------
-        */
+        
 
         $inventory = collect();
 
@@ -218,12 +403,6 @@ class dashboard_controller extends Controller
 
         $inventoryItems = $inventory->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | LOW STOCK INVENTORY
-        |--------------------------------------------------------------------------
-        */
-
         $lowStockInventory = $inventory
             ->filter(function ($item) {
                 return (float) ($item['current_quantity'] ?? 0)
@@ -232,11 +411,6 @@ class dashboard_controller extends Controller
 
         $lowStockItems = $lowStockInventory->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | VOLUNTEER EVENTS
-        |--------------------------------------------------------------------------
-        */
 
         $events = collect();
 
@@ -252,11 +426,6 @@ class dashboard_controller extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | VOLUNTEER APPLICATIONS
-        |--------------------------------------------------------------------------
-        */
 
         $applications = collect();
 
@@ -268,12 +437,6 @@ class dashboard_controller extends Controller
         if ($applicationsResponse->successful()) {
             $applications = collect($applicationsResponse->json());
         }
-
-        /*
-        |--------------------------------------------------------------------------
-        | APPLICATIONS FOR THIS NGO
-        |--------------------------------------------------------------------------
-        */
 
         $ngoEventIds = $events
             ->pluck('id')
@@ -292,11 +455,6 @@ class dashboard_controller extends Controller
             }
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | APPLICATION COUNTS
-        |--------------------------------------------------------------------------
-        */
 
         $pendingApplications = $ngoApplications
             ->where('status', 0)
@@ -310,11 +468,6 @@ class dashboard_controller extends Controller
             ->where('status', 2)
             ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACTIVE VOLUNTEERS
-        |--------------------------------------------------------------------------
-        */
 
         $activeVolunteers = $ngoApplications
             ->where('status', 1)
@@ -323,11 +476,6 @@ class dashboard_controller extends Controller
             ->unique()
             ->count();
 
-        /*
-        |--------------------------------------------------------------------------
-        | UPCOMING EVENTS
-        |--------------------------------------------------------------------------
-        */
 
         $today = now()->startOfDay();
 
@@ -362,12 +510,6 @@ class dashboard_controller extends Controller
             })
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | INVENTORY ALERTS
-        |--------------------------------------------------------------------------
-        */
-
         $inventoryAlerts = $lowStockInventory
             ->sortBy(function ($item) {
                 $current = (float) ($item['current_quantity'] ?? 0);
@@ -387,12 +529,6 @@ class dashboard_controller extends Controller
             })
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | ACCOUNTS
-        |--------------------------------------------------------------------------
-        */
-
         $accounts = collect();
 
         $accountsResponse = Http::withHeaders($headers)
@@ -408,11 +544,7 @@ class dashboard_controller extends Controller
             return (string) ($account['id'] ?? '');
         });
 
-        /*
-        |--------------------------------------------------------------------------
-        | RECENT APPLICATIONS
-        |--------------------------------------------------------------------------
-        */
+       
 
         $eventMap = $events->keyBy(function ($event) {
             return (string) ($event['id'] ?? '');
@@ -441,11 +573,6 @@ class dashboard_controller extends Controller
             })
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | RECENT DONATIONS
-        |--------------------------------------------------------------------------
-        */
 
         $recentDonations = $donations
             ->sortByDesc(function ($donation) {
@@ -465,17 +592,8 @@ class dashboard_controller extends Controller
             })
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | RECENT ACTIVITIES
-        |--------------------------------------------------------------------------
-        */
 
         $recentActivities = collect();
-
-        /*
-        | Recent volunteer applications
-        */
 
         foreach ($recentApplications as $application) {
             $statusText = match ((int) $application->status) {
@@ -498,9 +616,6 @@ class dashboard_controller extends Controller
             ]);
         }
 
-        /*
-        | Recent donations
-        */
 
         foreach ($recentDonations as $donation) {
             $recentActivities->push((object) [
@@ -513,11 +628,6 @@ class dashboard_controller extends Controller
             ]);
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | SORT RECENT ACTIVITIES
-        |--------------------------------------------------------------------------
-        */
 
         $recentActivities = $recentActivities
             ->sortByDesc(function ($activity) {
@@ -526,11 +636,6 @@ class dashboard_controller extends Controller
             ->take(5)
             ->values();
 
-        /*
-        |--------------------------------------------------------------------------
-        | DASHBOARD VIEW
-        |--------------------------------------------------------------------------
-        */
 
         return view('dashboard', compact(
             'monthlyDonations',
@@ -548,7 +653,8 @@ class dashboard_controller extends Controller
             'ngoName',
             'userName',
             'notifications',
-            'unreadNotifications'
+            'unreadNotifications',
+            'updatePosts'
         ));
     }
 }

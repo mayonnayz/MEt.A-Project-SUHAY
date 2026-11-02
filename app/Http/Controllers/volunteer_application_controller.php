@@ -109,11 +109,6 @@ public function quickApply(Request $request)
         'Content-Type' => 'application/json',
     ])->baseUrl(rtrim(env('SUPABASE_URL'), '/') . '/rest/v1/');
 
-    /*
-    |--------------------------------------------------------------------------
-    | 1. Verify the event and retrieve its NGO
-    |--------------------------------------------------------------------------
-    */
 
     $eventResponse = $supabase->get('volunteer_events', [
         'select' => 'id,name,ngo_id',
@@ -156,12 +151,6 @@ public function quickApply(Request $request)
         ], 422);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 2. Prevent duplicate applications
-    |--------------------------------------------------------------------------
-    */
-
     $existingResponse = $supabase->get('volunteer_applications', [
         'select' => 'id',
         'account_id' => 'eq.' . $accountId,
@@ -189,11 +178,6 @@ public function quickApply(Request $request)
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 3. Save the volunteer application
-    |--------------------------------------------------------------------------
-    */
 
     $applicationResponse = $supabase
         ->withHeaders(['Prefer' => 'return=representation'])
@@ -239,15 +223,6 @@ public function quickApply(Request $request)
         ], 500);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 4. Create an NGO notification
-    |--------------------------------------------------------------------------
-    |
-    | reference_id = volunteer_applications.id
-    | related_id   = the NGO that owns the event
-    |
-    */
 
     $eventName = $event['name'] ?? 'a volunteer event';
 
@@ -273,8 +248,6 @@ public function quickApply(Request $request)
             ]
         );
 
-        // Do not ask the volunteer to submit again:
-        // the application has already been saved.
         return response()->json([
             'success' => true,
             'already_applied' => false,
@@ -286,11 +259,6 @@ public function quickApply(Request $request)
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | 5. Return success
-    |--------------------------------------------------------------------------
-    */
 
     return response()->json([
         'success' => true,

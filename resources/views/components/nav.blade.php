@@ -15,14 +15,7 @@
 <div
     class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden"
 >
-
-    {{-- ===================================================== --}}
-    {{-- NGO / STAFF NAVIGATION                                --}}
-    {{-- ===================================================== --}}
-
     @if(in_array($role, ['0', '1', '2']))
-
-        {{-- Dashboard --}}
         <a
             href="/sm-dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -39,10 +32,7 @@
             </span>
         </a>
 
-
-        {{-- NGOs --}}
         @if($role === '0')
-
             <a
                 href="/sm-ngos"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -58,11 +48,8 @@
                     NGOs
                 </span>
             </a>
-
         @endif
 
-
-        {{-- Donations --}}
         @if(in_array($role, ['0', '2']))
 
             <a
@@ -81,8 +68,6 @@
                 </span>
             </a>
 
-
-            {{-- Inventory --}}
             <a
                 href="/inventory-master-list"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -101,8 +86,6 @@
 
         @endif
 
-
-        {{-- Volunteers --}}
         @if(in_array($role, ['0', '1']))
 
             <a
@@ -123,8 +106,6 @@
 
         @endif
 
-
-        {{-- Reports (all staff roles; content depends on role) --}}
         <a
             href="{{ route('sm.reports') }}"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -143,14 +124,7 @@
 
     @endif
 
-
-    {{-- ===================================================== --}}
-    {{-- VOLUNTEER NAVIGATION                                  --}}
-    {{-- ===================================================== --}}
-
     @if($role === '3')
-
-        {{-- Dashboard --}}
         <a
             href="/volunteer/dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -167,8 +141,6 @@
             </span>
         </a>
 
-
-        {{-- NGOs --}}
         <a
             href="/volunteer/ngos"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -185,8 +157,6 @@
             </span>
         </a>
 
-
-        {{-- Events --}}
         <a
             href="/volunteer/events"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -203,8 +173,6 @@
             </span>
         </a>
 
-
-        {{-- Applications --}}
         <a
             href="/volunteer/applications"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -221,8 +189,6 @@
             </span>
         </a>
 
-
-        {{-- Donations --}}
         <a
             href="{{ route('donations.history') }}"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -240,11 +206,6 @@
         </a>
 
     @endif
-
-
-    {{-- ===================================================== --}}
-    {{-- LOGOUT                                                 --}}
-    {{-- ===================================================== --}}
 
     <a
         href="#"

@@ -14,10 +14,6 @@
             font-family: 'Poppins', sans-serif;
         }
 
-        /* =====================================================
-           MODAL ANIMATIONS
-        ====================================================== */
-
         .modal-enter {
             animation: zoomFadeIn 0.3s ease forwards;
         }
@@ -49,10 +45,6 @@
                 transform: scale(0.92);
             }
         }
-
-        /* =====================================================
-           NGO CARD
-        ====================================================== */
 
         .ngo-card {
             transition: all 0.2s ease;
@@ -131,7 +123,6 @@
 
             <div id="ngoList" class="space-y-4">
 
-
                 @forelse($ngos as $ngo)
 
                     <div
@@ -155,8 +146,6 @@
 
                             <div class="flex items-center gap-4 min-w-0">
 
-
-                                {{-- LOGO --}}
                                 <div class="w-16 h-16
                                             sm:w-20 sm:h-20
                                             rounded-2xl
@@ -168,16 +157,13 @@
                                             overflow-hidden">
 
                                     <img
-                                        src="{{ $ngo['logo'] ?? asset('images/suhayLogo.png') }}"
+                                        src="{{ $ngo['logo_url'] ?? asset('images/suhayLogo.png') }}"
                                         alt="{{ $ngo['name'] ?? 'NGO Logo' }}"
-                                        class="w-full h-full
-                                               object-contain p-2"
+                                        class="w-full h-full object-contain p-2"
                                     >
 
                                 </div>
 
-
-                                {{-- DETAILS --}}
                                 <div class="min-w-0">
 
                                     <h3 class="text-lg sm:text-xl
@@ -189,11 +175,8 @@
 
                                     </h3>
 
-
                                     <div class="space-y-1.5 mt-2">
 
-
-                                        {{-- CONTACT --}}
                                         <div class="flex items-center
                                                     gap-2
                                                     text-sm
@@ -212,8 +195,6 @@
 
                                         </div>
 
-
-                                        {{-- LOCATION --}}
                                         <div class="flex items-start
                                                     gap-2
                                                     text-sm
@@ -237,7 +218,6 @@
                                 </div>
 
                             </div>
-
 
                             <button
                                 type="button"
@@ -391,7 +371,6 @@
 
 </div>
 
-
 <div
     id="ngoModal"
     class="fixed inset-0
@@ -440,7 +419,6 @@
                relative"
     >
 
-        {{-- CLOSE --}}
         <button
             type="button"
             onclick="closeDonationModal()"
@@ -461,8 +439,6 @@
             &times;
         </button>
 
-
-        {{-- HEADER --}}
         <div class="px-6 sm:px-8 pt-7 pb-5
                     border-b border-gray-100">
 
@@ -504,12 +480,8 @@
 
         </div>
 
-
-        {{-- BODY --}}
         <div class="px-6 sm:px-8 py-6">
 
-
-            {{-- DONATION TYPE --}}
             <div class="mb-6">
 
                 <label
@@ -526,10 +498,6 @@
     <option value="" disabled selected>
         Select Donation Type
     </option>
-
-    <!-- <option value="MONETARY">
-    Monetary
-    </option> -->
 
     <option value="ONLINE_MONETARY">
         Online Monetary
@@ -649,7 +617,6 @@
 
     <div class="space-y-5">
 
-        {{-- CHANNEL --}}
         <div>
 
             <label
@@ -682,7 +649,6 @@
 
         </div>
 
-        {{-- AMOUNT --}}
         <div>
 
             <label
@@ -723,7 +689,6 @@
 
         </div>
 
-        {{-- REFERENCE --}}
         <div>
 
             <label
@@ -754,8 +719,6 @@
 
         </div>
 
-
-        {{-- FOOTER --}}
         <div
             class="px-6 sm:px-8 py-5
                    border-t border-gray-100
@@ -856,7 +819,6 @@
 
         </div>
 
-
         <h2 class="text-xl font-bold text-[#0e243a] mb-2">
             Confirm Donation
         </h2>
@@ -869,7 +831,6 @@
             Please make sure that all the information you entered
             is correct before continuing.
         </p>
-
 
         <div class="flex gap-3">
 
@@ -1028,10 +989,8 @@
 
 </div>
 
-
 @include('components.logout-modal')
-<!-- <script src="{{ asset('js/dovol-ngos.js') }}"></script> -->
- <script>
+<script>
     window.ngoData = @json($ngos);
 
     window.suhayAssets = {
@@ -1042,7 +1001,6 @@
 </script>
 
 <script src="{{ asset('js/donate.js') }}"></script>
-
 
 </body>
 </html>

@@ -5,18 +5,18 @@ use Illuminate\Http\Request;
 
 class ProgramController extends Controller
 {
-    // 🔷 Load the assignment page
+    
     public function assignVolunteer($id)
     {
         $program = Program::findOrFail($id);
 
         $volunteers = Volunteer::all();
-        $assigned = $program->volunteers; // relationship
+        $assigned = $program->volunteers; 
 
         return view('assign_volunteer', compact('program', 'volunteers', 'assigned'));
     }
 
-    // ✅ Assign volunteer
+   
     public function assign(Request $request)
     {
         $program = Program::findOrFail($request->program_id);
@@ -26,7 +26,7 @@ class ProgramController extends Controller
         return back()->with('success', 'Volunteer assigned successfully!');
     }
 
-    // ❌ Remove volunteer
+  
     public function remove(Request $request)
     {
         $program = Program::findOrFail($request->program_id);

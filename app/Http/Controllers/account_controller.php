@@ -117,6 +117,91 @@ class account_controller extends Controller
         );
     }
 
+    
+    public function members()
+    {
+        $ngoId = $this->getNgoId();
+
+        $ngoResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/ngo_profile',
+            [
+                'select' => 'id,name',
+                'id' => "eq.$ngoId"
+            ]
+        );
+
+        if ($ngoResponse->failed()) {
+            dd($ngoResponse->body());
+        }
+
+        $ngoData = $ngoResponse->json();
+
+        $ngo = !empty($ngoData)
+            ? (object) $ngoData[0]
+            : null;
+
+        $response = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/accounts',
+            [
+                'select' => 'id,first_name,last_name,roles,ngo_id,status',
+                'ngo_id' => "eq.$ngoId",
+                'status' => 'eq.1',
+                'roles' => 'in.(0,1,2)',
+                'order' => 'roles.asc,last_name.asc'
+            ]
+        );
+
+        if ($response->failed()) {
+            dd($response->body());
+        }
+
+        $accounts = collect($response->json())
+            ->map(fn ($row) => (object) $row);
+
+        $mediaResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/media_table',
+            [
+                'select' => 'key_id,path',
+                'type' => 'eq.PROFILE_PICTURE'
+            ]
+        );
+
+        if ($mediaResponse->failed()) {
+            dd($mediaResponse->body());
+        }
+
+        $profilePictures = collect($mediaResponse->json())
+            ->keyBy(fn ($media) => (string) $media['key_id']);
+
+        $accounts = $accounts->map(function ($account) use ($profilePictures) {
+            $picture = $profilePictures->get((string) $account->id);
+
+            $account->profile_picture = $picture['path'] ?? null;
+
+            return $account;
+        });
+
+        $head = $accounts->first(
+            fn ($account) => (int) $account->roles === 0
+        );
+
+        $donationManagers = $accounts
+            ->filter(fn ($account) => (int) $account->roles === 2)
+            ->values();
+
+        $volunteerManagers = $accounts
+            ->filter(fn ($account) => (int) $account->roles === 1)
+            ->values();
+
+        return view('ngo_members', compact(
+            'ngo',
+            'head',
+            'donationManagers',
+            'volunteerManagers'
+        ));
+    }
+
+
     public function create()
     {
         $roles = self::ROLE_LABELS;
@@ -218,17 +303,13 @@ class account_controller extends Controller
             ->with('import_error', 'The CSV file is empty.');
     }
 
-    // Remove Excel BOM if present
+
     $header[0] = preg_replace('/^\xEF\xBB\xBF/', '', $header[0]);
 
-    // Remove extra spaces from headers
+
     $header = array_map('trim', $header);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Validate CSV header
-    |--------------------------------------------------------------------------
-    */
+
 
     if ($header !== $expectedHeaders) {
         fclose($handle);
@@ -246,21 +327,11 @@ class account_controller extends Controller
 
     $rowNumber = 1;
 
-    /*
-    |--------------------------------------------------------------------------
-    | Process CSV rows
-    |--------------------------------------------------------------------------
-    */
 
     while (($row = fgetcsv($handle)) !== false) {
 
         $rowNumber++;
 
-        /*
-        |--------------------------------------------------------------------------
-        | Skip completely empty rows
-        |--------------------------------------------------------------------------
-        */
 
         if (
             count(array_filter(
@@ -271,11 +342,7 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Check column count
-        |--------------------------------------------------------------------------
-        */
+   
 
         if (count($row) !== count($expectedHeaders)) {
 
@@ -289,11 +356,7 @@ class account_controller extends Controller
 
         $data = array_combine($header, $row);
 
-        /*
-        |--------------------------------------------------------------------------
-        | Required fields
-        |--------------------------------------------------------------------------
-        */
+   
 
         $firstName = trim($data['first_name'] ?? '');
         $lastName = trim($data['last_name'] ?? '');
@@ -336,11 +399,7 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Email validation
-        |--------------------------------------------------------------------------
-        */
+
 
         if (!preg_match('/^[^@\s]+@[^@\s]+\.[^@\s]+$/', $email)) {
 
@@ -352,11 +411,7 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Role validation
-        |--------------------------------------------------------------------------
-        */
+    
 
         $roleLower = strtolower($role);
 
@@ -378,12 +433,7 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Birthday validation
-        |--------------------------------------------------------------------------
-        */
-
+      
         $birthDate = trim($data['birth_date'] ?? '');
 
         if ($birthDate !== '') {
@@ -404,11 +454,7 @@ class account_controller extends Controller
             }
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Address
-        |--------------------------------------------------------------------------
-        */
+        
 
         $address = trim($data['address'] ?? '');
 
@@ -422,11 +468,7 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Contact number validation
-        |--------------------------------------------------------------------------
-        */
+       
 
         $contactNumber = trim($data['contact_number'] ?? '');
 
@@ -453,11 +495,6 @@ class account_controller extends Controller
             continue;
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Automatically generate password
-        |--------------------------------------------------------------------------
-        */
 
         $password = strtolower(
             preg_replace(
@@ -467,12 +504,7 @@ class account_controller extends Controller
             )
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Prepare account
-        |--------------------------------------------------------------------------
-        */
-
+       
         $accountData = [
             'first_name'     => $firstName,
             'last_name'      => $lastName,
@@ -492,32 +524,20 @@ class account_controller extends Controller
                 : null,
         ];
 
-        /*
-        |--------------------------------------------------------------------------
-        | Insert into Supabase
-        |--------------------------------------------------------------------------
-        */
+        
 
         $response = $this->supabase()->post(
             env('SUPABASE_URL') . '/rest/v1/accounts',
             $accountData
         );
 
-        /*
-        |--------------------------------------------------------------------------
-        | Handle database validation errors
-        |--------------------------------------------------------------------------
-        */
+        
 
         if ($response->failed()) {
 
             $error = $response->json();
 
-            /*
-            |--------------------------------------------------------------------------
-            | Duplicate email
-            |--------------------------------------------------------------------------
-            */
+            
 
             if (
                 ($error['code'] ?? null) === '23505' &&
@@ -535,11 +555,7 @@ class account_controller extends Controller
                 continue;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Duplicate contact number
-            |--------------------------------------------------------------------------
-            */
+            
 
             if (
                 ($error['code'] ?? null) === '23505' &&
@@ -557,11 +573,7 @@ class account_controller extends Controller
                 continue;
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Other database error
-            |--------------------------------------------------------------------------
-            */
+           
 
             $skippedRows[] = [
                 'row' => $rowNumber,
@@ -576,11 +588,7 @@ class account_controller extends Controller
 
     fclose($handle);
 
-    /*
-    |--------------------------------------------------------------------------
-    | Import completed
-    |--------------------------------------------------------------------------
-    */
+    
 
     return redirect()
         ->route('ngo-accounts')
@@ -671,13 +679,13 @@ class account_controller extends Controller
         ];
 
 
-        // Only show archived accounts belonging to this NGO
+      
         if ($ngoId) {
             $query['ngo_id'] = "eq.$ngoId";
         }
 
 
-        // Search archived accounts
+       
         if ($request->filled('search')) {
 
             $search = $request->search;
@@ -687,7 +695,7 @@ class account_controller extends Controller
         }
 
 
-        // Optional role filter
+        
         if ($request->filled('role') &&
             in_array((int) $request->role, [1, 2], true)) {
 

@@ -1,12 +1,8 @@
-<!-- MANAGE PAYMENT ACCOUNTS MODAL -->
-
 <div id="manageAccountsModal"
      class="fixed inset-0 bg-black/50 hidden items-center justify-center z-[60] p-4">
 
     <div id="manageAccountsModalBox"
          class="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-3xl shadow-2xl transform scale-95 transition duration-200">
-
-        <!-- HEADER -->
         <div class="sticky top-0 bg-white border-b px-8 py-6 flex items-center justify-between z-10">
 
             <div>
@@ -29,11 +25,7 @@
 
         </div>
 
-
-        <!-- CONTENT -->
         <div class="p-8">
-
-            <!-- ADD ACCOUNT BUTTON -->
             <div class="flex justify-end mb-6">
 
                 <button
@@ -46,8 +38,6 @@
 
             </div>
 
-
-            <!-- ADD ACCOUNT FORM -->
             <div id="addAccountForm"
                  class="hidden bg-gray-100 rounded-2xl p-6 mb-8">
 
@@ -64,8 +54,6 @@
                     @csrf
 
                     <div class="grid md:grid-cols-2 gap-5">
-
-                        <!-- TYPE -->
                         <div>
                             <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                                 Account Type
@@ -87,8 +75,6 @@
                             </select>
                         </div>
 
-
-                        <!-- ACCOUNT NAME -->
                         <div>
                             <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                                 Account Name
@@ -104,8 +90,6 @@
                             >
                         </div>
 
-
-                        <!-- ACCOUNT NUMBER -->
                         <div>
                             <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                                 Account Number
@@ -121,8 +105,6 @@
                             >
                         </div>
 
-
-                        <!-- QR CODE -->
                         <div>
                             <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                                 QR Code
@@ -145,8 +127,6 @@
 
                     </div>
 
-
-                    <!-- FORM BUTTONS -->
                     <div class="flex justify-end gap-3 mt-6">
 
                         <button
@@ -170,8 +150,6 @@
 
             </div>
 
-
-            <!-- EXISTING ACCOUNTS -->
             <div class="space-y-4">
 
                 @forelse($ngo->bank_accounts ?? [] as $account)
@@ -179,8 +157,6 @@
                     <div class="border rounded-2xl p-5">
 
                         <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
-
-                            <!-- ACCOUNT INFO -->
                             <div class="flex items-start gap-4">
 
                                 <div class="w-12 h-12 rounded-xl bg-[#0e243a] text-white flex items-center justify-center font-bold">
@@ -215,8 +191,6 @@
 
                             </div>
 
-
-                            <!-- ACTIONS -->
                             <div class="flex gap-2">
 
                                 <button
@@ -275,8 +249,6 @@
 
         </div>
 
-
-        <!-- FOOTER -->
         <div class="border-t px-8 py-5 flex justify-end">
 
             <button

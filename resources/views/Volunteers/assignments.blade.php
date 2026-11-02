@@ -33,10 +33,6 @@
 
         @include('components.header', ['title' => 'Assignments'])
 
-
-        {{-- =========================================================
-            EVENTS / ASSIGNMENTS TABS
-        ========================================================== --}}
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-6 flex-wrap">
 
             <a href="/volunteer/events"
@@ -51,23 +47,9 @@
 
         </div>
 
-
-        {{-- =========================================================
-            MAIN ASSIGNMENTS SECTION
-        ========================================================== --}}
         <div class="bg-[#f5f5f5] rounded-[22px] border-[10px] border-[#0e243a] p-6 sm:p-8">
-
-
-         
-
-            {{-- =====================================================
-                SEARCH + FILTERS
-            ====================================================== --}}
             <div class="flex flex-col lg:flex-row lg:items-center
                         lg:justify-between gap-4 mb-7">
-
-
-                {{-- SEARCH --}}
                 <div class="flex items-center
                             bg-white border-2 border-[#0e243a]
                             rounded-full px-5 py-2.5
@@ -101,12 +83,7 @@
 
                 </div>
 
-
-                {{-- FILTERS --}}
                 <div class="flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
-
-
-                    {{-- STATUS FILTER --}}
                     <div class="relative">
 
                         <select
@@ -157,8 +134,6 @@
 
                     </div>
 
-
-                    {{-- DATE FILTER --}}
                     <div class="relative">
 
                         <input
@@ -184,15 +159,8 @@
 
             </div>
 
-
-            {{-- =====================================================
-                ASSIGNMENTS TABLE
-            ====================================================== --}}
             <div class="bg-white rounded-2xl border border-gray-200
                         overflow-hidden shadow-sm">
-
-
-                {{-- TABLE HEADER --}}
                 <div class="px-5 py-4 border-b border-gray-200
                             flex items-center justify-between">
 
@@ -222,8 +190,6 @@
 
                 </div>
 
-
-                {{-- TABLE WRAPPER --}}
                 <div class="overflow-x-auto">
 
                     <table class="w-full text-sm">
@@ -278,9 +244,6 @@
                                        hover:bg-gray-50"
                                 onclick="goToApplication('{{ $a['event_id'] }}')"
                             >
-
-
-                                {{-- NUMBER --}}
                                 <td class="px-5 py-4 text-gray-500
                                            font-medium whitespace-nowrap">
 
@@ -288,8 +251,6 @@
 
                                 </td>
 
-
-                                {{-- NGO --}}
                                 <td class="px-5 py-4
                                            font-semibold text-[#0e243a]
                                            whitespace-nowrap">
@@ -298,8 +259,6 @@
 
                                 </td>
 
-
-                                {{-- EVENT --}}
                                 <td class="px-5 py-4
                                            text-gray-700
                                            whitespace-nowrap">
@@ -308,8 +267,6 @@
 
                                 </td>
 
-
-                                {{-- DATE --}}
                                 <td class="px-5 py-4
                                            text-gray-600
                                            whitespace-nowrap">
@@ -330,8 +287,6 @@
 
                                 </td>
 
-
-                                {{-- ACTIVITY --}}
                                 <td class="px-5 py-4
                                            text-gray-700
                                            max-w-xs">
@@ -345,8 +300,6 @@
 
                                 </td>
 
-
-                                {{-- STATUS --}}
                                 <td class="px-5 py-4 text-center status">
 
                                     @if($a['status'] === 'Completed')
@@ -479,8 +432,6 @@
 
                         @endforelse
 
-
-                        {{-- NO SEARCH/FILTER RESULTS --}}
                         <tr id="noResults" class="hidden">
 
                             <td
@@ -558,11 +509,6 @@
 
 
 <script>
-
-    /* =========================================================
-       FILTER ELEMENTS
-    ========================================================== */
-
     const searchInput =
         document.getElementById("searchInput");
 
@@ -580,11 +526,6 @@
 
     const assignmentCount =
         document.getElementById("assignmentCount");
-
-
-    /* =========================================================
-       FILTER TABLE
-    ========================================================== */
 
     function filterTable() {
 
@@ -616,19 +557,13 @@
                     .innerText
                     .trim();
 
-
-            /* SEARCH */
             const matchSearch =
                 text.includes(search);
 
-
-            /* STATUS */
             const matchStatus =
                 status === "" ||
                 rowStatus.includes(status);
 
-
-            /* DATE */
             let matchDate = true;
 
 
@@ -647,8 +582,6 @@
 
             }
 
-
-            /* FINAL RESULT */
             const visible =
                 matchSearch &&
                 matchStatus &&
@@ -669,11 +602,6 @@
 
         });
 
-
-        /* =====================================================
-           NO RESULTS MESSAGE
-        ====================================================== */
-
         if (visibleCount === 0 && assignmentRows.length > 0) {
 
             noResults.classList.remove("hidden");
@@ -683,11 +611,6 @@
             noResults.classList.add("hidden");
 
         }
-
-
-        /* =====================================================
-           ASSIGNMENT COUNT
-        ====================================================== */
 
         if (assignmentCount) {
 
@@ -702,22 +625,12 @@
 
     }
 
-
-    /* =========================================================
-       GO TO APPLICATION
-    ========================================================== */
-
     function goToApplication(eventId) {
 
         window.location.href =
             `/volunteer/applications?highlight=${eventId}`;
 
     }
-
-
-    /* =========================================================
-       FILTER EVENTS
-    ========================================================== */
 
     searchInput.addEventListener(
         "input",
@@ -734,11 +647,6 @@
         filterTable
     );
 
-
-    /* =========================================================
-       LOGOUT MODAL
-    ========================================================== */
-
     function openLogoutModal() {
 
         document.getElementById('logoutModal')
@@ -748,7 +656,6 @@
             .classList.add('flex');
 
     }
-
 
     function closeLogoutModal() {
 

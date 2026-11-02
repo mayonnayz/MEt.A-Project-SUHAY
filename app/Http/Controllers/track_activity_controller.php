@@ -16,40 +16,22 @@ class track_activity_controller extends Controller
 
         $baseUrl = env('SUPABASE_URL');
 
-
-        // =========================================================
-        // GET ASSIGNMENTS
-        // =========================================================
-
         $assignmentsResponse = Http::withHeaders($headers)
             ->get($baseUrl . '/rest/v1/volunteer_assignments', [
                 'select' => '*,accounts(id,first_name,last_name)',
             ]);
 
 
-        // =========================================================
-        // GET ACTIVITIES
-        // =========================================================
-
         $activitiesResponse = Http::withHeaders($headers)
             ->get($baseUrl . '/rest/v1/volunteer_activities', [
                 'select' => 'id,name,volunteer_event_id',
             ]);
-
-
-        // =========================================================
-        // GET EVENTS
-        // =========================================================
 
         $eventsResponse = Http::withHeaders($headers)
             ->get($baseUrl . '/rest/v1/volunteer_events', [
                 'select' => 'id,name,date',
             ]);
 
-
-        // =========================================================
-        // CHECK RESPONSES
-        // =========================================================
 
         if ($assignmentsResponse->failed()) {
             dd('Assignments Error:', $assignmentsResponse->json());
@@ -63,11 +45,6 @@ class track_activity_controller extends Controller
             dd('Events Error:', $eventsResponse->json());
         }
 
-
-        // =========================================================
-        // CONVERT TO COLLECTIONS
-        // =========================================================
-
         $assignments = collect(
             $assignmentsResponse->json() ?? []
         );
@@ -79,11 +56,6 @@ class track_activity_controller extends Controller
         $events = collect(
             $eventsResponse->json() ?? []
         )->keyBy('id');
-
-
-        // =========================================================
-        // ATTACH ACTIVITY + EVENT
-        // =========================================================
 
         $assignments = $assignments->map(function ($item) use (
             $activities,
@@ -112,11 +84,6 @@ class track_activity_controller extends Controller
 
         });
 
-
-        // =========================================================
-        // GET VOLUNTEERS FROM ACCOUNTS
-        // =========================================================
-
         $volunteers = $assignments
             ->pluck('accounts')
             ->filter()
@@ -124,10 +91,6 @@ class track_activity_controller extends Controller
             ->values()
             ->all();
 
-
-        // =========================================================
-        // RETURN VIEW
-        // =========================================================
 
         return view('track_activity', [
 
@@ -146,11 +109,6 @@ class track_activity_controller extends Controller
         ]);
     }
 
-
-    // =============================================================
-    // CALCULATE TOTAL HOURS
-    // =============================================================
-
     private function calculateTotalHours($timeIn, $timeOut)
     {
         if (!$timeIn || !$timeOut) {
@@ -164,22 +122,16 @@ class track_activity_controller extends Controller
             return null;
         }
 
-        // If Time Out is earlier than Time In,
-        // assume the activity passed midnight.
+        
         if ($timeOutTimestamp < $timeInTimestamp) {
             $timeOutTimestamp += 24 * 60 * 60;
         }
 
         $seconds = $timeOutTimestamp - $timeInTimestamp;
 
-        // Convert seconds to decimal hours
+    
         return round($seconds / 3600, 2);
     }
-
-
-    // =============================================================
-    // ADD ACTIVITY
-    // =============================================================
 
     public function store(Request $request)
     {
@@ -192,18 +144,9 @@ class track_activity_controller extends Controller
 
         $baseUrl = env('SUPABASE_URL');
 
-
-        // =========================================================
-        // GET TIME VALUES
-        // =========================================================
-
         $timeIn = $request->time_in ?: null;
         $timeOut = $request->time_out ?: null;
 
-
-        // =========================================================
-        // CALCULATE TOTAL HOURS
-        // =========================================================
 
         $totalHours = $this->calculateTotalHours(
             $timeIn,
@@ -211,20 +154,12 @@ class track_activity_controller extends Controller
         );
 
 
-        // =========================================================
-        // AUTOMATIC STATUS
-        // =========================================================
-
         if ($timeOut) {
-            $status = 1; // Completed
+            $status = 1; 
         } else {
-            $status = 0; // On Going
+            $status = 0; 
         }
 
-
-        // =========================================================
-        // SAVE ACTIVITY
-        // =========================================================
 
         $response = Http::withHeaders($headers)
             ->post(
@@ -252,10 +187,6 @@ class track_activity_controller extends Controller
     }
 
 
-    // =============================================================
-    // UPDATE ACTIVITY
-    // =============================================================
-
     public function update(Request $request)
     {
         $headers = [
@@ -270,27 +201,15 @@ class track_activity_controller extends Controller
         $assignmentId = $request->assignment_id;
 
 
-        // =========================================================
-        // GET TIME VALUES
-        // =========================================================
-
         $timeIn = $request->time_in ?: null;
         $timeOut = $request->time_out ?: null;
 
-
-        // =========================================================
-        // CALCULATE TOTAL HOURS
-        // =========================================================
 
         $totalHours = $this->calculateTotalHours(
             $timeIn,
             $timeOut
         );
 
-
-        // =========================================================
-        // AUTOMATIC STATUS
-        // =========================================================
 
         if ($timeOut) {
             $status = 1; // Completed
@@ -299,9 +218,6 @@ class track_activity_controller extends Controller
         }
 
 
-        // =========================================================
-        // UPDATE ACTIVITY
-        // =========================================================
 
         $response = Http::withHeaders($headers)
             ->patch(

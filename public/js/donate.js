@@ -1,7 +1,3 @@
-// ========================================
-// AOS
-// ========================================
-
 if (typeof AOS !== 'undefined') {
     AOS.init({
         duration: 800,
@@ -11,18 +7,8 @@ if (typeof AOS !== 'undefined') {
     });
 }
 
-
-// ========================================
-// DATA FROM BLADE
-// ========================================
-
 const ngoData = window.ngoData || [];
 const assets = window.suhayAssets || {};
-
-
-// ========================================
-// HELPERS
-// ========================================
 
 function escapeHtml(value) {
     return String(value ?? '')
@@ -32,11 +18,6 @@ function escapeHtml(value) {
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
 }
-
-
-// ========================================
-// RESULT MODAL (Donation Submitted!)
-// ========================================
 
 function closeResultModal() {
 
@@ -55,7 +36,6 @@ function closeResultModal() {
 function showDonationResult(success, message) {
     closeModal();
 
-    // Remove any previous result modal.
     closeResultModal();
 
     const resultModal = document.createElement('div');
@@ -99,11 +79,6 @@ function showDonationResult(success, message) {
     });
 }
 
-
-// ========================================
-// ACKNOWLEDGMENT LETTER
-// ========================================
-
 function closeLetterModal() {
 
     const modal =
@@ -124,7 +99,6 @@ function buildDonorName(details) {
         return 'Generous Friend';
     }
 
-    // "From Juan Dela Cruz" -> "Juan Dela Cruz"
     const cleaned = (details.source || '')
         .trim()
         .replace(/^from\s+/i, '')
@@ -165,8 +139,6 @@ function buildDonationPhrase(details) {
 
 
 function showAcknowledgmentLetter(details, onContinue) {
-
-    // Remove any previous letter.
     closeLetterModal();
 
     const donorName = escapeHtml(buildDonorName(details));
@@ -304,9 +276,6 @@ function showAcknowledgmentLetter(details, onContinue) {
 
     document.body.appendChild(modal);
 
-
-    // ---------- DOWNLOAD ----------
-
     document
         .getElementById('downloadLetterBtn')
         .addEventListener('click', function () {
@@ -346,9 +315,6 @@ function showAcknowledgmentLetter(details, onContinue) {
                 });
         });
 
-
-    // ---------- CONTINUE -> "Donation Submitted!" ----------
-
     document
         .getElementById('continueLetterBtn')
         .addEventListener('click', function () {
@@ -361,21 +327,11 @@ function showAcknowledgmentLetter(details, onContinue) {
         });
 }
 
-
-// ========================================
-// OPEN NGO MODAL
-// ========================================
-
 function openModal(id) {
 
     const ngo = ngoData.find(n => n.id == id) || {};
 
     const accounts = ngo.bank_accounts || [];
-
-
-    // ========================================
-    // BUILD ACCOUNT DISPLAY
-    // ========================================
 
     let accountDisplay = '';
 
@@ -424,17 +380,7 @@ function openModal(id) {
         `;
     }
 
-
-    // ========================================
-    // NGO LOGO
-    // ========================================
-
     const logoUrl = ngo.logo_url || assets.logo;
-
-
-    // ========================================
-    // MODAL CONTENT
-    // ========================================
 
     document.getElementById('modalContent').innerHTML = `
 
@@ -814,11 +760,6 @@ function openModal(id) {
 
     `;
 
-
-    // ========================================
-    // SHOW MODAL
-    // ========================================
-
     const modal = document.getElementById('ngoModal');
     const content = document.getElementById('modalContent');
 
@@ -828,16 +769,11 @@ function openModal(id) {
     content.classList.remove('modal-exit');
     content.classList.add('modal-enter');
 
-   
-    // ========================================
-    // HANDLE DONATION FORM SUBMISSION
-    // ========================================
-
     const donationForm = document.getElementById('donationForm');
 
     if (donationForm) {
         donationForm.addEventListener('submit', async function (e) {
-            e.preventDefault(); // Prevent navigation to donate.blade.php
+            e.preventDefault();
 
             const submitButton = donationForm.querySelector(
                 'button[type="submit"]'
@@ -845,8 +781,6 @@ function openModal(id) {
 
             const originalText = submitButton.textContent;
 
-            // Capture what the donor entered BEFORE sending,
-            // so the acknowledgment letter can use it.
             const letterDetails = {
                 ngoName: ngo.name || '',
                 anonymous: document.getElementById('anonymousDonation').checked,
@@ -870,7 +804,6 @@ function openModal(id) {
                     }
                 });
 
-                // Laravel validation errors may return status 422.
                 if (!response.ok) {
                     let message = 'Failed to submit donation. Please check your information.';
 
@@ -887,8 +820,7 @@ function openModal(id) {
                                 .join('\n');
                         }
                     } catch (_) {
-                        // Keep the default error message if the response
-                        // is not JSON.
+
                     }
 
                     throw new Error(message);
@@ -902,8 +834,6 @@ function openModal(id) {
                     );
                 }
 
-                // 1) Show the acknowledgment letter first.
-                // 2) After "Continue", show the "Donation Submitted!" modal.
                 showAcknowledgmentLetter(letterDetails, function () {
                     showDonationResult(
                         true,
@@ -924,11 +854,6 @@ function openModal(id) {
 
 }
 
-
-// ========================================
-// CSRF TOKEN
-// ========================================
-
 function getCsrfToken() {
 
     const token =
@@ -938,11 +863,6 @@ function getCsrfToken() {
         ? token.getAttribute('content')
         : '';
 }
-
-
-// ========================================
-// DONATION TYPE FIELDS
-// ========================================
 
 function updateDonationFields() {
 
@@ -958,11 +878,6 @@ function updateDonationFields() {
     const proofOfPaymentField =
         document.getElementById('proofOfPaymentField');
 
-
-    // ========================================
-    // ONLINE MONETARY
-    // ========================================
-
     if (type === 'ONLINE_MONETARY') {
 
         proofOfPaymentField.classList.remove('hidden');
@@ -974,11 +889,6 @@ function updateDonationFields() {
         unit.disabled = true;
 
     }
-
-
-    // ========================================
-    // OTHER DONATION TYPES
-    // ========================================
 
     else {
 
@@ -993,11 +903,6 @@ function updateDonationFields() {
             'e.g. piece, sack, can';
     }
 }
-
-
-// ========================================
-// ANONYMOUS DONATION
-// ========================================
 
 function toggleDonorSource() {
 
@@ -1021,11 +926,6 @@ function toggleDonorSource() {
         source.disabled = false;
     }
 }
-
-
-// ========================================
-// CLOSE MODAL
-// ========================================
 
 function closeModal() {
 
@@ -1096,11 +996,6 @@ function closeLogoutModal() {
     );
 
 }
-
-
-// ========================================
-// CLICK OUTSIDE MODAL
-// ========================================
 
 const ngoModal =
     document.getElementById('ngoModal');
