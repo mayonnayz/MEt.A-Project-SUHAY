@@ -13,7 +13,15 @@
 ?>
 
 <div
-    class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden"
+    class="group sticky top-0 self-start shrink-0
+    w-28 hover:w-56
+    bg-[#0e243a]
+    h-screen
+    flex flex-col
+    py-6 text-white
+    rounded-r-3xl
+    transition-all duration-300
+    overflow-hidden"
 >
     <?php if(in_array($role, ['0', '1', '2'])): ?>
         <a
