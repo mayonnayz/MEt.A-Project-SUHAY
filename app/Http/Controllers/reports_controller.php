@@ -95,7 +95,6 @@ class reports_controller extends Controller
         }
     }
 
-<<<<<<< HEAD
     // Downloads ONE card (?section=key) as Excel (.xlsx), respecting the date range
     public function downloadExcel(Request $request)
     {
@@ -178,15 +177,18 @@ class reports_controller extends Controller
         $sheet->setCellValue('A4', $data['ngoName']);
         $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(12)->getColor()->setRGB($gold);
 
+        // Two lines + wrap so the info never gets cut off by the merged width
         $sheet->mergeCells("A5:{$lastBand}5");
         $sheet->setCellValue(
             'A5',
-            'Role: ' . $data['roleLabel']
-            . '   |   Period: ' . $data['periodLabel']
-            . '   |   Prepared by: ' . $data['userName']
-            . '   |   Generated: ' . $data['generatedAt']
+            'Role: ' . $data['roleLabel'] . '   |   Period: ' . $data['periodLabel'] . "\n"
+            . 'Prepared by: ' . $data['userName'] . '   |   Generated: ' . $data['generatedAt']
         );
         $sheet->getStyle('A5')->getFont()->setSize(9)->getColor()->setRGB('6B7280');
+        $sheet->getStyle('A5')->getAlignment()
+            ->setWrapText(true)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension(5)->setRowHeight(32);
 
         /* ---------- STAT CHIPS ---------- */
         $row = 7;
@@ -324,6 +326,10 @@ class reports_controller extends Controller
             count($section['rows']) . ' record(s)  ·  SUHAY · ' . $data['ngoName'] . ' · Generated ' . $data['generatedAt']
         );
         $sheet->getStyle("A{$footerRow}")->getFont()->setSize(8)->getColor()->setRGB('9CA3AF');
+        $sheet->getStyle("A{$footerRow}")->getAlignment()
+            ->setWrapText(true)
+            ->setVertical(Alignment::VERTICAL_CENTER);
+        $sheet->getRowDimension($footerRow)->setRowHeight(24);
 
         /* ---------- COLUMN WIDTHS (auto-fit with limits) ---------- */
         for ($i = 0; $i < $colCount; $i++) {
@@ -336,7 +342,7 @@ class reports_controller extends Controller
                 $max  = max($max, mb_strlen((string) $text));
             }
 
-            $sheet->getColumnDimension($letter)->setWidth(min(max($max + 5, 14), 50));
+            $sheet->getColumnDimension($letter)->setWidth(min(max($max + 5, 16), 50));
         }
 
         /* ---------- VIEW & PRINT SETTINGS ---------- */
@@ -384,8 +390,6 @@ class reports_controller extends Controller
     | BUILD REPORT (PICKS CARDS BY ROLE)
     |--------------------------------------------------------------------------
     */
-=======
->>>>>>> 7c34a96c6d5e8c974358f1343a33a5600d8354cd
 
     private function buildReport(Request $request, ?string $onlySection = null): array
     {
