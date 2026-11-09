@@ -117,6 +117,91 @@ class account_controller extends Controller
         );
     }
 
+    
+    public function members()
+    {
+        $ngoId = $this->getNgoId();
+
+        $ngoResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/ngo_profile',
+            [
+                'select' => 'id,name',
+                'id' => "eq.$ngoId"
+            ]
+        );
+
+        if ($ngoResponse->failed()) {
+            dd($ngoResponse->body());
+        }
+
+        $ngoData = $ngoResponse->json();
+
+        $ngo = !empty($ngoData)
+            ? (object) $ngoData[0]
+            : null;
+
+        $response = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/accounts',
+            [
+                'select' => 'id,first_name,last_name,roles,ngo_id,status',
+                'ngo_id' => "eq.$ngoId",
+                'status' => 'eq.1',
+                'roles' => 'in.(0,1,2)',
+                'order' => 'roles.asc,last_name.asc'
+            ]
+        );
+
+        if ($response->failed()) {
+            dd($response->body());
+        }
+
+        $accounts = collect($response->json())
+            ->map(fn ($row) => (object) $row);
+
+        $mediaResponse = $this->supabase()->get(
+            env('SUPABASE_URL') . '/rest/v1/media_table',
+            [
+                'select' => 'key_id,path',
+                'type' => 'eq.PROFILE_PICTURE'
+            ]
+        );
+
+        if ($mediaResponse->failed()) {
+            dd($mediaResponse->body());
+        }
+
+        $profilePictures = collect($mediaResponse->json())
+            ->keyBy(fn ($media) => (string) $media['key_id']);
+
+        $accounts = $accounts->map(function ($account) use ($profilePictures) {
+            $picture = $profilePictures->get((string) $account->id);
+
+            $account->profile_picture = $picture['path'] ?? null;
+
+            return $account;
+        });
+
+        $head = $accounts->first(
+            fn ($account) => (int) $account->roles === 0
+        );
+
+        $donationManagers = $accounts
+            ->filter(fn ($account) => (int) $account->roles === 2)
+            ->values();
+
+        $volunteerManagers = $accounts
+            ->filter(fn ($account) => (int) $account->roles === 1)
+            ->values();
+
+        return view('ngo_members', compact(
+            'ngo',
+            'head',
+            'donationManagers',
+            'volunteerManagers'
+        ));
+    }
+
+
     public function create()
     {
         $roles = self::ROLE_LABELS;
