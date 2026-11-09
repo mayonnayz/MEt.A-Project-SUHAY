@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Volunteer Dashboard</title>
 
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
@@ -28,7 +29,6 @@
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
 
-            {{-- TOTAL --}}
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Total<br>Applications
@@ -38,7 +38,6 @@
                 </h2>
             </div>
 
-            {{-- APPROVED --}}
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Approved<br>Applications
@@ -48,7 +47,6 @@
                 </h2>
             </div>
 
-            {{-- PENDING --}}
             <div class="bg-white border border-gray-300 rounded-xl px-6 py-5 flex justify-between items-center">
                 <p class="text-gray-600 text-sm">
                     Pending<br>Applications
@@ -59,11 +57,8 @@
             </div>
 
         </div>
-
-            {{-- DIVIDER --}}
             <div class="border-t border-gray-400 w-2/3 mx-auto mb-6"></div>
 
-            {{-- ACCOUNT DETAILS CARD --}}
             <div class="bg-white border border-gray-300 rounded-2xl p-8 max-w-2xl mx-auto">
 
                 @if(session('error'))
@@ -78,7 +73,6 @@
                     </div>
                 @endif
 
-                {{-- ICON + TITLE --}}
                 <div class="flex flex-col items-center mb-6">
                     <div class="w-16 h-16 rounded-full border-4 border-[#0e243a] mb-2 overflow-hidden bg-gray-100 flex items-center justify-center">
                         @if(data_get($user, 'profile_picture'))
@@ -130,13 +124,10 @@
                     <h2 class="font-bold text-[#0e243a]">ACCOUNT DETAILS</h2>
                 </div>
 
-                {{-- TABLE --}}
                 <form method="POST" action="/volunteer/update-account">
                     @csrf
 
                     <div class="grid grid-cols-2 text-sm">
-
-                        {{-- First Name --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             First Name
                         </div>
@@ -144,7 +135,6 @@
                             {{ data_get($user, 'first_name') }}
                         </div>
 
-                        {{-- Last Name --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Last Name
                         </div>
@@ -152,7 +142,6 @@
                             {{ data_get($user, 'last_name') }}
                         </div>
 
-                        {{-- Email --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Email
                         </div>
@@ -163,7 +152,6 @@
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Password --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Password
                         </div>
@@ -174,7 +162,6 @@
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Contact --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Contact Number
                         </div>
@@ -187,7 +174,6 @@
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Address --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Address
                         </div>
@@ -198,7 +184,6 @@
                                 class="w-full bg-transparent outline-none">
                         </div>
 
-                        {{-- Birth Date --}}
                         <div class="bg-[#0e243a] text-white px-3 py-2 border">
                             Birth Date
                         </div>
@@ -207,8 +192,6 @@
                         </div>
 
                     </div>
-
-                            {{-- BUTTONS --}}
                         <div class="flex justify-center gap-4 mt-6">
 
                             <button type="submit"

@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Track Activity</title>
 
@@ -56,77 +57,120 @@
             </button>
         </div>
 
-        <!-- Table -->
-        <div class="bg-[#0e243a] p-4 rounded-2xl">
-            <div class="bg-gray-200 rounded-2xl overflow-hidden">
+<!-- Table -->
+<div class="bg-[#0e243a] p-4 rounded-2xl">
+    <div class="bg-gray-200 rounded-2xl overflow-hidden">
 
-                <table class="w-full">
+        <table class="w-full">
 
-                    <thead class="bg-gray-300 text-left">
-                        <tr>
-                            <th class="p-4">#</th>
-                            <th class="p-4">Volunteer</th>
-                            <th class="p-4">Activity</th>
-                            <th class="p-4">Event</th>
-                            <th class="p-4">Time In</th>
-                            <th class="p-4">Time Out</th>
-                            <th class="p-4">Hours</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Actions</th>
-                        </tr>
-                    </thead>
+            <thead class="bg-gray-300 text-left">
+                <tr>
+                    <th class="p-4">#</th>
+                    <th class="p-4">Volunteer</th>
+                    <th class="p-4">Activity</th>
+                    <th class="p-4">Event</th>
+                    <th class="p-4">Time In</th>
+                    <th class="p-4">Time Out</th>
+                    <th class="p-4">Hours</th>
+                    <th class="p-4">Status</th>
+                </tr>
+            </thead>
 
-                    <tbody>
-                        @forelse ($assignments as $item)
-                        <tr class="border-t"
-    data-event="{{ strtolower($item['event']['name'] ?? '') }}"
-    data-name="{{ strtolower(($item['accounts']['first_name'] ?? '') . ' ' . ($item['accounts']['last_name'] ?? '')) }}">
+            <tbody>
 
-    <td class="p-4">{{ $loop->iteration }}</td>
+                @forelse ($assignments as $item)
 
-    <td class="p-4">
-        {{ $item['accounts']['first_name'] ?? '' }}
-        {{ $item['accounts']['last_name'] ?? '' }}
-    </td>
+            <tr
+                class="border-t activity-row cursor-pointer hover:bg-gray-300 transition"
+                data-assignment-id="{{ $item['id'] ?? '' }}"
+                data-event="{{ $item['event']['name'] ?? '' }}"
+                data-name="{{ strtolower(
+                    ($item['accounts']['first_name'] ?? '') . ' ' .
+                    ($item['accounts']['last_name'] ?? '')
+                ) }}"
+                data-account-id="{{ $item['account_id'] ?? '' }}"
+                data-activity-id="{{ $item['activity_id'] ?? '' }}"
+                data-event-date="{{ $item['event']['date'] ?? '' }}"
+                data-time-in="{{ $item['time_in'] ?? '' }}"
+                data-time-out="{{ $item['time_out'] ?? '' }}"
+                data-status="{{ $item['status'] ?? 0 }}"
+            >
+                    <!-- Number -->
+                    <td class="p-4">
+                        {{ $loop->iteration }}
+                    </td>
 
-    <!-- Activity -->
-    <td class="p-4">
-        {{ $item['activity']['name'] ?? 'N/A' }}
-    </td>
 
-    <!-- Event -->
-    <td class="p-4">
-        {{ $item['event']['name'] ?? 'N/A' }}
-    </td>
+                    <!-- Volunteer -->
+                    <td class="p-4">
+                        {{ $item['accounts']['first_name'] ?? '' }}
+                        {{ $item['accounts']['last_name'] ?? '' }}
+                    </td>
 
-    <td class="p-4">{{ $item['time_in'] ?? '-' }}</td>
-    <td class="p-4">{{ $item['time_out'] ?? '-' }}</td>
-    <td class="p-4">{{ $item['total_hours'] ?? '-' }}</td>
 
-    <td class="p-4 font-semibold
-        {{ ($item['status'] ?? 0) == 1 ? 'text-green-600' : 'text-yellow-500' }}">
-        {{ ($item['status'] ?? 0) == 1 ? 'Completed' : 'On Going' }}
-    </td>
+                    <!-- Activity -->
+                    <td class="p-4">
+                        {{ $item['activity']['name'] ?? 'N/A' }}
+                    </td>
 
-    <td class="p-4">
-        <button class="bg-blue-700 text-white px-5 py-2 rounded-full">
-            View
-        </button>
-    </td>
-</tr>
-                        @empty
-                        <tr>
-                            <td colspan="9" class="p-4 text-center text-gray-500">
-                                No activity records found
-                            </td>
-                        </tr>
-                        @endforelse
-                    </tbody>
 
-                </table>
+                    <!-- Event -->
+                    <td class="p-4">
+                        {{ $item['event']['name'] ?? 'N/A' }}
+                    </td>
 
-            </div>
-        </div>
+
+                    <!-- Time In -->
+                    <td class="p-4">
+                        {{ $item['time_in'] ?? '-' }}
+                    </td>
+
+
+                    <!-- Time Out -->
+                    <td class="p-4">
+                        {{ $item['time_out'] ?? '-' }}
+                    </td>
+
+
+                    <!-- Hours -->
+                    <td class="p-4">
+                        {{ $item['total_hours'] ?? '-' }}
+                    </td>
+
+
+                    <!-- Status -->
+                    <td
+                        class="p-4 font-semibold
+                        {{ ($item['status'] ?? 0) == 1
+                            ? 'text-green-600'
+                            : 'text-yellow-500' }}"
+                    >
+                        {{ ($item['status'] ?? 0) == 1
+                            ? 'Completed'
+                            : 'On Going' }}
+                    </td>
+
+                </tr>
+
+                @empty
+
+                <tr>
+                    <td
+                        colspan="8"
+                        class="p-4 text-center text-gray-500"
+                    >
+                        No activity records found
+                    </td>
+                </tr>
+
+                @endforelse
+
+            </tbody>
+
+        </table>
+
+    </div>
+</div>
 
     </div>
 </div>
@@ -134,53 +178,8 @@
 @include('components.log-activity-modal')
 @include('components.logout-modal')
 
-<script>
-function openLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.remove('hidden');
-    modal.classList.add('flex');
-}
+    <script src="{{ asset('js/track-activity.js') }}"></script>
 
-function closeLogActivityModal() {
-    const modal = document.getElementById('logActivityModal');
-    modal.classList.add('hidden');
-    modal.classList.remove('flex');
-}
-</script>
-
-<script>
-function openLogoutModal() {
-    document.getElementById('logoutModal').classList.remove('hidden');
-    document.getElementById('logoutModal').classList.add('flex');
-}
-
-function closeLogoutModal() {
-    document.getElementById('logoutModal').classList.add('hidden');
-}
-</script>
-<script>
-const eventFilter = document.getElementById('activityFilter');
-const searchInput = document.getElementById('searchInput');
-
-function filterTable() {
-    const event = eventFilter.value.toLowerCase();
-    const search = searchInput.value.toLowerCase();
-
-    document.querySelectorAll('tbody tr').forEach(row => {
-
-        const rowEvent = (row.dataset.event || '').toLowerCase();
-        const rowName = (row.dataset.name || '').toLowerCase();
-
-        const matchEvent = event === '' || rowEvent === event;
-        const matchSearch = search === '' || rowName.includes(search);
-
-        row.style.display = (matchEvent && matchSearch) ? '' : 'none';
-    });
-}
-
-eventFilter.addEventListener('change', filterTable);
-searchInput.addEventListener('input', filterTable);
-</script>
 
 </body>
 </html>

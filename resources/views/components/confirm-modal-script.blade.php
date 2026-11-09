@@ -1,32 +1,135 @@
+
 <script>
-let confirmCallback = null;
+    (() => {
+        let confirmCallback = null;
+        let confirmBusy = false;
 
-function showConfirmModal({ title, message, onConfirm }) {
-    document.getElementById('confirmTitle').innerText = title;
-    document.getElementById('confirmMessage').innerText = message;
+        function showConfirmModal({
+            title = 'Confirm Action',
+            message = 'Are you sure you want to continue?',
+            confirmText = 'Confirm',
+            cancelText = 'Cancel',
+            showCancel = true,
+            onConfirm = null
+        } = {}) {
+            const modal = document.getElementById('confirmModal');
+            const titleElement = document.getElementById('confirmTitle');
+            const messageElement = document.getElementById('confirmMessage');
+            const yesButton = document.getElementById('confirmYesBtn');
+            const cancelButton = document.getElementById('confirmCancelBtn');
 
-    confirmCallback = onConfirm;
+            if (!modal || !titleElement || !messageElement || !yesButton || !cancelButton) {
+                console.error('Confirmation modal elements are missing.');
+                return;
+            }
 
-    document.getElementById('confirmModal').classList.remove('hidden');
-    document.getElementById('confirmModal').classList.add('flex');
-}
+            if (confirmBusy) return;
 
-function closeConfirmModal() {
-    document.getElementById('confirmModal').classList.add('hidden');
-    document.getElementById('confirmModal').classList.remove('flex');
-}
+            confirmCallback = onConfirm;
 
-document.addEventListener("DOMContentLoaded", function () {
-    const btn = document.getElementById('confirmYesBtn');
+            titleElement.textContent = title;
+            messageElement.textContent = message;
+            yesButton.textContent = confirmText;
+            cancelButton.textContent = cancelText;
 
-    if (!btn) {
-        console.error("confirmYesBtn not found");
-        return;
-    }
+            cancelButton.classList.toggle('hidden', !showCancel);
 
-    btn.addEventListener('click', function () {
-        if (confirmCallback) confirmCallback();
-        closeConfirmModal();
+            yesButton.disabled = false;
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeConfirmModal() {
+            if (confirmBusy) return;
+
+            const modal = document.getElementById('confirmModal');
+            const yesButton = document.getElementById('confirmYesBtn');
+
+            modal?.classList.add('hidden');
+            modal?.classList.remove('flex');
+
+            confirmCallback = null;
+
+            if (yesButton) {
+                yesButton.disabled = false;
+                yesButton.textContent = 'Confirm';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const yesButton = document.getElementById('confirmYesBtn');
+
+            if (!yesButton) {
+                console.error('confirmYesBtn not found.');
+                return;
+            }
+
+            yesButton.addEventListener('click', async function () {
+                if (!confirmCallback || confirmBusy) return;
+
+                const callback = confirmCallback;
+
+                confirmBusy = true;
+                yesButton.disabled = true;
+                yesButton.textContent = 'Processing...';
+
+                try {
+                    const result = await callback();
+
+                    if (result === true || result?.success === true) {
+                        const modal = document.getElementById('confirmModal');
+
+                        modal?.classList.add('hidden');
+                        modal?.classList.remove('flex');
+
+                        confirmCallback = null;
+                    } else {
+                        yesButton.disabled = false;
+                        yesButton.textContent = 'Try Again';
+                    }
+                } catch (error) {
+                    console.error('Confirmation action failed:', error);
+
+                    yesButton.disabled = false;
+                    yesButton.textContent = 'Try Again';
+
+                    document.getElementById('confirmTitle').textContent =
+                        'Something Went Wrong';
+
+                    document.getElementById('confirmMessage').textContent =
+                        'The action could not be completed. Please try again.';
+                } finally {
+                    confirmBusy = false;
+
+                    if (!confirmCallback) {
+                        yesButton.disabled = false;
+                        yesButton.textContent = 'Confirm';
+                    }
+                }
+            });
+        });
+
+        window.showConfirmModal = showConfirmModal;
+        window.closeConfirmModal = closeConfirmModal;
+    })();
+
+
+    
+window.confirmUpdatePostAction = function (button) {
+    const form = button.closest('form');
+
+    if (!form) return;
+
+    window.showConfirmModal({
+        title: form.dataset.confirmTitle || 'Confirm Action',
+        message: form.dataset.confirmMessage || 'Are you sure?',
+        confirmText: form.dataset.confirmText || 'Confirm',
+        onConfirm: async () => {
+            form.submit();
+            return true;
+        }
     });
-});
+};
+
 </script>

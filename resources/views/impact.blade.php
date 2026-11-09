@@ -7,7 +7,7 @@
 
     <link rel="icon" type="image/png" href="{{ asset('images/suhayLogo.png') }}">
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
 
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
@@ -17,209 +17,902 @@
         body {
             font-family: 'Poppins', sans-serif;
         }
-        
-        .hover-scale {
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        }
-        
-        .hover-scale:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-        }
-        
+
         html {
             scroll-behavior: smooth;
+        }
+
+        .post-card {
+            transition: all .3s cubic-bezier(.4, 0, .2, 1);
+        }
+
+        .post-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 40px -12px rgba(14, 36, 58, .18);
+        }
+
+        .chip {
+            transition: all .2s ease;
+        }
+
+        .chip.active {
+            background: #0e243a;
+            color: #fff;
+            border-color: #0e243a;
+        }
+
+        .clamp-4 {
+            display: -webkit-box;
+            -webkit-line-clamp: 4;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .post-gallery img {
+            transition: transform .3s ease;
+        }
+
+        .post-gallery a:hover img {
+            transform: scale(1.03);
+        }
+
+        .gallery-trigger {
+            cursor: zoom-in;
+        }
+
+        /* Lightbox */
+        #lightbox {
+            transition: opacity .2s ease;
+        }
+
+        #lightbox.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #lbImg {
+            transition: opacity .2s ease;
         }
     </style>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 text-[#0e243a]">
 
     @include('components.navbar')
 
-    <section class="relative h-[420px] w-full" data-aos="fade-up" data-aos-duration="1000">
+    @php
+        $posts = collect($posts ?? []);
+        $ngos = collect($ngos ?? []);
 
-        <img src="{{ asset('images/hero.jpg') }}" 
-             class="w-full h-full object-cover">
+        // Supports arrays and objects.
+        $ngoName = fn($p) =>
+            data_get($p, 'ngo_name')
+            ?? data_get($p, 'ngo.ngo_name')
+            ?? data_get($p, 'ngo.name')
+            ?? data_get($p, 'ngo_profile.ngo_name')
+            ?? data_get($p, 'ngo_profile.name')
+            ?? 'SUHAY Partner NGO';
 
-        <div class="absolute inset-0 
-                    bg-gradient-to-r 
-                    from-[#0e243a] via-[#0e243a]/80 to-transparent">
-        </div>
+        $ngoLogo = fn($p) =>
+            data_get($p, 'ngo_logo')
+            ?? data_get($p, 'ngo.logo')
+            ?? data_get($p, 'ngo_profile.logo');
+    @endphp
+
+    <section
+        class="relative h-[460px] w-full overflow-hidden"
+        data-aos="fade-in"
+        data-aos-duration="1000"
+    >
+        <img
+            src="{{ asset('images/hero.jpg') }}"
+            class="w-full h-full object-cover"
+            alt="SUHAY community impact"
+        >
+
+        <div class="absolute inset-0 bg-gradient-to-r from-[#0e243a] via-[#0e243a]/85 to-[#0e243a]/20"></div>
 
         <div class="absolute inset-0 flex items-center">
-            <div class="px-8 md:px-16 max-w-xl">
-                <h1 class="text-5xl font-extrabold text-white mb-4">
-                    Our Impact
+            <div class="px-8 md:px-16 max-w-3xl">
+
+                <span class="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#f2c94c]/15 border border-[#f2c94c]/40 text-[#f2c94c] text-sm font-semibold mb-5">
+                    <span class="w-2 h-2 rounded-full bg-[#f2c94c] animate-pulse"></span>
+                    Transparency Board
+                </span>
+
+                <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-4 leading-tight">
+                    Our <span class="text-[#f2c94c]">Impact</span>
                 </h1>
 
-                <p class="text-xl text-[#f2c94c]">
-                    See how your support is transforming lives and empowering communities.
+                <p class="text-lg md:text-xl text-gray-200 leading-relaxed">
+                    Every update, donation drive, and outreach — posted directly by our partner NGOs.
+                    See exactly where your support goes.
+                </p>
+
+                <div class="mt-8 flex flex-wrap gap-3">
+                    <a
+                        href="#feed"
+                        class="px-7 py-3 rounded-full bg-[#f2c94c] text-[#0e243a] font-bold shadow-lg hover:-translate-y-0.5 transition"
+                    >
+                        View Latest Updates
+                    </a>
+
+                    <a
+                        href="/donate"
+                        class="px-7 py-3 rounded-full border-2 border-white/70 text-white font-semibold hover:bg-white hover:text-[#0e243a] transition"
+                    >
+                        Donate Now
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+
+    <section id="feed" class="py-16 px-6">
+        <div class="max-w-6xl mx-auto">
+
+            <div class="text-center mb-10" data-aos="fade-up">
+                <h2 class="text-3xl md:text-4xl font-bold">NGO Updates</h2>
+                <p class="text-gray-600 mt-2">
+                    Real, unfiltered posts from the organizations on SUHAY
                 </p>
             </div>
-        </div>
 
+            {{-- SEARCH AND NGO FILTERS --}}
+
+            <div
+                class="bg-white rounded-2xl shadow p-4 md:p-5 mb-10"
+                data-aos="fade-up"
+            >
+                <div class="flex flex-col md:flex-row md:items-center gap-4">
+
+                    <div class="relative md:w-72 shrink-0">
+                        <svg
+                            class="w-5 h-5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                            fill="none"
+                            stroke="currentColor"
+                            stroke-width="2"
+                            viewBox="0 0 24 24"
+                        >
+                            <circle cx="11" cy="11" r="7"/>
+                            <path d="m21 21-4.3-4.3"/>
+                        </svg>
+
+                        <input
+                            id="searchInput"
+                            type="text"
+                            placeholder="Search updates..."
+                            class="w-full pl-10 pr-4 py-2.5 rounded-full bg-gray-100 border border-transparent focus:border-[#f2c94c] focus:bg-white outline-none text-sm"
+                        >
+                    </div>
+
+                    <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1">
+
+                        <button
+                            type="button"
+                            class="chip active shrink-0 px-4 py-2 rounded-full border border-gray-200 text-sm font-semibold"
+                            data-ngo="all"
+                        >
+                            All NGOs
+                        </button>
+
+                        @foreach ($posts->map($ngoName)->unique()->values() as $name)
+                            <button
+                                type="button"
+                                class="chip shrink-0 px-4 py-2 rounded-full border border-gray-200 text-sm font-semibold"
+                                data-ngo="{{ Str::slug($name) }}"
+                            >
+                                {{ $name }}
+                            </button>
+                        @endforeach
+
+                    </div>
+                </div>
+            </div>
+
+
+            <div class="grid lg:grid-cols-3 gap-8">
+
+                <div class="lg:col-span-2 space-y-6" id="feedList">
+
+                    @forelse ($posts as $i => $post)
+
+                        @php
+                            $name = $ngoName($post);
+                            $logo = $ngoLogo($post);
+
+                            $title = data_get($post, 'title', 'Untitled Update');
+                            $desc = data_get($post, 'description', '');
+
+                            // Get every image associated with this post.
+                            $rawImages = data_get($post, 'images', []);
+
+                            if (is_string($rawImages)) {
+                                $rawImages = [$rawImages];
+                            }
+
+                            $images = collect($rawImages ?? [])
+                                ->filter(fn($image) => is_string($image) && trim($image) !== '')
+                                ->unique()
+                                ->values()
+                                ->all();
+
+                            // Backward compatibility with older controller data.
+                            if (empty($images)) {
+                                $fallbackImage =
+                                    data_get($post, 'image_url')
+                                    ?? data_get($post, 'image');
+
+                                if (is_string($fallbackImage) && trim($fallbackImage) !== '') {
+                                    $images = [$fallbackImage];
+                                }
+                            }
+
+                            // Use the actual Supabase date_created field.
+                            $date = data_get($post, 'date_created')
+                                ?? data_get($post, 'created_at');
+
+                            $when = null;
+                            $full = null;
+
+                            if ($date) {
+                                try {
+                                    $parsedDate = \Carbon\Carbon::parse($date);
+
+                                    $when = $parsedDate->diffForHumans();
+                                    $full = $parsedDate->format('F j, Y \a\t g:i A');
+                                } catch (\Throwable $e) {
+                                    $when = null;
+                                    $full = null;
+                                }
+                            }
+
+                            $searchText = mb_strtolower(
+                                $name . ' ' . $title . ' ' . $desc
+                            );
+                        @endphp
+
+                        <article
+                            class="post-card bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden feed-item"
+                            data-ngo="{{ Str::slug($name) }}"
+                            data-search="{{ $searchText }}"
+                            data-title="{{ $title }}"
+                            data-images="{{ json_encode($images) }}"
+                            data-aos="fade-up"
+                            data-aos-delay="{{ min($i, 4) * 80 }}"
+                        >
+
+                            <div class="flex items-start justify-between gap-3 p-5 pb-3">
+
+                                <div class="flex items-center gap-3 min-w-0">
+
+                                    @if ($logo)
+                                        <img
+                                            src="{{ $logo }}"
+                                            alt="{{ $name }}"
+                                            class="w-11 h-11 shrink-0 rounded-full object-cover border border-gray-200"
+                                            loading="lazy"
+                                            onerror="this.style.display='none';"
+                                        >
+                                    @else
+                                        <div class="w-11 h-11 shrink-0 rounded-full bg-[#0e243a] text-[#f2c94c] flex items-center justify-center font-bold">
+                                            {{ strtoupper(mb_substr($name, 0, 1)) }}
+                                        </div>
+                                    @endif
+
+                                    <div class="min-w-0">
+
+                                        <div class="flex items-center gap-1.5 flex-wrap">
+                                            <h3 class="font-bold leading-tight">
+                                                {{ $name }}
+                                            </h3>
+
+                                            <svg
+                                                class="w-4 h-4 text-[#f2c94c] shrink-0"
+                                                viewBox="0 0 24 24"
+                                                fill="currentColor"
+                                                title="Verified partner"
+                                            >
+                                                <path d="M12 2l2.4 2.1 3.2-.3 1 3 2.8 1.6-.9 3.1.9 3.1-2.8 1.6-1 3-3.2-.3L12 22l-2.4-2.1-3.2.3-1-3L2.6 15.6l.9-3.1-.9-3.1 2.8-1.6 1-3 3.2.3L12 2zm-1.2 13.4l5-5-1.4-1.4-3.6 3.6-1.6-1.6-1.4 1.4 3 3z"/>
+                                            </svg>
+                                        </div>
+
+                                        @if ($when)
+                                            <p
+                                                class="text-xs text-gray-500 mt-1"
+                                                title="{{ $full }}"
+                                            >
+                                                {{ $when }}
+                                            </p>
+                                        @else
+                                            <p class="text-xs text-gray-400 mt-1">
+                                                Date unavailable
+                                            </p>
+                                        @endif
+
+                                    </div>
+                                </div>
+
+                                <span class="shrink-0 text-xs font-semibold px-3 py-1 rounded-full bg-green-100 text-green-700">
+                                    Verified Update
+                                </span>
+
+                            </div>
+
+                            <div class="px-5 pb-4">
+
+                                <h4 class="text-xl font-bold mb-1.5">
+                                    {{ $title }}
+                                </h4>
+
+                                <p class="text-gray-600 leading-relaxed clamp-4 post-desc">
+                                    {{ $desc }}
+                                </p>
+
+                                @if (mb_strlen((string) $desc) > 220)
+                                    <button
+                                        type="button"
+                                        class="toggle-more mt-1 text-sm font-semibold text-[#c9a227] hover:underline"
+                                    >
+                                        Read more
+                                    </button>
+                                @endif
+
+                            </div>
+
+                            @if (count($images) === 1)
+
+                                <div class="w-full overflow-hidden bg-gray-100">
+                                    <button
+                                        type="button"
+                                        class="gallery-trigger block w-full"
+                                        data-index="0"
+                                        aria-label="View image for {{ $title }}"
+                                    >
+                                        <img
+                                            src="{{ $images[0] }}"
+                                            alt="{{ $title }}"
+                                            loading="lazy"
+                                            class="block w-full max-h-[480px] object-cover"
+                                            onerror="console.error('Post image failed:', this.src); this.closest('div').classList.add('hidden');"
+                                        >
+                                    </button>
+                                </div>
+
+                            @elseif (count($images) > 1)
+
+                                <div class="post-gallery grid grid-cols-2 gap-0.5">
+
+                                    @foreach (array_slice($images, 0, 4) as $k => $img)
+
+                                        <a
+                                            href="{{ $img }}"
+                                            data-index="{{ $k }}"
+                                            aria-label="View image {{ $k + 1 }} for {{ $title }}"
+                                            class="gallery-trigger relative block aspect-[4/3] overflow-hidden bg-gray-100 {{ count($images) === 3 && $k === 0 ? 'col-span-2' : '' }}"
+                                        >
+
+                                            <img
+                                                src="{{ $img }}"
+                                                alt="{{ $title }} - Image {{ $k + 1 }}"
+                                                loading="lazy"
+                                                class="w-full h-full object-cover"
+                                                onerror="console.error('Post image failed:', this.src); this.closest('a').classList.add('hidden');"
+                                            >
+
+                                            @if ($k === 3 && count($images) > 4)
+                                                <div class="absolute inset-0 bg-black/50 flex items-center justify-center text-white text-2xl font-bold pointer-events-none">
+                                                    +{{ count($images) - 4 }}
+                                                </div>
+                                            @endif
+
+                                        </a>
+
+                                    @endforeach
+
+                                </div>
+
+                            @endif
+
+                            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-5 py-3 border-t border-gray-100 text-sm text-gray-500">
+
+                                <span>
+                                    Posted by {{ $name }}
+                                </span>
+
+                                <a
+                                    href="/donate"
+                                    class="font-semibold text-[#0e243a] hover:text-[#c9a227] transition"
+                                >
+                                    Support this NGO →
+                                </a>
+
+                            </div>
+
+                        </article>
+
+                    @empty
+
+                        <div class="bg-white rounded-2xl shadow p-12 text-center">
+
+                            <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-[#f2c94c]/20 flex items-center justify-center text-3xl">
+                                📰
+                            </div>
+
+                            <h3 class="text-xl font-bold mb-1">
+                                No updates yet
+                            </h3>
+
+                            <p class="text-gray-500">
+                                Partner NGOs haven't posted anything yet. Check back soon!
+                            </p>
+
+                        </div>
+
+                    @endforelse
+
+                    <div
+                        id="noResults"
+                        class="hidden bg-white rounded-2xl shadow p-10 text-center"
+                    >
+                        <h3 class="text-lg font-bold mb-1">
+                            No matching updates
+                        </h3>
+
+                        <p class="text-gray-500 text-sm">
+                            Try a different keyword or select another NGO.
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <aside class="space-y-6 lg:sticky lg:top-6 self-start">
+                    <div
+                        class="bg-white rounded-2xl shadow-md p-6"
+                        data-aos="fade-left"
+                    >
+                        <h3 class="font-bold text-lg mb-4">
+                            Participating NGOs
+                        </h3>
+
+                        <ul class="space-y-3">
+
+                            @forelse ($ngos as $ngo)
+
+                                @php
+                                    $n = data_get($ngo, 'ngo_name')
+                                        ?? data_get($ngo, 'name')
+                                        ?? 'NGO';
+
+                                    $l = data_get($ngo, 'logo');
+                                @endphp
+
+                                <li>
+                                    <button
+                                        type="button"
+                                        class="side-ngo w-full flex items-center gap-3 text-left hover:bg-gray-50 rounded-xl p-2 transition"
+                                        data-ngo="{{ Str::slug($n) }}"
+                                    >
+
+                                        @if ($l)
+
+                                            <img
+                                                src="{{ $l }}"
+                                                class="w-9 h-9 rounded-full object-cover shrink-0"
+                                                alt="{{ $n }}"
+                                                loading="lazy"
+                                                onerror="this.style.display='none';"
+                                            >
+
+                                        @else
+
+                                            <span class="w-9 h-9 shrink-0 rounded-full bg-[#0e243a] text-[#f2c94c] flex items-center justify-center text-sm font-bold">
+                                                {{ strtoupper(mb_substr($n, 0, 1)) }}
+                                            </span>
+
+                                        @endif
+
+                                        <span class="font-medium text-sm">
+                                            {{ $n }}
+                                        </span>
+
+                                    </button>
+                                </li>
+
+                            @empty
+
+                                <li class="text-sm text-gray-500">
+                                    NGOs will appear here once registered.
+                                </li>
+
+                            @endforelse
+
+                        </ul>
+                    </div>
+
+                    <div
+                        class="rounded-2xl p-6 bg-gradient-to-br from-[#0e243a] to-[#16385a] text-white shadow-md"
+                        data-aos="fade-left"
+                        data-aos-delay="100"
+                    >
+
+                        <h3 class="font-bold text-lg mb-2">
+                            Why transparency?
+                        </h3>
+
+                        <p class="text-sm text-gray-200 leading-relaxed mb-4">
+                            Every post here comes directly from verified NGOs on SUHAY, so donors and volunteers can see how help reaches communities.
+                        </p>
+
+                        <ul class="text-sm space-y-2 text-gray-100">
+                            <li class="flex gap-2">
+                                <span class="text-[#f2c94c]">✔</span>
+                                Posted by verified NGOs
+                            </li>
+
+                            <li class="flex gap-2">
+                                <span class="text-[#f2c94c]">✔</span>
+                                Updated in real time
+                            </li>
+
+                            <li class="flex gap-2">
+                                <span class="text-[#f2c94c]">✔</span>
+                                Open to everyone
+                            </li>
+                        </ul>
+
+                    </div>
+
+                </aside>
+
+            </div>
+        </div>
     </section>
 
-    <section class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto grid md:grid-cols-4 gap-8 text-center">
-            
-            <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                <h2 class="text-4xl font-extrabold text-[#f2c94c] group">
-                    <span class="relative inline-block">
-                        10,245<span class="text-sm">+</span>
-                        <span class="absolute -bottom-1 left-0 w-0 h-1 bg-[#f2c94c] group-hover:w-full transition-all duration-500"></span>
-                    </span>
-                </h2>
-                <p class="text-gray-600 mt-2 font-medium">Lives Impacted</p>
-            </div>
 
-            <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                <h2 class="text-4xl font-extrabold text-[#f2c94c] group">
-                    <span class="relative inline-block">
-                        ₱1.2M<span class="text-sm">+</span>
-                        <span class="absolute -bottom-1 left-0 w-0 h-1 bg-[#f2c94c] group-hover:w-full transition-all duration-500"></span>
-                    </span>
-                </h2>
-                <p class="text-gray-600 mt-2 font-medium">Donations Raised</p>
-            </div>
-
-            <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
-                <h2 class="text-4xl font-extrabold text-[#f2c94c] group">
-                    <span class="relative inline-block">
-                        3,500<span class="text-sm">+</span>
-                        <span class="absolute -bottom-1 left-0 w-0 h-1 bg-[#f2c94c] group-hover:w-full transition-all duration-500"></span>
-                    </span>
-                </h2>
-                <p class="text-gray-600 mt-2 font-medium">Relief Goods Distributed</p>
-            </div>
-
-            <div data-aos="fade-up" data-aos-duration="800" data-aos-delay="400">
-                <h2 class="text-4xl font-extrabold text-[#f2c94c] group">
-                    <span class="relative inline-block">
-                        25<span class="text-sm">+</span>
-                        <span class="absolute -bottom-1 left-0 w-0 h-1 bg-[#f2c94c] group-hover:w-full transition-all duration-500"></span>
-                    </span>
-                </h2>
-                <p class="text-gray-600 mt-2 font-medium">Partner NGOs</p>
-            </div>
-
-        </div>
-    </section>
-
-    <section class="py-16 bg-gray-100">
-        <div class="max-w-7xl mx-auto text-center mb-10" data-aos="fade-up" data-aos-duration="800">
-            <h2 class="text-4xl font-bold text-[#0e243a]">Success Stories</h2>
-            <p class="text-gray-600 mt-2">Real stories from communities we've helped</p>
-        </div>
-
-        <div class="max-w-7xl mx-auto grid md:grid-cols-3 gap-8 px-6">
-            
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover-scale cursor-pointer border border-gray-100" 
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                <div class="flex items-start space-x-3 mb-4">
-                    <div class="w-2 h-12 bg-gradient-to-b from-[#f2c94c] to-[#f2c94c]/70 rounded-full"></div>
-                    <p class="text-gray-600 italic flex-1">
-                        "Through Suhay, we were able to provide meals to over 200 families in need."
-                    </p>
-                </div>
-                <h4 class="font-semibold text-[#0e243a] text-lg">– TamsNGO</h4>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover-scale cursor-pointer border border-gray-100" 
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                <div class="flex items-start space-x-3 mb-4">
-                    <div class="w-2 h-12 bg-gradient-to-b from-[#f2c94c] to-[#f2c94c]/70 rounded-full"></div>
-                    <p class="text-gray-600 italic flex-1">
-                        "Donations helped us rebuild homes after the typhoon."
-                    </p>
-                </div>
-                <h4 class="font-semibold text-[#0e243a] text-lg">– SampleNGO</h4>
-            </div>
-
-            <div class="bg-white p-8 rounded-2xl shadow-lg hover-scale cursor-pointer border border-gray-100" 
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="300">
-                <div class="flex items-start space-x-3 mb-4">
-                    <div class="w-2 h-12 bg-gradient-to-b from-[#f2c94c] to-[#f2c94c]/70 rounded-full"></div>
-                    <p class="text-gray-600 italic flex-1">
-                        "Volunteers made our outreach programs successful and impactful."
-                    </p>
-                </div>
-                <h4 class="font-semibold text-[#0e243a] text-lg">– Community Org</h4>
-            </div>
-
-        </div>
-    </section>
-
-    <section class="py-16 bg-white">
-        <div class="max-w-7xl mx-auto text-center mb-10" data-aos="fade-up" data-aos-duration="800">
-            <h2 class="text-4xl font-bold text-[#0e243a]">NGO Contributions</h2>
-        </div>
-
-        <div class="max-w-5xl mx-auto space-y-6 px-6">
-            
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-2xl shadow-lg hover-scale cursor-pointer border border-gray-200" 
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="100">
-                <div class="flex items-center space-x-4 mb-4">
-                    <div class="w-3 h-3 bg-[#f2c94c] rounded-full"></div>
-                    <h3 class="text-2xl font-bold text-[#0e243a]">TamsNGO</h3>
-                </div>
-                <div class="space-y-2">
-                    <p class="text-gray-700 font-medium flex items-center">
-                        <span class="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3">✔</span>
-                        500 families helped
-                    </p>
-                    <p class="text-gray-700 font-medium flex items-center">
-                        <span class="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3">✔</span>
-                        3 outreach programs completed
-                    </p>
-                </div>
-            </div>
-
-            <div class="bg-gradient-to-r from-gray-50 to-gray-100 p-8 rounded-2xl shadow-lg hover-scale cursor-pointer border border-gray-200" 
-                 data-aos="fade-up" data-aos-duration="800" data-aos-delay="200">
-                <div class="flex items-center space-x-4 mb-4">
-                    <div class="w-3 h-3 bg-[#f2c94c] rounded-full"></div>
-                    <h3 class="text-2xl font-bold text-[#0e243a]">SampleNGO</h3>
-                </div>
-                <div class="space-y-2">
-                    <p class="text-gray-700 font-medium flex items-center">
-                        <span class="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3">✔</span>
-                        200 volunteers mobilized
-                    </p>
-                    <p class="text-gray-700 font-medium flex items-center">
-                        <span class="w-5 h-5 bg-green-400 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3">✔</span>
-                        1,000 relief goods distributed
-                    </p>
-                </div>
-            </div>
-
-        </div>
-    </section>
-
-    <section class="py-20 bg-[#0e243a] text-center text-white" 
-             data-aos="fade-up" data-aos-duration="1000">
+    <section
+        class="py-20 bg-[#0e243a] text-center text-white"
+        data-aos="fade-up"
+        data-aos-duration="1000"
+    >
         <div class="max-w-4xl mx-auto px-6">
-            <h2 class="text-5xl font-bold mb-6 text-white">
+
+            <h2 class="text-4xl md:text-5xl font-bold mb-6">
                 Be Part of the Impact
             </h2>
-            <p class="mb-8 text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
+
+            <p class="mb-8 text-lg md:text-xl text-gray-200 max-w-2xl mx-auto leading-relaxed">
                 Join us in making a difference in the lives of others.
             </p>
 
-            <a href="/donate" 
-               class="inline-flex items-center px-12 py-4 rounded-full font-bold text-lg bg-[#f2c94c] hover:bg-[#f2c94c]/90 text-[#0e243a] shadow-xl hover:shadow-2xl hover:-translate-y-1 transform transition-all duration-300 hover:scale-[1.02]">
+            <a
+                href="/donate"
+                class="inline-flex items-center px-12 py-4 rounded-full font-bold text-lg bg-[#f2c94c] hover:bg-[#f2c94c]/90 text-[#0e243a] shadow-xl hover:shadow-2xl hover:-translate-y-1 transform transition-all duration-300"
+            >
                 Donate Now
             </a>
+
         </div>
     </section>
 
+    <div
+        id="lightbox"
+        class="fixed inset-0 z-[100] bg-black/90 opacity-0 pointer-events-none flex items-center justify-center"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Image viewer"
+        aria-hidden="true"
+    >
+        <button
+            type="button"
+            id="lbClose"
+            aria-label="Close"
+            class="absolute top-4 right-4 w-11 h-11 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M6 6l12 12M18 6L6 18" stroke-linecap="round"/>
+            </svg>
+        </button>
+
+        <div
+            id="lbCounter"
+            class="absolute top-5 left-5 text-white/90 text-sm font-semibold bg-white/10 px-3 py-1 rounded-full z-10"
+        ></div>
+
+        <button
+            type="button"
+            id="lbPrev"
+            aria-label="Previous image"
+            class="absolute left-3 md:left-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M15 18l-6-6 6-6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <button
+            type="button"
+            id="lbNext"
+            aria-label="Next image"
+            class="absolute right-3 md:right-6 top-1/2 -translate-y-1/2 w-11 h-11 md:w-12 md:h-12 rounded-full bg-white/10 hover:bg-white/25 text-white flex items-center justify-center transition z-10"
+        >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+
+        <figure id="lbStage" class="max-w-[92vw] max-h-[88vh] flex flex-col items-center">
+            <img
+                id="lbImg"
+                src=""
+                alt=""
+                class="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl select-none"
+                draggable="false"
+            >
+            <figcaption id="lbCaption" class="mt-3 text-white/90 text-sm text-center px-4"></figcaption>
+        </figure>
+    </div>
+
+
     <script>
-        AOS.init({
-            duration: 800,
-            once: true,
-            offset: 100,
-            easing: 'ease-out-cubic'
+        document.addEventListener('DOMContentLoaded', function () {
+            if (typeof AOS !== 'undefined') {
+                AOS.init({
+                    duration: 800,
+                    once: true,
+                    offset: 100,
+                    easing: 'ease-out-cubic'
+                });
+            }
+
+            const items = document.querySelectorAll('.feed-item');
+            const chips = document.querySelectorAll('.chip');
+            const search = document.getElementById('searchInput');
+            const noRes = document.getElementById('noResults');
+
+            let activeNgo = 'all';
+
+
+            function applyFilters() {
+                const q = (search?.value || '').trim().toLowerCase();
+                let visible = 0;
+
+                items.forEach(el => {
+                    const okNgo =
+                        activeNgo === 'all' ||
+                        el.dataset.ngo === activeNgo;
+
+                    const okQ =
+                        !q ||
+                        (el.dataset.search || '').includes(q);
+
+                    const show = okNgo && okQ;
+
+                    el.classList.toggle('hidden', !show);
+
+                    if (show) {
+                        visible++;
+                    }
+                });
+
+                if (noRes) {
+                    noRes.classList.toggle(
+                        'hidden',
+                        visible > 0 || items.length === 0
+                    );
+                }
+
+                if (typeof AOS !== 'undefined') {
+                    AOS.refreshHard();
+                }
+            }
+
+            function setNgo(slug) {
+                activeNgo = slug;
+
+                chips.forEach(chip => {
+                    chip.classList.toggle(
+                        'active',
+                        chip.dataset.ngo === slug
+                    );
+                });
+
+                applyFilters();
+            }
+
+            chips.forEach(chip => {
+                chip.addEventListener('click', function () {
+                    setNgo(this.dataset.ngo);
+                });
+            });
+
+            document.querySelectorAll('.side-ngo').forEach(button => {
+                button.addEventListener('click', function () {
+                    setNgo(this.dataset.ngo);
+
+                    document.getElementById('feed')?.scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                });
+            });
+
+            search?.addEventListener('input', applyFilters);
+
+
+            document.querySelectorAll('.toggle-more').forEach(button => {
+                button.addEventListener('click', function () {
+                    const desc = this.previousElementSibling;
+
+                    if (!desc) return;
+
+                    const expanded = desc.classList.toggle('clamp-4') === false;
+
+                    this.textContent = expanded
+                        ? 'Show less'
+                        : 'Read more';
+                });
+            });
+
+            const lb = document.getElementById('lightbox');
+            const lbImg = document.getElementById('lbImg');
+            const lbCounter = document.getElementById('lbCounter');
+            const lbCaption = document.getElementById('lbCaption');
+            const lbPrev = document.getElementById('lbPrev');
+            const lbNext = document.getElementById('lbNext');
+            const lbClose = document.getElementById('lbClose');
+            const lbStage = document.getElementById('lbStage');
+
+            let lbImages = [];
+            let lbIndex = 0;
+            let lbTitle = '';
+            let lbLastFocus = null;
+
+            function isLightboxOpen() {
+                return lb.classList.contains('is-open');
+            }
+
+            function preload(i) {
+                if (!lbImages.length) return;
+                const idx = (i + lbImages.length) % lbImages.length;
+                const img = new Image();
+                img.src = lbImages[idx];
+            }
+
+            function renderLightbox() {
+                const total = lbImages.length;
+
+                lbImg.style.opacity = '0';
+                lbImg.onload = () => { lbImg.style.opacity = '1'; };
+                lbImg.onerror = () => { lbImg.style.opacity = '1'; };
+                lbImg.src = lbImages[lbIndex];
+                lbImg.alt = lbTitle + ' - Image ' + (lbIndex + 1);
+
+                lbCaption.textContent = lbTitle;
+                lbCounter.textContent = (lbIndex + 1) + ' / ' + total;
+
+                const multiple = total > 1;
+                lbPrev.classList.toggle('hidden', !multiple);
+                lbNext.classList.toggle('hidden', !multiple);
+                lbCounter.classList.toggle('hidden', !multiple);
+
+                if (multiple) {
+                    preload(lbIndex + 1);
+                    preload(lbIndex - 1);
+                }
+            }
+
+            function openLightbox(images, index, title) {
+                if (!images.length) return;
+
+                lbImages = images;
+                lbIndex = Math.min(Math.max(index, 0), images.length - 1);
+                lbTitle = title || '';
+                lbLastFocus = document.activeElement;
+
+                renderLightbox();
+
+                lb.classList.add('is-open');
+                lb.setAttribute('aria-hidden', 'false');
+                document.body.style.overflow = 'hidden';
+                lbClose.focus();
+            }
+
+            function closeLightbox() {
+                lb.classList.remove('is-open');
+                lb.setAttribute('aria-hidden', 'true');
+                document.body.style.overflow = '';
+                lbImg.src = '';
+
+                if (lbLastFocus && typeof lbLastFocus.focus === 'function') {
+                    lbLastFocus.focus();
+                }
+            }
+
+            function showNext() {
+                if (lbImages.length < 2) return;
+                lbIndex = (lbIndex + 1) % lbImages.length;
+                renderLightbox();
+            }
+
+            function showPrev() {
+                if (lbImages.length < 2) return;
+                lbIndex = (lbIndex - 1 + lbImages.length) % lbImages.length;
+                renderLightbox();
+            }
+
+            document.addEventListener('click', function (e) {
+                const trigger = e.target.closest('.gallery-trigger');
+                if (!trigger) return;
+
+                const article = trigger.closest('.feed-item');
+                if (!article) return;
+
+                e.preventDefault();
+
+                let images = [];
+                try {
+                    images = JSON.parse(article.dataset.images || '[]');
+                } catch (err) {
+                    images = [];
+                }
+
+                openLightbox(
+                    images,
+                    parseInt(trigger.dataset.index || '0', 10),
+                    article.dataset.title || ''
+                );
+            });
+
+            lbClose.addEventListener('click', closeLightbox);
+            lbNext.addEventListener('click', showNext);
+            lbPrev.addEventListener('click', showPrev);
+            lb.addEventListener('click', function (e) {
+                if (e.target === lb || e.target === lbStage) {
+                    closeLightbox();
+                }
+            });
+
+            document.addEventListener('keydown', function (e) {
+                if (!isLightboxOpen()) return;
+
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowRight') {
+                    showNext();
+                } else if (e.key === 'ArrowLeft') {
+                    showPrev();
+                }
+            });
+
+            let touchStartX = 0;
+            let touchStartY = 0;
+
+            lb.addEventListener('touchstart', function (e) {
+                touchStartX = e.changedTouches[0].clientX;
+                touchStartY = e.changedTouches[0].clientY;
+            }, { passive: true });
+
+            lb.addEventListener('touchend', function (e) {
+                const dx = e.changedTouches[0].clientX - touchStartX;
+                const dy = e.changedTouches[0].clientY - touchStartY;
+
+                if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy)) {
+                    dx < 0 ? showNext() : showPrev();
+                }
+            }, { passive: true });
+
         });
     </script>
 

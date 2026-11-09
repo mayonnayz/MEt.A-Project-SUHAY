@@ -9,7 +9,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        body { font-family: 'Poppins', sans-serif; }
+        body {
+            font-family: 'Poppins', sans-serif;
+        }
     </style>
 </head>
 
@@ -22,6 +24,7 @@
         @include('components.header', ['title' => 'NGO Profile'])
 
         <div class="bg-[#0e243a] p-4 rounded-2xl flex gap-4 mb-10 flex-wrap">
+
             <a href="/sm-ngos"
                class="bg-[#f2c94c] text-[#0e243a] px-6 py-2 rounded-full font-semibold">
                 Details
@@ -31,6 +34,12 @@
                class="bg-gray-200 text-[#0e243a] px-6 py-2 rounded-full font-semibold">
                 Members
             </a>
+
+            <a href="/ngo-accounts"
+               class="bg-[#f2c94c] text-[#0e243a] px-6 py-2 rounded-full font-semibold">
+                Accounts
+            </a>
+
         </div>
 
         <div class="text-center mb-16">
@@ -39,94 +48,168 @@
             </h1>
         </div>
 
-        <div class="flex flex-col items-center gap-16">
+        <div class="flex flex-col items-center gap-16"> 
 
+            <!-- NGO HEAD -->
             <div class="text-center">
-                <div class="w-36 h-36 bg-[#0e243a] rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg">
-                    ZM
-                </div>
-                <h2 class="mt-4 text-xl font-bold text-[#0e243a]">Zyann Lynn C. Mayo</h2>
-                <p class="text-gray-500 font-semibold">President</p>
+
+                @if($head)
+
+                    @php
+                        $headInitials =
+                            mb_substr($head->first_name ?? '', 0, 1) .
+                            mb_substr($head->last_name ?? '', 0, 1);
+                    @endphp
+
+                    <div class="w-36 h-36 bg-[#0e243a] rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg overflow-hidden">
+
+                        @if(!empty($head->profile_picture))
+                            <img
+                                src="{{ $head->profile_picture }}"
+                                alt="{{ $head->first_name }}'s profile picture"
+                                class="w-full h-full object-cover"
+                            >
+                        @else
+                            {{ strtoupper($headInitials) }}
+                        @endif
+
+                    </div>
+
+                    <h2 class="mt-4 text-xl font-bold text-[#0e243a]">
+                        {{ $head->first_name }} {{ $head->last_name }}
+                    </h2>
+
+                    <p class="text-gray-500 font-semibold">
+                        NGO Head
+                    </p>
+
+                @else
+
+                    <div class="w-36 h-36 bg-[#0e243a] rounded-full mx-auto flex items-center justify-center text-white text-4xl font-bold shadow-lg">
+                        --
+                    </div>
+
+                    <h2 class="mt-4 text-xl font-bold text-[#0e243a]">
+                        No NGO Head Assigned
+                    </h2>
+
+                    <p class="text-gray-500 font-semibold">
+                        NGO Head
+                    </p>
+
+                @endif
+
             </div>
 
-            <div class="text-center">
-                <div class="w-32 h-32 bg-[#1a3554] rounded-full mx-auto flex items-center justify-center text-white text-3xl font-bold shadow">
-                    EB
-                </div>
-                <h2 class="mt-3 text-lg font-bold text-[#0e243a]">Elisha Sophia S. Borromeo</h2>
-                <p class="text-gray-500 font-semibold">Vice President</p>
-            </div>
 
-            <div class="flex flex-wrap justify-center gap-20">
+            <!-- DONATION AND VOLUNTEER MANAGERS -->
+            <div class="w-full grid grid-cols-1 md:grid-cols-2 gap-16 mt-4">
 
+                <!-- DONATION MANAGERS -->
                 <div class="text-center">
-                    <div class="w-28 h-28 bg-gray-600 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold">
-                        CM
+
+                    <h3 class="text-xl font-bold text-[#0e243a] mb-10">
+                        Donation Managers
+                    </h3>
+
+                    <div class="flex flex-col items-center gap-10">
+
+                        @forelse($donationManagers as $manager)
+
+                            @php
+                                $initials =
+                                    mb_substr($manager->first_name ?? '', 0, 1) .
+                                    mb_substr($manager->last_name ?? '', 0, 1);
+                            @endphp
+
+                            <div class="text-center group hover:scale-105 transition-transform duration-300">
+
+                                <div class="w-28 h-28 bg-gray-600 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold shadow overflow-hidden">
+
+                                    @if(!empty($manager->profile_picture))
+                                        <img
+                                            src="{{ $manager->profile_picture }}"
+                                            alt="{{ $manager->first_name }}'s profile picture"
+                                            class="w-full h-full object-cover"
+                                        >
+                                    @else
+                                        {{ strtoupper($initials) }}
+                                    @endif
+
+                                </div>
+
+                                <h2 class="mt-3 font-bold text-[#0e243a]">
+                                    {{ $manager->first_name }}
+                                    {{ $manager->last_name }}
+                                </h2>
+
+                            </div>
+
+                        @empty
+
+                            <p class="text-gray-500 text-sm">
+                                No Donation Managers assigned.
+                            </p>
+
+                        @endforelse
+
                     </div>
-                    <h2 class="mt-3 font-bold text-[#0e243a]">Consuelo B. Mercado</h2>
-                    <p class="text-gray-500 text-sm font-semibold">Secretary</p>
+
                 </div>
 
+
+                <!-- VOLUNTEER MANAGERS -->
                 <div class="text-center">
-                    <div class="w-28 h-28 bg-gray-600 rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold">
-                        GT
-                    </div>
-                    <h2 class="mt-3 font-bold text-[#0e243a]">Gabriel L. Tagaytay</h2>
-                    <p class="text-gray-500 text-sm font-semibold">Treasurer</p>
-                </div>
 
-            </div>
+                    <h3 class="text-xl font-bold text-[#0e243a] mb-10">
+                        Volunteer Managers
+                    </h3>
 
-            <div class="w-full mt-16">
-                <h3 class="text-center text-xl font-bold text-[#0e243a] mb-10">
-                    Members
-                </h3>
+                    <div class="flex flex-col items-center gap-10">
 
-                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-8 justify-items-center px-4">
+                        @forelse($volunteerManagers as $manager)
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
-                    </div>
+                            @php
+                                $initials =
+                                    mb_substr($manager->first_name ?? '', 0, 1) .
+                                    mb_substr($manager->last_name ?? '', 0, 1);
+                            @endphp
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
-                    </div>
+                            <div class="text-center group hover:scale-105 transition-transform duration-300">
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
-                    </div>
+                                <div class="w-28 h-28 bg-[#1a3554] rounded-full mx-auto flex items-center justify-center text-white text-2xl font-bold shadow overflow-hidden">
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
-                    </div>
+                                    @if(!empty($manager->profile_picture))
+                                        <img
+                                            src="{{ $manager->profile_picture }}"
+                                            alt="{{ $manager->first_name }}'s profile picture"
+                                            class="w-full h-full object-cover"
+                                        >
+                                    @else
+                                        {{ strtoupper($initials) }}
+                                    @endif
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
-                    </div>
+                                </div>
 
-                    <div class="text-center group hover:scale-105 transition-transform duration-300">
-                        <div class="w-20 h-20 bg-gray-400 rounded-full mx-auto flex items-center justify-center text-white font-bold text-lg shadow-md group-hover:shadow-lg">
-                            AS
-                        </div>
-                        <p class="mt-3 font-semibold text-[#0e243a] text-xs sm:text-sm leading-tight">Arvie M. Sinocruz</p>
+                                <h2 class="mt-3 font-bold text-[#0e243a]">
+                                    {{ $manager->first_name }}
+                                    {{ $manager->last_name }}
+                                </h2>
+
+                            </div>
+
+                        @empty
+
+                            <p class="text-gray-500 text-sm">
+                                No Volunteer Managers assigned.
+                            </p>
+
+                        @endforelse
+
                     </div>
 
                 </div>
+
             </div>
 
         </div>
