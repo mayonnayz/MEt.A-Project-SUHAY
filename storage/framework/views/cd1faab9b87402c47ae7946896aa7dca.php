@@ -13,16 +13,17 @@
 ?>
 
 <div
-    class="group w-28 hover:w-56 bg-[#0e243a] min-h-screen flex flex-col py-6 text-white rounded-r-3xl transition-all duration-300 overflow-hidden"
+    class="group sticky top-0 self-start shrink-0
+    w-28 hover:w-56
+    bg-[#0e243a]
+    h-screen
+    flex flex-col
+    py-6 text-white
+    rounded-r-3xl
+    transition-all duration-300
+    overflow-hidden"
 >
-
-    
-    
-    
-
     <?php if(in_array($role, ['0', '1', '2'])): ?>
-
-        
         <a
             href="/sm-dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -39,10 +40,7 @@
             </span>
         </a>
 
-
-        
         <?php if($role === '0'): ?>
-
             <a
                 href="/sm-ngos"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -58,11 +56,8 @@
                     NGOs
                 </span>
             </a>
-
         <?php endif; ?>
 
-
-        
         <?php if(in_array($role, ['0', '2'])): ?>
 
             <a
@@ -81,8 +76,6 @@
                 </span>
             </a>
 
-
-            
             <a
                 href="/inventory-master-list"
                 class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -101,8 +94,6 @@
 
         <?php endif; ?>
 
-
-        
         <?php if(in_array($role, ['0', '1'])): ?>
 
             <a
@@ -123,8 +114,6 @@
 
         <?php endif; ?>
 
-
-        
         <a
             href="<?php echo e(route('sm.reports')); ?>"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -143,14 +132,7 @@
 
     <?php endif; ?>
 
-
-    
-    
-    
-
     <?php if($role === '3'): ?>
-
-        
         <a
             href="/volunteer/dashboard"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -167,8 +149,6 @@
             </span>
         </a>
 
-
-        
         <a
             href="/volunteer/ngos"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -185,8 +165,6 @@
             </span>
         </a>
 
-
-        
         <a
             href="/volunteer/events"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -203,8 +181,6 @@
             </span>
         </a>
 
-
-        
         <a
             href="/volunteer/applications"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -221,8 +197,6 @@
             </span>
         </a>
 
-
-        
         <a
             href="<?php echo e(route('donations.history')); ?>"
             class="flex items-center gap-4 px-4 py-4 rounded-xl mx-2
@@ -240,11 +214,6 @@
         </a>
 
     <?php endif; ?>
-
-
-    
-    
-    
 
     <a
         href="#"
