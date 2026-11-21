@@ -87,30 +87,45 @@ class donation_controller extends Controller
             }
         }
 
-        // =====================================================
-        // ADD DONOR NAME
-        // =====================================================
 
-        $donations = $donationsRaw->map(function ($donation) use ($accounts) {
+// =====================================================
+// ADD DONOR NAME
+// =====================================================
 
-            $donation = (object) $donation;
+$donations = $donationsRaw->map(function ($donation) use ($accounts) {
 
-            $account = $accounts->get($donation->account_id);
+    $donation = (object) $donation;
 
-            if ($account) {
+    $donorName = '';
 
-                $donation->donor_name = trim(
-                    ($account['first_name'] ?? '') . ' ' .
-                    ($account['last_name'] ?? '')
-                );
+    // Check whether the donation has an account ID.
+    if (!empty($donation->account_id)) {
 
-            } else {
+        $account = $accounts->get($donation->account_id);
 
-                $donation->donor_name = 'Unknown';
-            }
+        if ($account) {
+            $donorName = trim(
+                ($account['first_name'] ?? '') . ' ' .
+                ($account['last_name'] ?? '')
+            );
+        }
+    }
 
-            return $donation;
-        });
+    // If no account exists, use the source column.
+    if ($donorName === '') {
+        $donorName = trim($donation->source ?? '');
+    }
+
+    // Final fallback.
+    if ($donorName === '') {
+        $donorName = 'Unknown';
+    }
+
+    $donation->donor_name = $donorName;
+
+    return $donation;
+});
+
 
         $total_donations = $donations->count();
 
@@ -819,7 +834,7 @@ public function updateStatus(Request $request, $id)
             return response()->json([
                 'success' => true,
                 'notification_created' => false,
-                'message' => 'Donation confirmed. No notification was created because the donor account is missing.',
+                'message' => 'Donation confirmed.',
                 'donation' => $updatedDonation,
             ]);
         }
@@ -845,19 +860,24 @@ public function updateStatus(Request $request, $id)
             $message .= '.';
         }
 
-        // 5. Insert the notification.
-        $notificationResponse = Http::withHeaders($headers)
-            ->post(
-                $supabaseUrl . '/rest/v1/notifications',
-                [
-                    'title' => 'Donation Received',
-                    'message' => $message,
-                    'type' => 'Donation',
-                    'reference_id' => $updatedDonation['id'],
-                    'related_id' => null,
-                    'created_at' => now()->toIso8601String(),
-                ]
-            );
+        $notificationResponse = Http::withHeaders(array_merge(
+            $headers,
+            [
+                'Content-Type' => 'application/json',
+                'Prefer' => 'return=representation',
+            ]
+        ))->post(
+            $supabaseUrl . '/rest/v1/notifications',
+            [
+                'user_id' => (int) $donorUserId,
+                'title' => 'Donation Received',
+                'message' => $message,
+                'type' => 'Donation',
+                'reference_id' => $updatedDonation['id'],
+                'related_id' => null,
+                'created_at' => now()->toIso8601String(),
+            ]
+        );
 
         if (!$notificationResponse->successful()) {
             Log::error('Donation notification creation failed.', [

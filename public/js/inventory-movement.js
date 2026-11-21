@@ -1,3 +1,37 @@
+const inventoryItems = window.inventoryItems || [];
+
+function populateInventoryDropdown(selectElement) {
+
+    selectElement.innerHTML = '';
+
+    const defaultOption = document.createElement('option');
+
+    defaultOption.value = '';
+    defaultOption.textContent = 'Select item';
+
+    selectElement.appendChild(defaultOption);
+
+    inventoryItems.forEach(item => {
+
+        const option = document.createElement('option');
+
+        option.value = item.id;
+
+        option.textContent =
+            `${item.name} (${item.current_quantity} ${item.unit})`;
+
+        selectElement.appendChild(option);
+
+    });
+
+}
+document.querySelectorAll(
+    '#movementItemsContainer select[name*="[inventory_item_id]"]'
+).forEach(select => {
+
+    populateInventoryDropdown(select);
+
+});
     const searchInput = document.getElementById('searchInput');
     const movementFilter = document.getElementById('movementFilter');
     const dateFilter = document.getElementById('dateFilter');
@@ -375,7 +409,6 @@
                 ">
                     Inventory Item
                 </label>
-
                 <select
                     name="items[${movementItemIndex}][inventory_item_id]"
                     required
@@ -390,22 +423,7 @@
                         focus:border-[#0e243a]
                     "
                 >
-
-                    <option value="">
-                        Select item
-                    </option>
-
-                    @foreach($inventoryItems as $item)
-
-                        <option value="{{$item['id'] }}">
-
-                          {{ $item['name'] }}
-                            ({{ $item['current_quantity'] }} {{ $item['unit'] }})
-
-                        </option>
-
-                    @endforeach
-
+                    <option value="">Select item</option>
                 </select>
 
             </div>
@@ -480,8 +498,14 @@
 
         `;
 
-
         container.appendChild(item);
+
+        // Populate inventory dropdown
+        const select = item.querySelector(
+            'select[name*="[inventory_item_id]"]'
+        );
+
+        populateInventoryDropdown(select);
 
         movementItemIndex++;
 

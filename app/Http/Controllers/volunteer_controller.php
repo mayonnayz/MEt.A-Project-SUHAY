@@ -9,6 +9,9 @@ use Illuminate\Support\Facades\Auth;
 
 class volunteer_controller extends Controller
 {
+    /* =========================================================
+        DASHBOARD
+    ========================================================= */
     public function dashboard()
     {
         $userId = session('user_id');
@@ -20,6 +23,7 @@ class volunteer_controller extends Controller
 
         $user = $userResponse->json()[0] ?? null;
 
+        // APPLICATIONS
         $response = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -29,7 +33,7 @@ class volunteer_controller extends Controller
 
         $totalApplications = $data->count();
         $approved = $data->where('status', 1)->count();
-        $pending = $data->where('status', 3)->count();
+        $pending = $data->where('status', 0)->count();
 
         return view('Volunteers.dashboard', compact(
             'totalApplications',
@@ -39,6 +43,9 @@ class volunteer_controller extends Controller
         ));
     }
 
+    /* =========================================================
+        UPDATE ACCOUNT
+    ========================================================= */
     public function updateAccount(Request $request)
     {
         $userId = session('user_id');
@@ -95,10 +102,7 @@ class volunteer_controller extends Controller
             ]);
 
         if (!$ngoResponse->successful()) {
-            dd([
-                'status' => $ngoResponse->status(),
-                'body' => $ngoResponse->body()
-            ]);
+          
         }
 
         $ngos = $ngoResponse->json();
@@ -109,10 +113,7 @@ class volunteer_controller extends Controller
             ]);
 
         if (!$accountResponse->successful()) {
-            dd([
-                'status' => $accountResponse->status(),
-                'body' => $accountResponse->body()
-            ]);
+            
         }
 
         $bankAccounts = $accountResponse->json();
@@ -186,7 +187,6 @@ class volunteer_controller extends Controller
         );
 
         if (!$response->successful()) {
-            dd($response->status(), $response->body());
         }
 
         $publicUrl = env('SUPABASE_URL')
@@ -225,6 +225,22 @@ class volunteer_controller extends Controller
             }
         }
 
+        // GET USER APPLICATIONS
+        if ($accountId) {
+            $appResponse = Http::withHeaders([
+                'apikey' => env('SUPABASE_SERVICE_KEY'),
+                'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            ])->get(env('SUPABASE_URL') . '/rest/v1/volunteer_applications?select=volunteer_event_id&account_id=eq.' . $accountId);
+
+            if ($appResponse->successful()) {
+                $applications = collect($appResponse->json())
+                    ->pluck('volunteer_event_id')
+                    ->map(fn($id) => (string) $id)
+                    ->toArray();
+            }
+        }
+
+        // GET EVENTS
         $response = Http::withHeaders([
             'apikey' => env('SUPABASE_SERVICE_KEY'),
             'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
@@ -272,12 +288,13 @@ class volunteer_controller extends Controller
         return view('Volunteers.events', compact('events', 'applications'));
     }
 
+ 
     public function applications(Request $request)
     {
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')->with('error', 'Please log in first.');
+            redirect()->route('login.page')->with('error', 'Please log in first.');
         }
 
         $headers = [
@@ -447,7 +464,7 @@ class volunteer_controller extends Controller
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')->with('error', 'Please log in first.');
+            redirect()->route('login.page')->with('error', 'Please log in first.');
         }
 
         $headers = [

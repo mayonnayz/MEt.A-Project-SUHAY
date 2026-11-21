@@ -11,7 +11,7 @@
                 </h2>
 
                 <p class="text-gray-500 text-sm mt-1">
-                    Add or update your organization's payment accounts.
+                    Add and view your organization's payment accounts.
                 </p>
             </div>
 
@@ -191,7 +191,7 @@
 
                             </div>
 
-                            <div class="flex gap-2">
+                           <div class="flex gap-2">
 
                                 <button
                                     type="button"
@@ -206,7 +206,6 @@
                                     method="POST"
                                     onsubmit="return confirm('Delete this payment account?')"
                                 >
-
                                     @csrf
                                     @method('DELETE')
 
@@ -216,7 +215,6 @@
                                     >
                                         Delete
                                     </button>
-
                                 </form>
 
                             </div>

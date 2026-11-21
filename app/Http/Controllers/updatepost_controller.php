@@ -36,7 +36,7 @@ class updatepost_controller extends Controller
 
         if (!$userId) {
             return [
-                'error' => redirect('/login')
+                'error' => redirect()->route('login.page')
                     ->with('error', 'Please log in first.'),
             ];
         }
@@ -63,7 +63,7 @@ class updatepost_controller extends Controller
 
         if (!$account) {
             return [
-                'error' => redirect('/login')
+                'error' => redirect()->route('login.page')
                     ->with('error', 'Account not found.'),
             ];
         }

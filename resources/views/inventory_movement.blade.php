@@ -1306,25 +1306,9 @@
                                 <select
                                     name="items[0][inventory_item_id]"
                                     required
-                                    class="w-full
-                                           border
-                                           border-gray-200
-                                           rounded-xl
-                                           px-3 py-2.5
-                                           text-sm
-                                           outline-none
-                                           focus:border-[#0e243a]">
+                                    class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm outline-none focus:border-[#0e243a]">
 
-                                    <option value="">
-                                        Select item
-                                    </option>
-
-                                    @foreach($inventoryItems as $item)
-                                        <option value="{{ $item['id'] }}">
-                                            {{ $item['name'] }}
-                                            ({{ $item['current_quantity'] }} {{ $item['unit'] }})
-                                        </option>
-                                    @endforeach
+                                    <option value="">Select item</option>
 
                                 </select>
 
@@ -1476,6 +1460,12 @@
 
 @include('components.logout-modal')
 
+
+<script>
+    window.inventoryItems = @json(
+        collect($inventoryItems ?? [])->values()
+    );
+</script>
 
 <script src="{{ asset('js/inventory-movement.js') }}"></script>
 

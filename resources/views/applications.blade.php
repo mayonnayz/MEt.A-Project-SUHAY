@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+
 <html lang="en">
 
 <head>
@@ -23,6 +24,7 @@
 </head>
 
 <body class="bg-gray-200">
+
 <div class="flex">
 
 @include('components.nav')
@@ -130,30 +132,18 @@
 
 
 
+               
                 <select
                     id="statusFilter"
                     class="p-2 border rounded-md"
                     onchange="applyFilters()">
 
-                    <option value="">
-                        All Status
-                    </option>
+                    <option value="">All Status</option>
 
-                    <option value="0">
-                        Pending
-                    </option>
-
-                    <option value="1">
-                        Approved
-                    </option>
-
-                    <option value="2">
-                        Rejected
-                    </option>
-
-                    <option value="3">
-                        Deactivated
-                    </option>
+                    <option value="0">Pending</option>
+                    <option value="1">Approved</option>
+                    <option value="2">Rejected</option>
+                    <option value="3">Archived</option>
 
                 </select>
 
@@ -274,7 +264,7 @@
 
                                     </td>
 
-                                    <td class="p-3 border">
+                                   <td class="p-3 border">
 
                                         @if($app['status'] == 0)
 
@@ -297,7 +287,7 @@
                                         @elseif($app['status'] == 3)
 
                                             <span class="inline-block px-3 py-1 rounded-full bg-gray-200 text-gray-800 text-sm font-medium">
-                                                Deactivated
+                                                Archived
                                             </span>
 
                                         @endif

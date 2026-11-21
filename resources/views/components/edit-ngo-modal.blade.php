@@ -27,10 +27,8 @@
 
         </div>
 
-        <form action="{{ url('/sm-ngos/update') }}" method="POST">
-
+        <form action="{{ url('/update-ngo') }}" method="POST">
             @csrf
-            @method('PATCH')
 
             <div class="p-8 space-y-6">
                 <div>
@@ -49,6 +47,8 @@
                     >
                 </div>
 
+
+                <!-- DESCRIPTION -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Organization Description
@@ -64,6 +64,8 @@
                     >{{ $ngo->description ?? '' }}</textarea>
                 </div>
 
+
+                <!-- CONTACT NUMBER -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Contact Number
@@ -80,6 +82,7 @@
                     >
                 </div>
 
+                <!-- ADDRESS -->
                 <div>
                     <label class="block text-sm font-semibold text-[#0e243a] mb-2">
                         Complete Address

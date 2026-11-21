@@ -159,7 +159,6 @@
                         </div>
 
                     </div>
-
                 </div>
 
                 <div class="px-5 sm:px-7 py-5 bg-[#fafbfc]">
@@ -675,7 +674,6 @@
                         </div>
 
                     </div>
-
                 </div>
 
             </div>

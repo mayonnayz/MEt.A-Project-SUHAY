@@ -93,7 +93,7 @@ class account_controller extends Controller
 
 
         if ($response->failed()) {
-            dd($response->body());
+         
         }
 
 
@@ -131,7 +131,7 @@ class account_controller extends Controller
         );
 
         if ($ngoResponse->failed()) {
-            dd($ngoResponse->body());
+            
         }
 
         $ngoData = $ngoResponse->json();
@@ -152,7 +152,7 @@ class account_controller extends Controller
         );
 
         if ($response->failed()) {
-            dd($response->body());
+          
         }
 
         $accounts = collect($response->json())
@@ -167,7 +167,7 @@ class account_controller extends Controller
         );
 
         if ($mediaResponse->failed()) {
-            dd($mediaResponse->body());
+          
         }
 
         $profilePictures = collect($mediaResponse->json())
@@ -609,7 +609,7 @@ class account_controller extends Controller
 
 
         if ($response->failed()) {
-            dd($response->body());
+           
         }
 
 
@@ -650,7 +650,7 @@ class account_controller extends Controller
 
 
         if ($response->failed()) {
-            dd($response->body());
+          
         }
 
 
@@ -711,7 +711,7 @@ class account_controller extends Controller
 
 
         if ($response->failed()) {
-            dd($response->body());
+           
         }
 
 
@@ -751,7 +751,7 @@ class account_controller extends Controller
 
 
         if ($response->failed()) {
-            dd($response->body());
+         
         }
 
 

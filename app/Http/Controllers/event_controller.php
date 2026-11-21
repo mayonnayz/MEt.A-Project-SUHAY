@@ -65,7 +65,7 @@ class event_controller extends Controller
             ->get(env('SUPABASE_URL') . '/rest/v1/volunteer_events', $query);
 
         if ($response->failed()) {
-            dd($response->body()); 
+           
         }
 
         $events = collect($response->json());
@@ -100,26 +100,31 @@ class event_controller extends Controller
     }
 
 
-    public function store(Request $request)
-    {
-        $ngoId = $this->getNgoId();
+ 
+public function store(Request $request)
+{
+    $ngoId = $this->getNgoId();
 
-        $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'date' => 'required|date',
-            'activities' => 'required|array|min:1',
-            'activities.*.name' => 'required',
-            'activities.*.remarks' => 'required',
-        ]);
+    $request->validate([
+        'name' => 'required',
+        'description' => 'required',
+        'date' => 'required|date',
+        'activities' => 'required|array|min:1',
+        'activities.*.name' => 'required',
+        'activities.*.remarks' => 'required',
+    ]);
 
-       
-        if (Carbon::parse($request->date)->isPast()) {
-            return back()->with('error', 'Event date cannot be in the past.');
-        }
+    // Prevent past event dates
+    if (Carbon::parse($request->date)->isPast()) {
+        return back()->with('error', 'Event date cannot be in the past.');
+    }
 
-       
-        $eventResponse = $this->supabase()->post(
+    // Insert event and request the inserted record
+    $eventResponse = $this->supabase()
+        ->withHeaders([
+            'Prefer' => 'return=representation',
+        ])
+        ->post(
             env('SUPABASE_URL') . '/rest/v1/volunteer_events',
             [
                 'name' => $request->name,
@@ -130,29 +135,49 @@ class event_controller extends Controller
             ]
         );
 
-        
-        $event = $eventResponse->json()[0] ?? null;
+    // Check event insertion response
+    if (!$eventResponse->successful()) {
+        return back()->with(
+            'error',
+            'Failed to create event: ' . $eventResponse->body()
+        );
+    }
 
-        if (!$event) {
-            return back()->with('error', 'Failed to create event');
-        }
+    $event = $eventResponse->json()[0] ?? null;
 
-        $eventId = $event['id'];
+    if (!$event || !isset($event['id'])) {
+        return back()->with(
+            'error',
+            'Event was inserted, but its ID could not be retrieved. Please check Supabase.'
+        );
+    }
 
-       
-        foreach ($request->activities as $activity) {
-            $this->supabase()->post(
-                env('SUPABASE_URL') . '/rest/v1/volunteer_activities',
-                [
-                    'volunteer_event_id' => $eventId,
-                    'name' => $activity['name'],
-                    'remarks' => $activity['remarks'],
-                ]
+    $eventId = $event['id'];
+
+    // Insert activities associated with the event
+    foreach ($request->activities as $activity) {
+
+        $activityResponse = $this->supabase()->post(
+            env('SUPABASE_URL') . '/rest/v1/volunteer_activities',
+            [
+                'volunteer_event_id' => $eventId,
+                'name' => $activity['name'],
+                'remarks' => $activity['remarks'],
+            ]
+        );
+
+        if (!$activityResponse->successful()) {
+            return back()->with(
+                'error',
+                'Event was created, but an activity failed to save: '
+                . $activityResponse->body()
             );
         }
-
-        return back()->with('success', 'Event created successfully.');
     }
+
+    return back()->with('success', 'Event created successfully.');
+}
+
 
 
     public function update(Request $request, $id)
@@ -250,7 +275,7 @@ class event_controller extends Controller
     {
         $ngoId = $this->getNgoIdOrNull();
 
-        $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
+    $url = env('SUPABASE_URL') . "/rest/v1/volunteer_events?status=eq.1";
 
         if ($ngoId) {
             $url .= "&ngo_id=eq.$ngoId";
@@ -259,10 +284,7 @@ class event_controller extends Controller
         $response = $this->supabase()->get($url);
 
         if ($response->failed()) {
-            dd([
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+           
         }
 
         $events = collect($response->json());
@@ -286,11 +308,7 @@ class event_controller extends Controller
         );
 
         if ($eventsResponse->failed()) {
-            dd([
-                'error' => 'Failed to get events',
-                'status' => $eventsResponse->status(),
-                'body' => $eventsResponse->body(),
-            ]);
+           
         }
 
         $events = collect($eventsResponse->json());
@@ -304,11 +322,7 @@ class event_controller extends Controller
         );
 
         if ($assignmentsResponse->failed()) {
-            dd([
-                'error' => 'Failed to get assignments',
-                'status' => $assignmentsResponse->status(),
-                'body' => $assignmentsResponse->body(),
-            ]);
+           
         }
 
         $assignments = collect($assignmentsResponse->json());
@@ -322,11 +336,7 @@ class event_controller extends Controller
         );
 
         if ($activitiesResponse->failed()) {
-            dd([
-                'error' => 'Failed to get activities',
-                'status' => $activitiesResponse->status(),
-                'body' => $activitiesResponse->body(),
-            ]);
+            
         }
 
         $activities = collect($activitiesResponse->json());
@@ -406,11 +416,11 @@ class event_controller extends Controller
                 ->filter(fn ($a) => $a['activity_id'] == $act['id'])
                 ->values();
 
-            return $act;
-        });
+        return $act;
+    });
 
-        return response()->json($activities);
-    }
+    return response()->json($activities);
+}
 
 
 }

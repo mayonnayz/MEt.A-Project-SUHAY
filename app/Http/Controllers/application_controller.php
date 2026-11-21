@@ -20,10 +20,7 @@ class application_controller extends Controller
         );
 
         if ($response->failed()) {
-            dd([
-                'status' => $response->status(),
-                'body' => $response->body(),
-            ]);
+          
         }
 
         return $response->json();

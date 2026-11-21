@@ -1,48 +1,44 @@
 
-
 document.addEventListener("DOMContentLoaded", function () {
+
+    // ==========================================
+    // SEARCH AND FILTER
+    // ==========================================
 
     const searchInput = document.getElementById("searchInput");
     const filterType = document.getElementById("filterType");
     const cards = document.querySelectorAll(".donation-card");
+    const noResults = document.getElementById("noResults");
 
     function filterDonations() {
 
         const search = searchInput.value.toLowerCase().trim();
         const filter = filterType.value.toLowerCase();
 
+        let visibleCount = 0;
+
         cards.forEach(card => {
 
-            const name =
-                card.dataset.name || "";
-
-            const description =
-                card.dataset.description || "";
-
-            const source =
-                card.dataset.source || "";
-
-            const type =
-                card.dataset.type || "";
+            const name = card.dataset.name || "";
+            const description = card.dataset.description || "";
+            const source = card.dataset.source || "";
+            const type = card.dataset.type || "";
+            const reference = card.dataset.reference || "";
 
             const matchSearch =
                 name.includes(search) ||
                 description.includes(search) ||
                 source.includes(search) ||
-                type.includes(search);
+                type.includes(search) ||
+                reference.includes(search);
 
-            let matchFilter = true;
-
-            if (filter !== "") {
-
-                matchFilter =
-                    type === filter;
-
-            }
+            const matchFilter =
+                filter === "" || type === filter;
 
             if (matchSearch && matchFilter) {
 
                 card.classList.remove("hidden");
+                visibleCount++;
 
             } else {
 
@@ -52,178 +48,312 @@ document.addEventListener("DOMContentLoaded", function () {
 
         });
 
+        if (noResults) {
+            noResults.classList.toggle(
+                "hidden",
+                visibleCount > 0 || cards.length === 0
+            );
+        }
+
     }
 
+    searchInput.addEventListener("input", filterDonations);
+    filterType.addEventListener("change", filterDonations);
 
-    searchInput.addEventListener(
-        "keyup",
-        filterDonations
-    );
 
-    filterType.addEventListener(
-        "change",
-        filterDonations
-    );
+    // ==========================================
+    // DONATION DETAILS MODAL
+    // ==========================================
 
-    document.querySelectorAll(".viewBtn").forEach(button => {
+    const modalBackdrop =
+        document.getElementById("donationModalBackdrop");
+
+    const modalContent =
+        document.getElementById("donationModalContent");
+
+    const modalBody =
+        document.getElementById("donationModalBody");
+
+
+    document.querySelectorAll(".view-donation-btn").forEach(button => {
 
         button.addEventListener("click", function (e) {
 
             e.stopPropagation();
 
+            const ngo = this.dataset.ngo || "N/A";
 
-            const type =
-                (this.dataset.type || "").toUpperCase();
+            const type = (this.dataset.type || "").toUpperCase();
 
-            document.getElementById("modalNgo")
-                .textContent =
-                this.dataset.ngo || "N/A";
+            const description = this.dataset.description || "N/A";
 
-            let displayType = this.dataset.type || "N/A";
+            const amount = this.dataset.amount || "";
 
-            if (type === "ONLINE_MONETARY") {
+            const unit = this.dataset.unit || "";
 
-                displayType = "Online Monetary";
+            const source = this.dataset.source || "N/A";
 
-            } else if (type === "MONETARY") {
+            const reference = this.dataset.reference || "N/A";
 
-                displayType = "Monetary";
+            const rawDate = this.dataset.date || "";
 
-            } else if (type === "CONSUMABLE") {
+            const status = (this.dataset.status || "N/A")
+                .replaceAll("_", " ");
 
-                displayType = "Consumable";
+            const typeLabels = {
+                MONETARY: "Monetary",
+                ONLINE_MONETARY: "Online Monetary",
+                CONSUMABLE: "Consumable",
+                REUSABLE: "Reusable"
+            };
 
-            } else if (type === "REUSABLE") {
+            const displayType = typeLabels[type] || type || "N/A";
 
-                displayType = "Reusable";
+            let formattedDate = "N/A";
 
-            }
+            if (rawDate) {
 
-            document.getElementById("modalType")
-                .textContent = displayType;
+                const parsedDate = new Date(rawDate + "T00:00:00");
 
-            document.getElementById("modalDescription")
-                .textContent =
-                this.dataset.description || "N/A";
+                if (!isNaN(parsedDate.getTime())) {
 
-            const amountRow =
-                document.getElementById("amountRow");
-
-            const modalAmount =
-                document.getElementById("modalAmount");
-
-            if (
-                type === "MONETARY" ||
-                type === "ONLINE_MONETARY"
-            ) {
-
-                amountRow.classList.remove("hidden");
-
-                if (this.dataset.amount !== "") {
-
-                    modalAmount.textContent =
-                        "₱" +
-                        Number(this.dataset.amount)
-                            .toLocaleString(
-                                "en-PH",
-                                {
-                                    minimumFractionDigits: 2,
-                                    maximumFractionDigits: 2
-                                }
-                            );
-
-                } else {
-
-                    modalAmount.textContent = "N/A";
-
-                }
-
-            } else {
-
-                amountRow.classList.add("hidden");
-
-            }
-
-            const unitRow =
-                document.getElementById("unitRow");
-
-
-            if (
-                type === "CONSUMABLE" ||
-                type === "REUSABLE"
-            ) {
-
-                unitRow.classList.remove("hidden");
-
-                document.getElementById("modalUnit")
-                    .textContent =
-                    this.dataset.unit || "N/A";
-
-            } else {
-
-                unitRow.classList.add("hidden");
-
-            }
-
-            document.getElementById("modalSource")
-                .textContent =
-                this.dataset.source || "N/A";
-
-            document.getElementById("modalReference")
-                .textContent =
-                this.dataset.reference || "N/A";
-
-            let date = this.dataset.date || "";
-
-            if (date) {
-
-                const parsedDate =
-                    new Date(date + "T00:00:00");
-
-                if (!isNaN(parsedDate)) {
-
-                    date =
-                        parsedDate.toLocaleDateString(
-                            "en-US",
-                            {
-                                month: "long",
-                                day: "2-digit",
-                                year: "numeric"
-                            }
-                        );
+                    formattedDate = parsedDate.toLocaleDateString(
+                        "en-US",
+                        {
+                            month: "long",
+                            day: "2-digit",
+                            year: "numeric"
+                        }
+                    );
 
                 }
 
             }
 
-            document.getElementById("modalDate")
-                .textContent =
-                date || "N/A";
+            let amountHTML = "";
 
-            let status =
-                (this.dataset.status || "N/A")
-                    .toUpperCase()
-                    .replaceAll("_", " ");
+            if (type === "MONETARY" || type === "ONLINE_MONETARY") {
+
+                const formattedAmount = amount !== ""
+                    ? "₱" + Number(amount).toLocaleString("en-PH", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2
+                    })
+                    : "N/A";
+
+                amountHTML = `
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Amount</p>
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(formattedAmount)}
+                        </p>
+                    </div>
+                `;
+
+            }
+
+            let unitHTML = "";
+
+            if (type === "CONSUMABLE" || type === "REUSABLE") {
+
+                unitHTML = `
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">Unit</p>
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(unit || "N/A")}
+                        </p>
+                    </div>
+                `;
+
+            }
+
+            modalBody.innerHTML = `
+
+                <div class="bg-[#f7f9fb] rounded-2xl p-4">
+
+                    <p class="text-xs text-gray-500 mb-1">
+                        NGO Name
+                    </p>
+
+                    <p class="font-bold text-[#0e243a]">
+                        ${escapeHTML(ngo)}
+                    </p>
+
+                </div>
 
 
-            document.getElementById("modalStatus")
-                .textContent = status;
+                <div class="grid grid-cols-2 gap-4">
 
-            document.getElementById("viewModal")
-                .style.display = "flex";
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">
+                            Donation Type
+                        </p>
+
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(displayType)}
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">
+                            Status
+                        </p>
+
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(status)}
+                        </p>
+                    </div>
+
+
+                    ${amountHTML}
+
+                    ${unitHTML}
+
+
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">
+                            Date
+                        </p>
+
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(formattedDate)}
+                        </p>
+                    </div>
+
+
+                    <div>
+                        <p class="text-xs text-gray-500 mb-1">
+                            Source
+                        </p>
+
+                        <p class="text-sm font-semibold text-[#0e243a]">
+                            ${escapeHTML(source)}
+                        </p>
+                    </div>
+
+
+                    <div class="col-span-2">
+                        <p class="text-xs text-gray-500 mb-1">
+                            Reference Number
+                        </p>
+
+                        <p class="text-sm font-semibold text-[#0e243a] break-all">
+                            ${escapeHTML(reference)}
+                        </p>
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <p class="text-xs text-gray-500 mb-2">
+                        Description
+                    </p>
+
+                    <div class="bg-[#f7f9fb] rounded-2xl p-4">
+
+                        <p class="text-sm text-gray-700 break-words">
+                            ${escapeHTML(description)}
+                        </p>
+
+                    </div>
+
+                </div>
+
+            `;
+
+
+            // OPEN MODAL
+
+            modalBackdrop.classList.remove("hidden");
+            modalBackdrop.classList.add("flex");
+
+            modalContent.classList.remove("modal-exit");
+            modalContent.classList.add("modal-enter");
+
+            document.body.style.overflow = "hidden";
 
         });
 
     });
 
+
+    // ==========================================
+    // CLOSE DONATION MODAL
+    // ==========================================
+
+    window.closeDonationModal = function () {
+
+        modalContent.classList.remove("modal-enter");
+        modalContent.classList.add("modal-exit");
+
+        setTimeout(() => {
+
+            modalBackdrop.classList.remove("flex");
+            modalBackdrop.classList.add("hidden");
+
+            modalContent.classList.remove("modal-exit");
+
+            document.body.style.overflow = "";
+
+        }, 200);
+
+    };
+
+
+    // CLOSE WHEN CLICKING OUTSIDE
+
+    modalBackdrop.addEventListener("click", function (e) {
+
+        if (e.target === modalBackdrop) {
+            closeDonationModal();
+        }
+
+    });
+
+
+    // CLOSE USING ESCAPE KEY
+
+    document.addEventListener("keydown", function (e) {
+
+        if (
+            e.key === "Escape" &&
+            !modalBackdrop.classList.contains("hidden")
+        ) {
+
+            closeDonationModal();
+
+        }
+
+    });
+
+
+    // ==========================================
+    // HTML ESCAPE
+    // ==========================================
+
+    function escapeHTML(value) {
+
+        return String(value).replace(/[&<>"']/g, char => ({
+
+            "&": "&amp;",
+            "<": "&lt;",
+            ">": "&gt;",
+            '"': "&quot;",
+            "'": "&#039;"
+
+        })[char]);
+
+    }
+
 });
 
-function closeModal() {
 
-    document.getElementById("viewModal")
-        .style.display = "none";
-
-}
+// ==========================================
+// LOGOUT MODAL
+// ==========================================
 
 function openLogoutModal() {
 
@@ -240,5 +370,7 @@ function closeLogoutModal() {
     document.getElementById("logoutModal")
         .classList.add("hidden");
 
-}
+    document.getElementById("logoutModal")
+        .classList.remove("flex");
 
+}

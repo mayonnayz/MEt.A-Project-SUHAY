@@ -295,10 +295,14 @@
 
 {{-- MODALS --}}
 @include('components.application-modal')
+
 @include('components.logout-modal')
 
 <script src="{{ asset('js/volunteer-management.js') }}"></script>
 
+{{-- ============================= --}}
+{{-- VOLUNTEER MODAL --}}
+{{-- ============================= --}}
 
 
 </body>

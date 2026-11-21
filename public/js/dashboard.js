@@ -595,3 +595,25 @@ document.addEventListener('DOMContentLoaded', function () {
     updateCharacterCounts();
     renderUpdatePostImagePreviews();
 });
+
+const csrfToken = document.querySelector(
+    'meta[name="csrf-token"]'
+)?.getAttribute('content');
+
+fetch(url, {
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+    },
+    body: JSON.stringify(data)
+});
+
+fetch(url, {
+    method: 'DELETE',
+    headers: {
+        'Accept': 'application/json',
+        'X-CSRF-TOKEN': csrfToken
+    }
+});

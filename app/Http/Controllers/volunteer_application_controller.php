@@ -69,11 +69,10 @@ class volunteer_application_controller extends Controller
             'has_experience' => $hasExperience,
             'experience_details' => $request->experience_details,
             'remarks' => $request->remarks,
-            'status' => 2
+            'status' => 0
         ]);
 
         if ($response->failed()) {
-            dd($response->body());
         }
         
         if ($response->failed()) {

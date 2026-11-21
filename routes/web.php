@@ -214,6 +214,14 @@ Route::patch(
     [service_management_controller::class, 'deactivate']
 );
 
+//application
+
+Route::get('/applications', [application_controller::class, 'applications']);
+Route::patch('/applications/approve/{id}', [application_controller::class, 'approveApplication']);
+Route::patch('/applications/reject/{id}', [application_controller::class, 'rejectApplication']);
+Route::patch('/applications/restore/{id}', [application_controller::class, 'restoreApplication']);
+Route::patch('/applications/archive/{id}', [application_controller::class, 'archiveApplication']);
+
 
 /*
 |--------------------------------------------------------------------------
