@@ -34,15 +34,12 @@ class track_activity_controller extends Controller
 
 
         if ($assignmentsResponse->failed()) {
-            dd('Assignments Error:', $assignmentsResponse->json());
         }
 
         if ($activitiesResponse->failed()) {
-            dd('Activities Error:', $activitiesResponse->json());
         }
 
         if ($eventsResponse->failed()) {
-            dd('Events Error:', $eventsResponse->json());
         }
 
         $assignments = collect(
@@ -179,7 +176,6 @@ class track_activity_controller extends Controller
 
 
         if ($response->failed()) {
-            dd('Store Activity Error:', $response->json());
         }
 
 
@@ -240,7 +236,6 @@ class track_activity_controller extends Controller
 
 
         if ($response->failed()) {
-            dd('Update Activity Error:', $response->json());
         }
 
 

@@ -25,7 +25,7 @@ class dashboard_controller extends Controller
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')
+           return redirect('/login-page')
                 ->with('error', 'User session not found.');
         }
 
@@ -37,14 +37,14 @@ class dashboard_controller extends Controller
             ]);
 
         if (!$userResponse->successful()) {
-            return redirect('/login')
+            return redirect()->route('login.page')
                 ->with('error', 'Unable to retrieve account.');
         }
 
         $user = collect($userResponse->json())->first();
 
         if (!$user) {
-            return redirect('/login')
+            return redirect()->route('login.page')
                 ->with('error', 'Account not found.');
         }
 
@@ -69,7 +69,7 @@ class dashboard_controller extends Controller
             in_array($userRole, [0, 1, 2], true)
             && empty($ngoId)
         ) {
-            return redirect('/login')
+            return redirect()->route('login.page')
                 ->with('error', 'NGO assignment not found.');
         }
 
@@ -354,36 +354,43 @@ if (!empty($ngoId)) {
         $currentMonth = now()->month;
         $currentYear = now()->year;
 
-        $monthlyDonations = $donations
-            ->filter(function ($donation) use (
-                $currentMonth,
-                $currentYear
-            ) {
-                $type = strtoupper($donation['type'] ?? '');
 
-                if (!in_array($type, [
-                    'MONETARY',
-                    'ONLINE_MONETARY',
-                ], true)) {
-                    return false;
-                }
+$monthlyDonations = $donations
+    ->filter(function ($donation) use (
+        $currentMonth,
+        $currentYear
+    ) {
+        // Only count confirmed donations.
+        if (($donation['status'] ?? '') !== 'Confirmed') {
+            return false;
+        }
 
-                if (empty($donation['date'])) {
-                    return false;
-                }
+        $type = strtoupper($donation['type'] ?? '');
 
-                try {
-                    $date = Carbon::parse($donation['date']);
+        if (!in_array($type, [
+            'MONETARY',
+            'ONLINE_MONETARY',
+        ], true)) {
+            return false;
+        }
 
-                    return $date->month == $currentMonth
-                        && $date->year == $currentYear;
-                } catch (\Exception $e) {
-                    return false;
-                }
-            })
-            ->sum(function ($donation) {
-                return (float) ($donation['amount'] ?? 0);
-            });
+        if (empty($donation['date'])) {
+            return false;
+        }
+
+        try {
+            $date = Carbon::parse($donation['date']);
+
+            return $date->month == $currentMonth
+                && $date->year == $currentYear;
+        } catch (\Exception $e) {
+            return false;
+        }
+    })
+    ->sum(function ($donation) {
+        return (float) ($donation['amount'] ?? 0);
+    });
+
 
         
 

@@ -22,7 +22,7 @@ class donate_controller extends Controller
             ->get('ngo_profile?select=*');
 
         if (!$ngoResponse->successful()) {
-            dd($ngoResponse->body());
+         
         }
 
         $ngos = $ngoResponse->json();
@@ -32,7 +32,7 @@ class donate_controller extends Controller
             ->get('bank_accounts?select=*');
 
         if (!$accountResponse->successful()) {
-            dd($accountResponse->body());
+         
         }
 
         $bankAccounts = $accountResponse->json();
@@ -93,7 +93,8 @@ class donate_controller extends Controller
     }
 
 
-  public function submitDonation(Request $request)
+
+public function submitDonation(Request $request)
 {
     $validated = $request->validate([
         'ngo_id' => 'required|integer',
@@ -106,43 +107,38 @@ class donate_controller extends Controller
         'proof_of_payment' => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:10240',
     ]);
 
-
     $isAnonymous = $request->boolean('anonymous');
 
-    $accountId = $isAnonymous
-        ? null
-        : session('account_id');
+    $accountId = null;
+
+    if (!$isAnonymous) {
+        $accountId = session('user_id');
+
+        if (!$accountId) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Please log in before submitting a non-anonymous donation.'
+            ], 401);
+        }
+    }
 
     $source = $isAnonymous
         ? 'Anonymous'
         : ($validated['source'] ?? null);
 
+    $unit = in_array($validated['type'], ['MONETARY', 'ONLINE_MONETARY'])
+    ? 'N/A'
+    : ($validated['unit'] ?? 'N/A');
 
     if (
-        $validated['type'] === 'MONETARY' ||
-        $validated['type'] === 'ONLINE_MONETARY'
+        $validated['type'] === 'ONLINE_MONETARY' &&
+        !$request->hasFile('proof_of_payment')
     ) {
-        $unit = null;
-    } else {
-        $unit = !empty($validated['unit'])
-            ? $validated['unit']
-            : null;
+        return response()->json([
+            'success' => false,
+            'message' => 'Please upload your proof of payment.'
+        ], 422);
     }
-
-
-    if ($validated['type'] === 'ONLINE_MONETARY') {
-
-        if (!$request->hasFile('proof_of_payment')) {
-
-            return back()
-                ->withErrors([
-                    'proof_of_payment' =>
-                        'Please upload your proof of payment.'
-                ])
-                ->withInput();
-        }
-    }
-
 
     $donationData = [
         'ngo_id' => (int) $validated['ngo_id'],
@@ -152,10 +148,9 @@ class donate_controller extends Controller
         'amount' => (float) $validated['amount'],
         'unit' => $unit,
         'source' => $source,
-        'date' => now()->toDateString(),
+        'date' => now('Asia/Manila')->toDateString(),
         'status' => 'Pending',
     ];
-
 
     $response = $this->supabase()
         ->withHeaders([
@@ -163,78 +158,40 @@ class donate_controller extends Controller
         ])
         ->post('donations_table', $donationData);
 
-
     if (!$response->successful()) {
+        \Illuminate\Support\Facades\Log::error(
+            'Donation insertion failed.',
+            [
+                'status' => $response->status(),
+                'response' => $response->body(),
+            ]
+        );
 
-        return back()
-            ->withErrors([
-                'donation' =>
-                    'Failed to submit donation: ' .
-                    $response->body()
-            ])
-            ->withInput();
+        return response()->json([
+            'success' => false,
+            'message' => 'Failed to submit donation. Please try again.'
+        ], 500);
     }
 
     $donations = $response->json();
 
-    if (
-        empty($donations) ||
-        !isset($donations[0]['id'])
-    ) {
-
-        return back()
-            ->withErrors([
-                'donation' =>
-                    'Donation was submitted, but the donation ID could not be retrieved.'
-            ])
-            ->withInput();
+    if (empty($donations) || !isset($donations[0]['id'])) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Donation was submitted, but its ID could not be retrieved.'
+        ], 500);
     }
 
     $donationId = $donations[0]['id'];
 
-
-$notificationData = [
-    'title' => 'New Donation Received',
-    'message' => 'A new '
-        . strtolower($validated['type'])
-        . ' donation has been submitted: '
-        . trim($validated['description']) . '.',
-    'type' => 'Donation',
-    'reference_id' => $donationId,
-    'created_at' => now('Asia/Manila')->toIso8601String(),
-    'related_id' => (int) $validated['ngo_id'],
-];
-
-$notificationResponse = $this->supabase()
-    ->withHeaders([
-        'Prefer' => 'return=representation',
-    ])
-    ->post('notifications', $notificationData);
-
-if (!$notificationResponse->successful()) {
-    \Illuminate\Support\Facades\Log::error(
-        'Donation notification creation failed.',
-        [
-            'donation_id' => $donationId,
-            'status' => $notificationResponse->status(),
-            'response' => $notificationResponse->body(),
-        ]
-    );
-}
-
-
-
+    // Upload proof of payment for online monetary donations.
     if ($validated['type'] === 'ONLINE_MONETARY') {
 
         $file = $request->file('proof_of_payment');
 
-        $extension =
-            strtolower(
-                $file->getClientOriginalExtension()
-            );
+        $extension = strtolower($file->getClientOriginalExtension());
 
-        $fileName =
-            time()
+        $fileName = time()
             . '_donation_'
             . $donationId
             . '_'
@@ -242,25 +199,15 @@ if (!$notificationResponse->successful()) {
             . '.'
             . $extension;
 
-
-
         $storagePath = $fileName;
 
-
         $uploadResponse = Http::withHeaders([
-            'apikey' =>
-                env('SUPABASE_SERVICE_KEY'),
-
-            'Authorization' =>
-                'Bearer ' . env('SUPABASE_SERVICE_KEY'),
-
-            'Content-Type' =>
-                $file->getMimeType(),
+            'apikey' => env('SUPABASE_SERVICE_KEY'),
+            'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            'Content-Type' => $file->getMimeType(),
         ])
         ->withBody(
-            file_get_contents(
-                $file->getRealPath()
-            ),
+            file_get_contents($file->getRealPath()),
             $file->getMimeType()
         )
         ->post(
@@ -269,81 +216,103 @@ if (!$notificationResponse->successful()) {
             . $storagePath
         );
 
-
         if (!$uploadResponse->successful()) {
 
-            $this->supabase()
-                ->delete(
-                    'donations_table?id=eq.'
-                    . $donationId
-                );
+            $this->supabase()->delete(
+                'donations_table?id=eq.' . $donationId
+            );
 
-            return back()
-                ->withErrors([
-                    'proof_of_payment' =>
-                        'Failed to upload proof of payment: '
-                        . $uploadResponse->body()
-                ])
-                ->withInput();
+            \Illuminate\Support\Facades\Log::error(
+                'Proof of payment upload failed.',
+                [
+                    'donation_id' => $donationId,
+                    'status' => $uploadResponse->status(),
+                    'response' => $uploadResponse->body(),
+                ]
+            );
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to upload proof of payment.'
+            ], 500);
         }
 
-
-        $publicPath =
-            env('SUPABASE_URL')
+        $publicPath = env('SUPABASE_URL')
             . '/storage/v1/object/public/proof/'
             . $storagePath;
 
-
-        $mediaData = [
+        $mediaResponse = $this->supabase()->post('media_table', [
             'key_id' => $donationId,
             'type' => 'PROOF_OF_DONATION',
             'path' => $publicPath,
-        ];
-
-        $mediaResponse = $this->supabase()
-            ->post(
-                'media_table',
-                $mediaData
-            );
-
+        ]);
 
         if (!$mediaResponse->successful()) {
 
             Http::withHeaders([
-                'apikey' =>
-                    env('SUPABASE_SERVICE_KEY'),
-
-                'Authorization' =>
-                    'Bearer ' .
-                    env('SUPABASE_SERVICE_KEY'),
-            ])
-            ->delete(
+                'apikey' => env('SUPABASE_SERVICE_KEY'),
+                'Authorization' => 'Bearer ' . env('SUPABASE_SERVICE_KEY'),
+            ])->delete(
                 env('SUPABASE_URL')
                 . '/storage/v1/object/proof/'
                 . $storagePath
             );
 
-            $this->supabase()
-                ->delete(
-                    'donations_table?id=eq.'
-                    . $donationId
-                );
+            $this->supabase()->delete(
+                'donations_table?id=eq.' . $donationId
+            );
 
-            return back()
-                ->withErrors([
-                    'proof_of_payment' =>
-                        'Failed to save proof information: '
-                        . $mediaResponse->body()
-                ])
-                ->withInput();
+            \Illuminate\Support\Facades\Log::error(
+                'Proof of payment media insertion failed.',
+                [
+                    'donation_id' => $donationId,
+                    'response' => $mediaResponse->body(),
+                ]
+            );
+
+            return response()->json([
+                'success' => false,
+                'message' => 'Failed to save proof of payment information.'
+            ], 500);
         }
     }
 
+    // Create NGO-wide notification.
+    $notificationData = [
+        'title' => 'New Donation Received',
+        'message' => 'A new '
+            . strtolower($validated['type'])
+            . ' donation has been submitted: '
+            . trim($validated['description']) . '.',
+        'type' => 'Donation',
+        'reference_id' => $donationId,
+        'created_at' => now('Asia/Manila')->toIso8601String(),
+        'related_id' => (int) $validated['ngo_id'],
+    ];
+
+    $notificationResponse = $this->supabase()
+        ->withHeaders([
+            'Prefer' => 'return=representation',
+        ])
+        ->post('notifications', $notificationData);
+
+    if (!$notificationResponse->successful()) {
+        \Illuminate\Support\Facades\Log::error(
+            'Donation notification creation failed.',
+            [
+                'donation_id' => $donationId,
+                'status' => $notificationResponse->status(),
+                'response' => $notificationResponse->body(),
+            ]
+        );
+    }
 
     return response()->json([
-    'success' => true,
-    'message' => 'Donation submitted successfully!',
-], 200);
+        'success' => true,
+        'message' => 'Donation submitted successfully!',
+        'donation_id' => $donationId,
+    ], 200);
 }
+
 
 }

@@ -358,23 +358,28 @@ function deactivateVolunteer(id) {
         return;
     }
 
-
     console.log('Sending account ID:', id);
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')
+        ?.getAttribute('content');
+
+    if (!csrfToken) {
+        alert('CSRF token not found. Please refresh the page.');
+        return;
+    }
 
     fetch(`/volunteers/deactivate/${id}`, {
 
         method: 'PATCH',
 
         headers: {
+            'X-CSRF-TOKEN': csrfToken,
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest'
+        },
 
-            'X-CSRF-TOKEN':
-                '{{ csrf_token() }}',
-
-            'Accept':
-                'application/json'
-
-        }
+        credentials: 'same-origin'
 
     })
 
@@ -382,39 +387,15 @@ function deactivateVolunteer(id) {
 
         console.log('STATUS:', response.status);
 
-        const text =
-            await response.text();
+        const data = await response.json();
 
-        console.log(
-            'RAW RESPONSE:',
-            text
-        );
-
-
-        let data;
-
-        try {
-
-            data = JSON.parse(text);
-
-        } catch (error) {
-
-            throw new Error(
-                'Server returned an invalid response.'
-            );
-
-        }
-
+        console.log('RESPONSE:', data);
 
         if (!response.ok) {
-
             throw new Error(
-                data.message ||
-                'Failed to deactivate volunteer.'
+                data.message || 'Failed to deactivate volunteer.'
             );
-
         }
-
 
         return data;
 
@@ -422,14 +403,8 @@ function deactivateVolunteer(id) {
 
     .then(data => {
 
-        console.log(
-            'RESPONSE:',
-            data
-        );
-
         alert(
-            data.message ||
-            'Volunteer deactivated successfully.'
+            data.message || 'Volunteer deactivated successfully.'
         );
 
         location.reload();
@@ -438,14 +413,10 @@ function deactivateVolunteer(id) {
 
     .catch(error => {
 
-        console.error(
-            'ERROR:',
-            error
-        );
+        console.error('ERROR:', error);
 
         alert(
-            error.message ||
-            'Request failed. Please check the console.'
+            error.message || 'Request failed. Please check the console.'
         );
 
     });

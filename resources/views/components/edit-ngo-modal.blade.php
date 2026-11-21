@@ -27,10 +27,8 @@
 
         </div>
 
-        <form action="{{ url('/sm-ngos/update') }}" method="POST">
-
+        <form action="{{ url('/update-ngo') }}" method="POST">
             @csrf
-            @method('PATCH')
 
             <div class="p-8 space-y-6">
                 <div>

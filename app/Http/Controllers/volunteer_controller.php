@@ -33,7 +33,7 @@ class volunteer_controller extends Controller
 
         $totalApplications = $data->count();
         $approved = $data->where('status', 1)->count();
-        $pending = $data->where('status', 3)->count();
+        $pending = $data->where('status', 0)->count();
 
         return view('Volunteers.dashboard', compact(
             'totalApplications',
@@ -102,10 +102,7 @@ class volunteer_controller extends Controller
             ]);
 
         if (!$ngoResponse->successful()) {
-            dd([
-                'status' => $ngoResponse->status(),
-                'body' => $ngoResponse->body()
-            ]);
+          
         }
 
         $ngos = $ngoResponse->json();
@@ -116,10 +113,7 @@ class volunteer_controller extends Controller
             ]);
 
         if (!$accountResponse->successful()) {
-            dd([
-                'status' => $accountResponse->status(),
-                'body' => $accountResponse->body()
-            ]);
+            
         }
 
         $bankAccounts = $accountResponse->json();
@@ -193,7 +187,6 @@ class volunteer_controller extends Controller
         );
 
         if (!$response->successful()) {
-            dd($response->status(), $response->body());
         }
 
         $publicUrl = env('SUPABASE_URL')
@@ -295,15 +288,13 @@ class volunteer_controller extends Controller
         return view('Volunteers.events', compact('events', 'applications'));
     }
 
-    /* =========================================================
-        APPLICATIONS (FIXED 🔥)
-    ========================================================= */
+ 
     public function applications(Request $request)
     {
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')->with('error', 'Please log in first.');
+            redirect()->route('login.page')->with('error', 'Please log in first.');
         }
 
         $headers = [
@@ -473,7 +464,7 @@ class volunteer_controller extends Controller
         $userId = session('user_id');
 
         if (!$userId) {
-            return redirect('/login')->with('error', 'Please log in first.');
+            redirect()->route('login.page')->with('error', 'Please log in first.');
         }
 
         $headers = [

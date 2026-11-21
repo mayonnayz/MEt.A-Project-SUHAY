@@ -9,7 +9,6 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Str;
 
-// ---- Excel export (PhpSpreadsheet) ----
 use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Cell\DataType;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
@@ -55,7 +54,7 @@ class reports_controller extends Controller
     public function index(Request $request)
     {
         if (!session('ngo_id')) {
-            return redirect('/login')->with('error', 'NGO session not found.');
+            return redirect()->route('login.page')->with('error', 'NGO session not found.');
         }
 
         return view('reports', $this->buildReport($request) + ['isPdf' => false]);
@@ -65,7 +64,7 @@ class reports_controller extends Controller
     public function download(Request $request)
     {
         if (!session('ngo_id')) {
-            return redirect('/login')->with('error', 'NGO session not found.');
+            return redirect()->route('login.page')->with('error', 'NGO session not found.');
         }
 
         @ini_set('memory_limit', '512M');
@@ -95,11 +94,10 @@ class reports_controller extends Controller
         }
     }
 
-    // Downloads ONE card (?section=key) as Excel (.xlsx), respecting the date range
     public function downloadExcel(Request $request)
     {
         if (!session('ngo_id')) {
-            return redirect('/login')->with('error', 'NGO session not found.');
+            return redirect()->route('login.page')->with('error', 'NGO session not found.');
         }
 
         @ini_set('memory_limit', '512M');
@@ -113,7 +111,6 @@ class reports_controller extends Controller
         $section  = $data['report']['sections'][0];
         $colCount = max(count($section['columns']), 1);
 
-        // Header band spans at least 4 columns so it never looks cramped
         $bandCols = max($colCount, 4);
         $lastBand = Coordinate::stringFromColumnIndex($bandCols);
         $lastData = Coordinate::stringFromColumnIndex($colCount);
@@ -124,7 +121,6 @@ class reports_controller extends Controller
         $spreadsheet = new Spreadsheet();
         $sheet = $spreadsheet->getActiveSheet();
 
-        // Sheet names: max 31 chars, no \ / ? * [ ] :
         $sheetTitle = preg_replace('/[\\\\\/\?\*\[\]:]/', '', $section['title']);
         $sheet->setTitle(Str::limit($sheetTitle, 28, ''));
         $sheet->setShowGridlines(false);
@@ -141,7 +137,6 @@ class reports_controller extends Controller
             'alignment' => ['vertical' => Alignment::VERTICAL_CENTER, 'indent' => 1],
         ]);
 
-        // Optional logo (skipped if GD is missing or the file does not exist)
         if (extension_loaded('gd') && file_exists($logoPath)) {
             try {
                 $logo = new Drawing();
@@ -158,15 +153,12 @@ class reports_controller extends Controller
             }
         }
 
-        // If the logo is there, push the text to the right of it
         $sheet->setCellValue('A1', ($hasLogo ? str_repeat(' ', 26) : '') . 'REPORTS');
 
-        /* ---------- GOLD RULE (row 2) ---------- */
         $sheet->getRowDimension(2)->setRowHeight(4);
         $sheet->getStyle("A2:{$lastBand}2")->getFill()
             ->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB($gold);
 
-        /* ---------- REPORT INFO (rows 3-5) ---------- */
         $sheet->mergeCells("A3:{$lastBand}3");
         $sheet->setCellValue('A3', $section['title']);
         $sheet->getStyle('A3')->getFont()->setBold(true)->setSize(16)->getColor()->setRGB($navy);
@@ -177,7 +169,6 @@ class reports_controller extends Controller
         $sheet->setCellValue('A4', $data['ngoName']);
         $sheet->getStyle('A4')->getFont()->setBold(true)->setSize(12)->getColor()->setRGB($gold);
 
-        // Two lines + wrap so the info never gets cut off by the merged width
         $sheet->mergeCells("A5:{$lastBand}5");
         $sheet->setCellValue(
             'A5',
@@ -190,7 +181,6 @@ class reports_controller extends Controller
             ->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getRowDimension(5)->setRowHeight(32);
 
-        /* ---------- STAT CHIPS ---------- */
         $row = 7;
 
         if (!empty($section['stats'])) {
@@ -226,7 +216,6 @@ class reports_controller extends Controller
             $row += 2;
         }
 
-        /* ---------- TABLE HEADER ---------- */
         $headerRow = $row;
 
         foreach ($section['columns'] as $i => $col) {
@@ -244,7 +233,6 @@ class reports_controller extends Controller
         ]);
         $sheet->getRowDimension($headerRow)->setRowHeight(24);
 
-        /* ---------- TABLE BODY ---------- */
         $toneRgb = ['red' => 'DC2626', 'green' => '16A34A', 'orange' => 'EA580C', 'gray' => '6B7280'];
 
         $row = $headerRow + 1;
@@ -275,7 +263,7 @@ class reports_controller extends Controller
                     }
                 }
 
-                // Zebra stripe
+               
                 if (($row - $firstBody) % 2 === 1) {
                     $sheet->getStyle("A{$row}:{$lastData}{$row}")->getFill()
                         ->setFillType(Fill::FILL_SOLID)->getStartColor()->setRGB('F9FAFB');
@@ -296,7 +284,7 @@ class reports_controller extends Controller
         ]);
         $sheet->getStyle("A{$firstBody}:{$lastData}{$lastBody}")->getFont()->setSize(10);
 
-        // Default text color for cells that have no tone
+        
         foreach ($section['rows'] as $ri => $r) {
             foreach ($r as $i => $cell) {
                 $tone = is_array($cell) ? ($cell['tone'] ?? null) : null;
@@ -307,18 +295,18 @@ class reports_controller extends Controller
             }
         }
 
-        // Right-align numeric columns in the body
+        
         foreach ($section['right'] as $i) {
             $letter = Coordinate::stringFromColumnIndex($i + 1);
             $sheet->getStyle("{$letter}{$firstBody}:{$letter}{$lastBody}")
                 ->getAlignment()->setHorizontal(Alignment::HORIZONTAL_RIGHT);
         }
 
-        // Outer border around the whole table
+        
         $sheet->getStyle("A{$headerRow}:{$lastData}{$lastBody}")->getBorders()->getOutline()
             ->setBorderStyle(Border::BORDER_THIN)->getColor()->setRGB('D1D5DB');
 
-        /* ---------- FOOTER NOTE ---------- */
+       
         $footerRow = $lastBody + 2;
         $sheet->mergeCells("A{$footerRow}:{$lastBand}{$footerRow}");
         $sheet->setCellValue(
@@ -331,7 +319,7 @@ class reports_controller extends Controller
             ->setVertical(Alignment::VERTICAL_CENTER);
         $sheet->getRowDimension($footerRow)->setRowHeight(24);
 
-        /* ---------- COLUMN WIDTHS (auto-fit with limits) ---------- */
+        
         for ($i = 0; $i < $colCount; $i++) {
             $letter = Coordinate::stringFromColumnIndex($i + 1);
             $max = mb_strlen((string) $section['columns'][$i]);
@@ -345,7 +333,7 @@ class reports_controller extends Controller
             $sheet->getColumnDimension($letter)->setWidth(min(max($max + 5, 16), 50));
         }
 
-        /* ---------- VIEW & PRINT SETTINGS ---------- */
+       
         $sheet->freezePane('A' . ($headerRow + 1));
 
         if (!empty($section['rows'])) {
@@ -361,7 +349,7 @@ class reports_controller extends Controller
         $sheet->getPageSetup()->setRowsToRepeatAtTopByStartAndEnd($headerRow, $headerRow);
         $sheet->getPageMargins()->setTop(0.5)->setBottom(0.5)->setLeft(0.4)->setRight(0.4);
 
-        // Document properties
+        
         $spreadsheet->getProperties()
             ->setCreator('SUHAY')
             ->setTitle('SUHAY - ' . $section['title'])
@@ -370,7 +358,7 @@ class reports_controller extends Controller
         $spreadsheet->setActiveSheetIndex(0);
         $sheet->setSelectedCell('A1');
 
-        /* ---------- STREAM ---------- */
+        
         $fileName = 'SUHAY-' . Str::slug($data['roleLabel']) . '-'
             . Str::slug($sectionKey) . '-'
             . now('Asia/Manila')->format('Ymd-His') . '.xlsx';
@@ -385,11 +373,7 @@ class reports_controller extends Controller
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | BUILD REPORT (PICKS CARDS BY ROLE)
-    |--------------------------------------------------------------------------
-    */
+
 
     private function buildReport(Request $request, ?string $onlySection = null): array
     {
