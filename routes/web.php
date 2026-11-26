@@ -477,6 +477,12 @@ Route::get(
     [inventory_controller::class, 'index']
 );
 
+// Add new inventory item
+Route::post(
+    '/inventory/store',
+    [inventory_controller::class, 'store']
+)->name('inventory.store');
+
 Route::post(
     '/inventory/update/{id}',
     [inventory_controller::class, 'update']

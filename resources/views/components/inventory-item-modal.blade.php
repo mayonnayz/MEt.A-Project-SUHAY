@@ -1,4 +1,3 @@
-
 <div
     id="inventoryModal"
     class="fixed inset-0 z-50 hidden items-center justify-center
@@ -16,7 +15,9 @@
                     Inventory
                 </p>
 
-                
+                <h2 id="modalTitle" class="text-2xl font-bold text-[#0e243a]">
+                    Edit Inventory Item
+                </h2>
             </div>
 
             <button

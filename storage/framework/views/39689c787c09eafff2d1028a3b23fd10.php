@@ -993,6 +993,7 @@
 </div>
 
 <?php echo $__env->make('components.logout-modal', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?>
+
 <script>
     window.ngoData = <?php echo json_encode($ngos, 15, 512) ?>;
 
@@ -1002,6 +1003,8 @@
         locationIcon: <?php echo json_encode(asset('images/VolunteerIcons/VLocation.png'), 15, 512) ?>
     };
 </script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script src="<?php echo e(asset('js/donate.js')); ?>"></script>
 
